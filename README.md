@@ -1,1 +1,1 @@
-# HanZi-Mentor
+# HanZi Mentor | 汉字导师
