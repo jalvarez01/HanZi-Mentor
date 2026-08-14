@@ -112,7 +112,7 @@ git --version
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <URL-DEL-REPO>
+git clone https://github.com/jalvarez01/HanZi-Mentor.git
 cd HanZi-Mentor
 ```
 
