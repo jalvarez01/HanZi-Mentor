@@ -1,0 +1,150 @@
+.hiw { padding-top: 20px; padding-bottom: 32px; }
+
+.hiw-intro {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 0 0 24px;
+}
+
+.step {
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  padding: 20px 18px;
+  margin-bottom: 18px;
+  scroll-margin-top: 64px;
+}
+
+.step-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.step-mark i {
+  flex: 1;
+  height: 1px;
+  opacity: 0.3;
+}
+
+.step h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+
+.body-text {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 0 0 18px;
+}
+
+.bullets {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+}
+
+.bullets li {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 7px;
+}
+
+.bullets li::before {
+  content: '·';
+  position: absolute;
+  left: 3px;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.demo-row { display: flex; gap: 16px; }
+
+.demo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.demo-char {
+  font-family: var(--font-display);
+  font-size: 40px;
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border: 1.5px solid;
+  border-radius: 6px;
+}
+
+.demo-panel {
+  background: var(--paper);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.demo-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 12px 0 6px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.demo-line:first-child { margin-top: 0; }
+
+.hanzi-inline {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.pb-track {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(74, 70, 66, 0.12);
+  overflow: hidden;
+}
+
+.pb-fill { height: 100%; border-radius: 99px; }
+
+.levels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.level {
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 11px 0;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink-soft);
+}
+
+.level.active {
+  background: var(--gold);
+  color: var(--paper);
+}

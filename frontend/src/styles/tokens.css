@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --paper: #EEEAE0;
+  --paper-2: #E6E0D2;
+  --ink: #1A1A1A;
+  --ink-soft: #4A4642;
+  --seal: #B23A2E;
+  --jade: #4C6B58;
+  --gold: #A98B4F;
+
+  --font-display: 'Noto Serif SC', serif;
+  --font-body: 'Source Serif 4', serif;
+  --font-ui: 'Inter', sans-serif;
+
+  /* Altura de la barra inferior + safe area del iPhone */
+  --tabbar-h: 62px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overscroll-behavior-y: none;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* Contenedor de app: ancho de celular, centrado en pantallas grandes */
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--paper);
+  padding-top: var(--safe-top);
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom));
+  position: relative;
+}
+
+/* En desktop se nota que es una app de celular, no una web rota */
+@media (min-width: 900px) {
+  body {
+    background: var(--paper-2);
+  }
+  .app-shell {
+    box-shadow: 0 0 0 1px rgba(169,139,79,0.25);
+    min-height: 100dvh;
+  }
+}
+
+.screen-pad { padding: 0 20px; }
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
