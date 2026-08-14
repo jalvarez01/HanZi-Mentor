@@ -1,0 +1,37 @@
+altgraph @ file:///AppleInternal/Library/BuildRoots/4~CMzOugA1hT-4O2kZ5M4Og1VxAfLgir31_besAu0/Library/Caches/com.apple.xbs/Sources/python3/altgraph-0.17.2-py2.py3-none-any.whl
+annotated-doc==0.0.5
+annotated-types==0.7.0
+anyio==4.12.1
+asgiref==3.11.1
+certifi==2026.2.25
+charset-normalizer==3.4.5
+click==8.1.8
+Django==4.2.28
+exceptiongroup==1.3.1
+fastapi==0.128.8
+future @ file:///AppleInternal/Library/BuildRoots/4~CMzOugA1hT-4O2kZ5M4Og1VxAfLgir31_besAu0/Library/Caches/com.apple.xbs/Sources/python3/future-0.18.2-py3-none-any.whl
+gunicorn==23.0.0
+h11==0.16.0
+httptools==0.8.0
+idna==3.11
+Jinja2==3.1.5
+macholib @ file:///AppleInternal/Library/BuildRoots/4~CMzOugA1hT-4O2kZ5M4Og1VxAfLgir31_besAu0/Library/Caches/com.apple.xbs/Sources/python3/macholib-1.15.2-py2.py3-none-any.whl
+MarkupSafe==3.0.3
+packaging==26.0
+pillow==11.3.0
+pydantic==2.13.4
+pydantic_core==2.46.4
+python-dotenv==1.2.1
+python-multipart==0.0.20
+PyYAML==6.0.3
+requests==2.32.5
+six @ file:///AppleInternal/Library/BuildRoots/4~CMzOugA1hT-4O2kZ5M4Og1VxAfLgir31_besAu0/Library/Caches/com.apple.xbs/Sources/python3/six-1.15.0-py2.py3-none-any.whl
+sqlparse==0.5.5
+starlette==0.49.3
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+urllib3==2.6.3
+uvicorn==0.34.0
+uvloop==0.22.1
+watchfiles==1.1.1
+websockets==15.0.1
