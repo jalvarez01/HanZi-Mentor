@@ -2,7 +2,11 @@ from django.db import models
 
 
 class SesionEstudio(models.Model):
-    """Sesión de práctica generada para un usuario en un momento dado."""
+    """Sesión de práctica generada para un usuario en un momento dado.
+
+    Solo persistencia: las reglas de cuándo se cierra o cuántos
+    ejercicios quedan pendientes viven en tutor.domain.sesion_logic.
+    """
 
     ESTADOS = [
         ("borrador", "Borrador"),
@@ -16,20 +20,6 @@ class SesionEstudio(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS, default="borrador")
     creada_en = models.DateTimeField(auto_now_add=True)
     duracion_estimada_min = models.PositiveSmallIntegerField(default=10)
-
-    def total_ejercicios(self):
-        return self.ejercicios.count()
-
-    def ejercicios_pendientes(self):
-        return self.ejercicios.filter(respondido=False).count()
-
-    def cerrar_si_completa(self):
-        """Marca la sesión como completada cuando ya no quedan pendientes."""
-        if self.ejercicios_pendientes() == 0 and self.estado != "completada":
-            self.estado = "completada"
-            self.save(update_fields=["estado"])
-            return True
-        return False
 
     def __str__(self):
         return f"Sesión {self.pk} · usuario {self.usuario_id} · HSK{self.nivel_hsk}"
@@ -58,9 +48,6 @@ class Ejercicio(models.Model):
     respondido = models.BooleanField(default=False)
     fue_correcto = models.BooleanField(null=True, blank=True)
     respondido_en = models.DateTimeField(null=True, blank=True)
-
-    def esta_pendiente(self):
-        return not self.respondido
 
     def __str__(self):
         return f"{self.caracter} ({self.tipo})"

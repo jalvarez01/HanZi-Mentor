@@ -22,9 +22,6 @@ class Caracter(models.Model):
     class Meta:
         ordering = ["nivel_hsk", "frecuencia", "hanzi"]
 
-    def total_trazos(self):
-        return self.trazos.count()
-
     def __str__(self):
         return f"{self.hanzi} ({self.pinyin})"
 

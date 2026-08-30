@@ -4,7 +4,11 @@ el servicio se prueba sin tocar LangGraph ni enviar correos."""
 import uuid
 
 from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
 
+from .domain import sesion_logic
 from .domain.builders import SesionEstudioBuilder
 from .domain.exceptions import NivelNoPermitidoError, SesionInvalidaError
 from .services import SesionEstudioService

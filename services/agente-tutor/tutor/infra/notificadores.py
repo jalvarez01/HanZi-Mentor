@@ -3,6 +3,8 @@
 import logging
 from abc import ABC, abstractmethod
 
+from ..domain import sesion_logic
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +23,7 @@ class NotificadorConsola(Notificador):
             sesion.pk,
             usuario_id,
             sesion.nivel_hsk,
-            sesion.total_ejercicios(),
+            sesion_logic.total_ejercicios(sesion),
         )
 
 
@@ -37,7 +39,7 @@ class NotificadorEmail(Notificador):
         send_mail(
             subject="Tu sesión de práctica está lista",
             message=(
-                f"Preparamos {sesion.total_ejercicios()} ejercicios de nivel "
+                f"Preparamos {sesion_logic.total_ejercicios(sesion)} ejercicios de nivel "
                 f"HSK{sesion.nivel_hsk}. Duración estimada: "
                 f"{sesion.duracion_estimada_min} minutos."
             ),

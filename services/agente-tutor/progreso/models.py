@@ -2,7 +2,12 @@ from django.db import models
 
 
 class ProgresoUsuario(models.Model):
-    """Estado de aprendizaje de un usuario: qué domina, qué falla, hasta dónde llegó."""
+    """Estado de aprendizaje de un usuario: qué domina, qué falla, hasta dónde llegó.
+
+    Solo persistencia: las reglas que deciden cómo cambia este estado
+    (registrar acierto/error, agendar repaso, desbloquear nivel) viven en
+    tutor.domain.progreso_logic, no acá.
+    """
 
     usuario_id = models.UUIDField(unique=True)
 
@@ -51,56 +56,6 @@ class ProgresoUsuario(models.Model):
     class Meta:
         verbose_name = "Progreso de usuario"
         verbose_name_plural = "Progresos de usuarios"
-
-    def registrar_error(self, caracter):
-        """Suma un fallo, corta la racha y le quita la condicion de dominado."""
-        errores = dict(self.errores_frecuentes or {})
-        errores[caracter] = errores.get(caracter, 0) + 1
-        self.errores_frecuentes = errores
-
-        rachas = dict(self.aciertos_consecutivos or {})
-        rachas[caracter] = 0
-        self.aciertos_consecutivos = rachas
-
-        if caracter in (self.caracteres_dominados or []):
-            self.caracteres_dominados = [
-                c for c in self.caracteres_dominados if c != caracter
-            ]
-
-    def registrar_acierto(self, caracter):
-        """Descuenta un fallo, suma a la racha y marca como dominado si corresponde."""
-        errores = dict(self.errores_frecuentes or {})
-
-        if caracter in errores:
-            errores[caracter] -= 1
-            if errores[caracter] <= 0:
-                del errores[caracter]
-            self.errores_frecuentes = errores
-
-        rachas = dict(self.aciertos_consecutivos or {})
-        rachas[caracter] = rachas.get(caracter, 0) + 1
-        self.aciertos_consecutivos = rachas
-
-        dominados = list(self.caracteres_dominados or [])
-        if caracter not in errores and caracter not in dominados:
-            dominados.append(caracter)
-            self.caracteres_dominados = dominados
-
-    def racha_de(self, caracter):
-        return (self.aciertos_consecutivos or {}).get(caracter, 0)
-
-    def agendar_repaso(self, caracter, cuando):
-        """Guarda la fecha del proximo repaso y actualiza la mas cercana."""
-        agenda = dict(self.agenda_repaso or {})
-        agenda[caracter] = cuando.isoformat()
-        self.agenda_repaso = agenda
-
-        if self.proximo_repaso is None or cuando < self.proximo_repaso:
-            self.proximo_repaso = cuando
-
-    def desbloquear_siguiente_nivel(self):
-        if self.nivel_max_desbloqueado < 6:
-            self.nivel_max_desbloqueado += 1
 
     def __str__(self):
         return f"Progreso de {self.usuario_id} — HSK{self.nivel_hsk}"

@@ -9,6 +9,7 @@ recibieron: las Factories lo resolvieron por ellos.
 from django.db import transaction
 from django.utils import timezone
 
+from .domain import progreso_logic, sesion_logic
 from .domain.builders import SesionEstudioBuilder
 from .domain.exceptions import EjercicioYaRespondidoError
 from .domain.repaso import actualizar_tasa_acierto, calcular_proximo_repaso
@@ -77,15 +78,13 @@ class ResponderEjercicioService:
         caracter = ejercicio.caracter
 
         progreso = self._progreso.obtener_o_crear_entidad(usuario_id)
-        racha_previa = progreso.racha_de(caracter)
+        racha_previa = progreso_logic.racha_de(progreso, caracter)
 
-        if acerto:
-            progreso.registrar_acierto(caracter)
-        else:
-            progreso.registrar_error(caracter)
+        progreso_logic.registrar_respuesta(progreso, caracter, acerto)
 
         progreso.tasa_acierto = actualizar_tasa_acierto(progreso.tasa_acierto, acerto)
-        progreso.agendar_repaso(
+        progreso_logic.agendar_repaso(
+            progreso,
             caracter,
             calcular_proximo_repaso(racha_previa, acerto, desde=ahora),
         )
@@ -96,12 +95,12 @@ class ResponderEjercicioService:
         ejercicio.respondido_en = ahora
         ejercicio.save(update_fields=["respondido", "fue_correcto", "respondido_en"])
 
-        sesion_cerrada = ejercicio.sesion.cerrar_si_completa()
+        sesion_cerrada = sesion_logic.cerrar_si_completa(ejercicio.sesion)
 
         return {
             "ejercicio": ejercicio,
             "sesion_completada": sesion_cerrada,
-            "pendientes": ejercicio.sesion.ejercicios_pendientes(),
+            "pendientes": sesion_logic.ejercicios_pendientes(ejercicio.sesion),
             "proximo_repaso": progreso.agenda_repaso.get(caracter),
             "tasa_acierto": progreso.tasa_acierto,
         }

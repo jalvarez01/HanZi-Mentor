@@ -15,3 +15,8 @@ class CaracterAdmin(admin.ModelAdmin):
     list_filter = ("nivel_hsk",)
     search_fields = ("hanzi", "pinyin", "definicion")
     inlines = [TrazoInline]
+
+    @admin.display(description="Trazos")
+    def total_trazos(self, obj):
+        """Solo para la lista del admin: no es lógica de negocio del modelo."""
+        return obj.trazos.count()
