@@ -1,0 +1,209 @@
+.practica { padding-top: 20px; padding-bottom: 40px; }
+
+.practica .intro {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0 0 24px;
+}
+
+.practica .nota {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-soft);
+  opacity: 0.75;
+  line-height: 1.55;
+  margin-top: 28px;
+}
+
+.practica .error {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--seal);
+  background: rgba(178, 58, 46, 0.08);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 0 0 16px;
+}
+
+.practica .cargando {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Selección de nivel */
+.niveles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.nivel-btn {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 18px 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--ink);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.nivel-btn:active { transform: scale(0.97); background: var(--gold); color: var(--paper); }
+.nivel-btn:disabled { opacity: 0.5; }
+
+/* Avance */
+.barra-avance {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(74, 70, 66, 0.12);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.barra-relleno {
+  height: 100%;
+  background: var(--jade);
+  border-radius: 99px;
+  transition: width 0.25s ease;
+}
+
+.contador {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.etiqueta-refuerzo {
+  background: var(--seal);
+  color: var(--paper);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  letter-spacing: 0.02em;
+}
+
+/* Tarjeta del ejercicio */
+.tarjeta-ejercicio {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  padding: 36px 20px 24px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.hanzi-grande {
+  font-family: var(--font-display);
+  font-size: 96px;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+.tarjeta-ejercicio .tipo {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.pregunta {
+  font-size: 15px;
+  text-align: center;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+
+.acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-mal, .btn-bien {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 15px 0;
+  border-radius: 8px;
+  color: var(--paper);
+}
+
+.btn-mal { background: var(--seal); }
+.btn-bien { background: var(--jade); }
+.btn-mal:active, .btn-bien:active { opacity: 0.85; }
+.btn-mal:disabled, .btn-bien:disabled { opacity: 0.5; }
+
+/* Feedback */
+.feedback {
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+
+.feedback .ok { color: var(--jade); font-weight: 600; margin: 0 0 12px; }
+.feedback .fallo { color: var(--seal); font-weight: 600; margin: 0 0 12px; }
+
+.dato {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 4px 0;
+}
+
+.btn-principal {
+  display: block;
+  width: 100%;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 500;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 0;
+  border-radius: 8px;
+  margin-top: 18px;
+  text-align: center;
+}
+
+.btn-texto {
+  display: block;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin-top: 14px;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 3px;
+}
+
+/* Resumen final */
+.resumen { text-align: center; padding-top: 48px; }
+
+.sello-grande {
+  font-family: var(--font-display);
+  font-size: 76px;
+  color: var(--paper);
+  background: var(--seal);
+  width: 120px;
+  height: 120px;
+  line-height: 120px;
+  border-radius: 12px;
+  margin: 0 auto 24px;
+}
+
+.resumen h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  margin: 0 0 10px;
+}

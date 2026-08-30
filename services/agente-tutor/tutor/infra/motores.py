@@ -2,11 +2,18 @@
 Implementaciones intercambiables del motor de tutoría.
 
 Ambas cumplen el mismo contrato, así el Service no sabe ni le importa
-cuál está usando (Principio de Sustitución de Liskov + Inversión de
-Dependencias).
+cuál está usando (Sustitución de Liskov + Inversión de Dependencias).
+
+Ninguna de las dos guarda su propia lista de caracteres: las dos piden el
+contenido al Catalogo que reciben inyectado.
 """
 
 from abc import ABC, abstractmethod
+
+from .catalogo import CatalogoLocal
+
+UMBRAL_ALTO = 0.85
+UMBRAL_MEDIO = 0.6
 
 
 class MotorTutor(ABC):
@@ -24,36 +31,31 @@ class MotorTutor(ABC):
 class MotorTutorMock(MotorTutor):
     """Implementación determinista para desarrollo, tests y demos sin costo."""
 
-    CATALOGO_POR_NIVEL = {
-        1: ["人", "口", "日", "月", "水", "火"],
-        2: ["学", "校", "老", "师", "同", "朋"],
-        3: ["经", "济", "政", "府", "社", "会"],
-        4: ["环", "境", "资", "源", "技", "术"],
-        5: ["哲", "学", "逻", "辑", "概", "念"],
-        6: ["宪", "法", "司", "法", "立", "法"],
-    }
+    def __init__(self, catalogo=None):
+        self._catalogo = catalogo or CatalogoLocal()
 
     def sugerir_dificultad(self, progreso: dict) -> int:
-        tasa_acierto = progreso.get("tasa_acierto", 0.5)
-        if tasa_acierto >= 0.85:
+        tasa = progreso.get("tasa_acierto", 0.5)
+        if tasa >= UMBRAL_ALTO:
             return 4
-        if tasa_acierto >= 0.6:
+        if tasa >= UMBRAL_MEDIO:
             return 3
         return 2
 
     def seleccionar_caracteres_nuevos(self, progreso: dict, cantidad: int) -> list:
-        nivel = progreso.get("nivel_hsk", 1)
-        dominados = set(progreso.get("caracteres_dominados", []))
-        catalogo = self.CATALOGO_POR_NIVEL.get(nivel, [])
-        disponibles = [c for c in catalogo if c not in dominados]
-        return disponibles[:cantidad]
+        return self._catalogo.caracteres_de_nivel(
+            nivel=progreso.get("nivel_hsk", 1),
+            excluir=progreso.get("caracteres_dominados", []),
+            cantidad=cantidad,
+        )
 
 
 class MotorTutorLangGraph(MotorTutor):
     """Implementación real: delega el razonamiento al agente LangGraph."""
 
-    def __init__(self, agente):
+    def __init__(self, agente, catalogo=None):
         self._agente = agente
+        self._catalogo = catalogo or CatalogoLocal()
 
     def sugerir_dificultad(self, progreso: dict) -> int:
         respuesta = self._agente.invoke(
@@ -62,11 +64,18 @@ class MotorTutorLangGraph(MotorTutor):
         return int(respuesta["dificultad"])
 
     def seleccionar_caracteres_nuevos(self, progreso: dict, cantidad: int) -> list:
-        respuesta = self._agente.invoke(
-            {
-                "tarea": "seleccionar_caracteres",
-                "progreso": progreso,
-                "cantidad": cantidad,
-            }
+        # El catálogo acota el universo; el agente elige dentro de ese universo.
+        disponibles = self._catalogo.caracteres_de_nivel(
+            nivel=progreso.get("nivel_hsk", 1),
+            excluir=progreso.get("caracteres_dominados", []),
+            cantidad=cantidad * 3,
         )
-        return respuesta["caracteres"]
+
+        respuesta = self._agente.invoke({
+            "tarea": "seleccionar_caracteres",
+            "progreso": {**progreso, "disponibles": disponibles},
+            "cantidad": cantidad,
+        })
+
+        elegidos = respuesta.get("caracteres", [])
+        return elegidos[:cantidad] if elegidos else disponibles[:cantidad]

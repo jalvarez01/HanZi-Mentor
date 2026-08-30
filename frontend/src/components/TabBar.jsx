@@ -4,7 +4,7 @@ import './TabBar.css';
 const TABS = [
   { to: '/', label: 'Inicio', glyph: '家' },
   { to: '/trazos', label: 'Trazos', glyph: '写' },
-  { to: '/tutor', label: 'Tutor', glyph: '师' },
+  { to: '/practica', label: 'Practicar', glyph: '师' },
   { to: '/progreso', label: 'Progreso', glyph: '级' },
 ];
 

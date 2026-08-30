@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import HowItWorks from './pages/HowItWorks';
-import Placeholder from './pages/Placeholder';
+import Practica from './pages/Practica';
+import Progreso from './pages/Progreso';
+import Trazos from './pages/Trazos';
 import TabBar from './components/TabBar';
 import './styles/tokens.css';
 
@@ -12,18 +14,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/como-funciona" element={<HowItWorks />} />
-          <Route path="/trazos" element={
-            <Placeholder title="Trazos" glyph="写"
-              note="Aquí va el lienzo de práctica de trazos." />
-          } />
-          <Route path="/tutor" element={
-            <Placeholder title="Tutor IA" glyph="师"
-              note="Aquí va la sesión con el agente tutor." />
-          } />
-          <Route path="/progreso" element={
-            <Placeholder title="Progreso" glyph="级"
-              note="Aquí van tus estadísticas y niveles HSK." />
-          } />
+          <Route path="/trazos" element={<Trazos />} />
+          <Route path="/practica" element={<Practica />} />
+          <Route path="/tutor" element={<Practica />} />
+          <Route path="/progreso" element={<Progreso />} />
         </Routes>
         <TabBar />
       </div>

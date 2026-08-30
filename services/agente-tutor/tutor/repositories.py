@@ -30,3 +30,13 @@ class ProgresoRepository:
         errores = progreso.errores_frecuentes or {}
         ordenados = sorted(errores.items(), key=lambda par: par[1], reverse=True)
         return [caracter for caracter, _ in ordenados[:limite]]
+
+    # ---------- escritura ----------
+
+    def obtener_o_crear_entidad(self, usuario_id) -> ProgresoUsuario:
+        """Devuelve la entidad real (no el dict) para poder mutarla y guardarla."""
+        progreso, _ = ProgresoUsuario.objects.get_or_create(usuario_id=usuario_id)
+        return progreso
+
+    def guardar(self, progreso: ProgresoUsuario) -> None:
+        progreso.save()

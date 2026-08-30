@@ -20,6 +20,17 @@ class SesionEstudio(models.Model):
     def total_ejercicios(self):
         return self.ejercicios.count()
 
+    def ejercicios_pendientes(self):
+        return self.ejercicios.filter(respondido=False).count()
+
+    def cerrar_si_completa(self):
+        """Marca la sesión como completada cuando ya no quedan pendientes."""
+        if self.ejercicios_pendientes() == 0 and self.estado != "completada":
+            self.estado = "completada"
+            self.save(update_fields=["estado"])
+            return True
+        return False
+
     def __str__(self):
         return f"Sesión {self.pk} · usuario {self.usuario_id} · HSK{self.nivel_hsk}"
 
@@ -43,6 +54,13 @@ class Ejercicio(models.Model):
         default=False,
         help_text="True si nace de un error previo del usuario, no de contenido nuevo.",
     )
+
+    respondido = models.BooleanField(default=False)
+    fue_correcto = models.BooleanField(null=True, blank=True)
+    respondido_en = models.DateTimeField(null=True, blank=True)
+
+    def esta_pendiente(self):
+        return not self.respondido
 
     def __str__(self):
         return f"{self.caracter} ({self.tipo})"

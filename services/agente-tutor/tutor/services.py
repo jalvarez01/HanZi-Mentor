@@ -2,12 +2,18 @@
 Capa de Aplicación — aquí vive el algoritmo de negocio.
 
 La vista no sabe nada de builders, motores ni notificadores: solo llama
-a este servicio. Y este servicio no sabe qué implementación concreta
-recibió: las Factories lo resolvieron por él.
+a estos servicios. Y los servicios no saben qué implementación concreta
+recibieron: las Factories lo resolvieron por ellos.
 """
 
+from django.db import transaction
+from django.utils import timezone
+
 from .domain.builders import SesionEstudioBuilder
+from .domain.exceptions import EjercicioYaRespondidoError
+from .domain.repaso import actualizar_tasa_acierto, calcular_proximo_repaso
 from .infra.factories import MotorTutorFactory, NotificadorFactory
+from .models import Ejercicio
 from .repositories import ProgresoRepository
 
 CANTIDAD_REFUERZOS = 3
@@ -48,3 +54,54 @@ class SesionEstudioService:
 
         self._notificador.sesion_lista(usuario_id, sesion)
         return sesion
+
+
+class ResponderEjercicioService:
+    """Registra la respuesta a un ejercicio y actualiza el progreso del usuario."""
+
+    def __init__(self, progreso_repo=None, reloj=None):
+        self._progreso = progreso_repo or ProgresoRepository()
+        self._reloj = reloj or timezone.now
+
+    @transaction.atomic
+    def responder(self, ejercicio_id, acerto):
+        ejercicio = Ejercicio.objects.select_related("sesion").get(pk=ejercicio_id)
+
+        if ejercicio.respondido:
+            raise EjercicioYaRespondidoError(
+                f"El ejercicio {ejercicio_id} ya fue respondido."
+            )
+
+        ahora = self._reloj()
+        usuario_id = ejercicio.sesion.usuario_id
+        caracter = ejercicio.caracter
+
+        progreso = self._progreso.obtener_o_crear_entidad(usuario_id)
+        racha_previa = progreso.racha_de(caracter)
+
+        if acerto:
+            progreso.registrar_acierto(caracter)
+        else:
+            progreso.registrar_error(caracter)
+
+        progreso.tasa_acierto = actualizar_tasa_acierto(progreso.tasa_acierto, acerto)
+        progreso.agendar_repaso(
+            caracter,
+            calcular_proximo_repaso(racha_previa, acerto, desde=ahora),
+        )
+        self._progreso.guardar(progreso)
+
+        ejercicio.respondido = True
+        ejercicio.fue_correcto = acerto
+        ejercicio.respondido_en = ahora
+        ejercicio.save(update_fields=["respondido", "fue_correcto", "respondido_en"])
+
+        sesion_cerrada = ejercicio.sesion.cerrar_si_completa()
+
+        return {
+            "ejercicio": ejercicio,
+            "sesion_completada": sesion_cerrada,
+            "pendientes": ejercicio.sesion.ejercicios_pendientes(),
+            "proximo_repaso": progreso.agenda_repaso.get(caracter),
+            "tasa_acierto": progreso.tasa_acierto,
+        }

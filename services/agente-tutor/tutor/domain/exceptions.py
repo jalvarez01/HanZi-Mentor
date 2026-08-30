@@ -8,3 +8,7 @@ class SesionInvalidaError(DominioError):
 
 class NivelNoPermitidoError(DominioError):
     """El usuario intenta practicar un nivel HSK que aún no desbloqueó."""
+
+
+class EjercicioYaRespondidoError(DominioError):
+    """No se puede responder dos veces el mismo ejercicio."""
