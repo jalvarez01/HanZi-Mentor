@@ -57,7 +57,7 @@ class SesionEstudioServiceTest(TestCase):
         sesion = self.service.crear_sesion_adaptativa(self.usuario_id, nivel_hsk=2)
 
         self.assertEqual(sesion.estado, "activa")
-        self.assertEqual(sesion.total_ejercicios(), 6)
+        self.assertEqual(sesion_logic.total_ejercicios(sesion), 6)
         self.assertTrue(sesion.ejercicios.filter(es_refuerzo=True).exists())
 
     def test_notifica_una_vez(self):
@@ -91,6 +91,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+from .domain import progreso_logic
 from .domain.repaso import (
     actualizar_tasa_acierto,
     calcular_proximo_repaso,
@@ -166,13 +167,13 @@ class ResponderEjercicioServiceTest(TestCase):
 
         progreso = ProgresoUsuario.objects.get(usuario_id=self.usuario_id)
         self.assertEqual(progreso.errores_frecuentes.get("学"), 1)
-        self.assertEqual(progreso.racha_de("学"), 0)
+        self.assertEqual(progreso_logic.racha_de(progreso, "学"), 0)
 
     def test_acertar_corta_los_errores_y_suma_racha(self):
         self.service.responder(self.ejercicio.pk, acerto=True)
 
         progreso = ProgresoUsuario.objects.get(usuario_id=self.usuario_id)
-        self.assertEqual(progreso.racha_de("学"), 1)
+        self.assertEqual(progreso_logic.racha_de(progreso, "学"), 1)
         self.assertIn("学", progreso.caracteres_dominados)
 
     def test_no_se_puede_responder_dos_veces(self):
@@ -191,6 +192,35 @@ class ResponderEjercicioServiceTest(TestCase):
 
         self.sesion.refresh_from_db()
         self.assertEqual(self.sesion.estado, "completada")
+
+
+class ResponderEjercicioViewTest(APITestCase):
+    """A nivel HTTP: el código de estado es parte del contrato de la API."""
+
+    def setUp(self):
+        self.sesion = SesionEstudio.objects.create(
+            usuario_id=uuid.uuid4(), nivel_hsk=2, dificultad=3, estado="activa"
+        )
+        self.ejercicio = Ejercicio.objects.create(
+            sesion=self.sesion, caracter="学", tipo="trazo", dificultad=3
+        )
+        self.url = reverse(
+            "responder-ejercicio", kwargs={"ejercicio_id": self.ejercicio.pk}
+        )
+
+    def test_responder_dos_veces_devuelve_409(self):
+        self.client.post(self.url, {"acerto": True}, format="json")
+
+        respuesta = self.client.post(self.url, {"acerto": True}, format="json")
+
+        self.assertEqual(respuesta.status_code, status.HTTP_409_CONFLICT)
+
+    def test_ejercicio_inexistente_devuelve_404(self):
+        url = reverse("responder-ejercicio", kwargs={"ejercicio_id": 9999})
+
+        respuesta = self.client.post(url, {"acerto": True}, format="json")
+
+        self.assertEqual(respuesta.status_code, status.HTTP_404_NOT_FOUND)
 
 
 # ---------------------------------------------------------------------------

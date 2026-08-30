@@ -174,6 +174,12 @@ Puertos sugeridos para no chocar entre servicios:
 
 Para salir del entorno virtual: `deactivate`.
 
+**API Gateway (opcional, en local):** el frontend puede pegarle directo a
+cada puerto como se explicó arriba, o pasar por el gateway de
+`infra/nginx/nginx.conf`, que expone todo en un solo puerto (8080) y
+rutea por prefijo al servicio dueño de cada recurso. Ver
+[`infra/nginx/`](infra/nginx/nginx.conf) para instrucciones.
+
 ### 3. Levantar el frontend
 
 ```bash

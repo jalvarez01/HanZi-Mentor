@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .domain.exceptions import DominioError
+from .domain.exceptions import DominioError, EjercicioYaRespondidoError
 from .models import Ejercicio, SesionEstudio
 from .serializers import (
     CrearSesionSerializer,
@@ -48,6 +48,10 @@ class ResponderEjercicioView(APIView):
             resultado = self.service.responder(ejercicio_id, **entrada.validated_data)
         except Ejercicio.DoesNotExist:
             return Response({"error": "Ejercicio no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        except EjercicioYaRespondidoError as error:
+            # El recurso existe y el request es válido, pero su estado actual
+            # (ya respondido) impide la operación: 409, no 400.
+            return Response({"error": str(error)}, status=status.HTTP_409_CONFLICT)
         except DominioError as error:
             return Response({"error": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
