@@ -2,8 +2,15 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .domain.exceptions import CaracterNoEncontradoError, TrazoNoEncontradoError
 from .models import Caracter
-from .serializers import CaracterListaSerializer, CaracterSerializer
+from .serializers import (
+    CaracterListaSerializer,
+    CaracterSerializer,
+    ResultadoComparacionSerializer,
+    ValidacionTrazoSerializer,
+)
+from .services import ValidacionTrazoService
 
 
 class CaracteresPorNivelView(APIView):
@@ -34,3 +41,22 @@ class DetalleCaracterView(APIView):
             return Response({"error": "Carácter no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(CaracterSerializer(caracter).data, status=status.HTTP_200_OK)
+
+
+class ValidarTrazoView(APIView):
+    """POST /api/caracteres/<hanzi>/trazos/<secuencia>/validar/"""
+
+    def __init__(self, service=None, **kwargs):
+        super().__init__(**kwargs)
+        self.service = service or ValidacionTrazoService()
+
+    def post(self, request, hanzi, secuencia):
+        entrada = ValidacionTrazoSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+
+        try:
+            resultado = self.service.validar(hanzi, secuencia, **entrada.validated_data)
+        except (CaracterNoEncontradoError, TrazoNoEncontradoError) as error:
+            return Response({"error": str(error)}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(ResultadoComparacionSerializer(resultado).data, status=status.HTTP_200_OK)

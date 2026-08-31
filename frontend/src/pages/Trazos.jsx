@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
-import { listarCaracteres, obtenerCaracter } from '../services/api';
+import { listarCaracteres, obtenerCaracter, validarTrazo } from '../services/api';
 import './Trazos.css';
 
 // Make Me a Hanzi usa un lienzo de 1024x1024 con el eje Y invertido:
@@ -84,6 +84,8 @@ export default function Trazos() {
             <LienzoTrazos
               trazos={trazos}
               hasta={trazoActual}
+              hanzi={caracter?.hanzi}
+              onAprobado={() => setTrazoActual((n) => Math.min(trazos.length, n + 1))}
               key={caracter?.hanzi}
             />
 
@@ -139,12 +141,18 @@ export default function Trazos() {
  * Muestra los trazos hasta el índice indicado y deja dibujar encima.
  *
  * El SVG de fondo pinta el trazo correcto; el canvas de arriba captura el
- * dedo o el mouse. Todavía no compara ambos: eso es RF-APR-01.
+ * dedo o el mouse. Al soltar, el trazo capturado se manda a validar
+ * (RF-APR-01) y, si se aprueba, se avanza solo al trazo siguiente.
  */
-function LienzoTrazos({ trazos, hasta }) {
+function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
   const canvasRef = useRef(null);
   const dibujando = useRef(false);
+  const puntosRef = useRef([]);
   const [tieneDibujo, setTieneDibujo] = useState(false);
+  const [resultado, setResultado] = useState(null);
+  const [validando, setValidando] = useState(false);
+
+  const trazoActual = trazos[hasta];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -164,6 +172,11 @@ function LienzoTrazos({ trazos, hasta }) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#B23A2E';
+
+    // Nuevo trazo: se limpia el lienzo anterior y su veredicto.
+    puntosRef.current = [];
+    setTieneDibujo(false);
+    setResultado(null);
   }, [hasta]);
 
   function posicion(evento) {
@@ -179,9 +192,12 @@ function LienzoTrazos({ trazos, hasta }) {
     evento.preventDefault();
     dibujando.current = true;
     setTieneDibujo(true);
+    setResultado(null);
+
+    const { x, y } = posicion(evento);
+    puntosRef.current = [{ x, y }];
 
     const ctx = canvasRef.current.getContext('2d');
-    const { x, y } = posicion(evento);
     ctx.beginPath();
     ctx.moveTo(x, y);
   }
@@ -190,57 +206,103 @@ function LienzoTrazos({ trazos, hasta }) {
     if (!dibujando.current) return;
     evento.preventDefault();
 
-    const ctx = canvasRef.current.getContext('2d');
     const { x, y } = posicion(evento);
+    puntosRef.current.push({ x, y });
+
+    const ctx = canvasRef.current.getContext('2d');
     ctx.lineTo(x, y);
     ctx.stroke();
   }
 
-  function terminar() {
+  async function terminar() {
+    if (!dibujando.current) return;
     dibujando.current = false;
+
+    const puntos = puntosRef.current;
+    if (puntos.length < 2 || !trazoActual || !hanzi) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+
+    setValidando(true);
+    try {
+      const veredicto = await validarTrazo(hanzi, trazoActual.secuencia, {
+        puntos,
+        ancho: Math.round(rect.width),
+        alto: Math.round(rect.height),
+      });
+      setResultado(veredicto);
+
+      if (veredicto.aprobado) {
+        setTimeout(() => onAprobado?.(), 900);
+      }
+    } catch (e) {
+      setResultado({ aprobado: false, invertido: false, detalle: e.message });
+    } finally {
+      setValidando(false);
+    }
   }
 
   function limpiar() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    puntosRef.current = [];
     setTieneDibujo(false);
+    setResultado(null);
   }
 
   return (
-    <div className="lienzo-wrap">
-      <svg className="lienzo-svg" viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}>
-        <line x1="512" y1="0" x2="512" y2="1024" className="guia" />
-        <line x1="0" y1="512" x2="1024" y2="512" className="guia" />
+    <>
+      <div className="lienzo-wrap">
+        <svg className="lienzo-svg" viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}>
+          <line x1="512" y1="0" x2="512" y2="1024" className="guia" />
+          <line x1="0" y1="512" x2="1024" y2="512" className="guia" />
 
-        <g transform={TRANSFORM}>
-          {trazos.map((t, i) => (
-            <path
-              key={t.secuencia}
-              d={t.path_svg}
-              className={i < hasta ? 'trazo-hecho' : 'trazo-pendiente'}
-            />
-          ))}
-        </g>
-      </svg>
+          <g transform={TRANSFORM}>
+            {trazos.map((t, i) => (
+              <path
+                key={t.secuencia}
+                d={t.path_svg}
+                className={i < hasta ? 'trazo-hecho' : 'trazo-pendiente'}
+              />
+            ))}
+          </g>
+        </svg>
 
-      <canvas
-        ref={canvasRef}
-        className="lienzo-canvas"
-        onMouseDown={empezar}
-        onMouseMove={mover}
-        onMouseUp={terminar}
-        onMouseLeave={terminar}
-        onTouchStart={empezar}
-        onTouchMove={mover}
-        onTouchEnd={terminar}
-      />
+        <canvas
+          ref={canvasRef}
+          className="lienzo-canvas"
+          onMouseDown={empezar}
+          onMouseMove={mover}
+          onMouseUp={terminar}
+          onMouseLeave={terminar}
+          onTouchStart={empezar}
+          onTouchMove={mover}
+          onTouchEnd={terminar}
+        />
 
-      {tieneDibujo && (
-        <button className="limpiar" onClick={limpiar}>
-          Borrar
-        </button>
+        {tieneDibujo && (
+          <button className="limpiar" onClick={limpiar}>
+            Borrar
+          </button>
+        )}
+      </div>
+
+      {validando && <p className="validando">Comprobando…</p>}
+
+      {resultado && (
+        <div
+          className={`resultado ${
+            resultado.aprobado ? 'aprobado' : resultado.invertido ? 'invertido' : 'fallado'
+          }`}
+        >
+          {typeof resultado.puntaje === 'number' && (
+            <span className="resultado-puntaje">{resultado.puntaje}</span>
+          )}
+          <p className="resultado-detalle">{resultado.detalle}</p>
+          {resultado.invertido && <span className="resultado-tag">sentido invertido</span>}
+        </div>
       )}
-    </div>
+    </>
   );
 }
