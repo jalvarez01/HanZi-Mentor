@@ -15,7 +15,7 @@ from .domain.exceptions import EjercicioYaRespondidoError
 from .domain.repaso import actualizar_tasa_acierto, calcular_proximo_repaso
 from .infra.factories import MotorTutorFactory, NotificadorFactory
 from .models import Ejercicio
-from .repositories import ProgresoRepository
+from progreso.repositories import ProgresoRepository
 
 CANTIDAD_REFUERZOS = 3
 CANTIDAD_NUEVOS = 4
