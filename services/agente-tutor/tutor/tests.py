@@ -338,9 +338,49 @@ class EvaluarRespuestaSignificadoTest(TestCase):
 
 
 class EvaluarRespuestaTrazoTest(TestCase):
-    def test_lanza_not_implemented(self):
-        with self.assertRaises(NotImplementedError):
-            evaluar_respuesta("trazo", 3, [], {"trazos": []})
+    def setUp(self):
+        self.sesion = SesionEstudio.objects.create(
+            usuario_id=uuid.uuid4(), nivel_hsk=2, dificultad=3, estado="activa"
+        )
+        self.ejercicio = Ejercicio.objects.create(
+            sesion=self.sesion, caracter="学", tipo="trazo", dificultad=3
+        )
+
+    def test_evalua_trazo_delegando_en_catalogo_remoto(self):
+        catalogo_falso = type("CatalogoFalso", (), {
+            "comparar_trazo": lambda self, hanzi, secuencia, puntos, ancho, alto: {
+                "aprobado": True,
+                "puntaje": 92,
+                "motivo": "ok",
+                "invertido": False,
+                "detalle": "",
+                "distancia_media": 3.2,
+                "razon_longitud": 1.0,
+                "puntos_lejanos": [],
+            },
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+        resultado = service.evaluar(
+            self.ejercicio.pk,
+            {"secuencia": 1, "puntos": [[0, 0], [1, 1]], "ancho": 320, "alto": 320},
+        )
+
+        self.assertTrue(resultado["aprobado"])
+        self.assertEqual(resultado["puntaje"], 92)
+
+    def test_sin_secuencia_lanza_value_error(self):
+        catalogo_falso = type("CatalogoFalso", (), {
+            "comparar_trazo": lambda self, hanzi, secuencia, puntos, ancho, alto: {},
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+
+        with self.assertRaises(ValueError):
+            service.evaluar(
+                self.ejercicio.pk,
+                {"puntos": [[0, 0], [1, 1]], "ancho": 320, "alto": 320},
+            )
 
 
 class EvaluarRespuestaCasosInvalidosTest(TestCase):
@@ -384,3 +424,30 @@ class EvaluarEjercicioServiceTest(TestCase):
         resultado = service.evaluar(ejercicio.pk, "mountain")
 
         self.assertFalse(resultado)
+
+    def test_evalua_trazo_devuelve_resultado_completo(self):
+        ejercicio = Ejercicio.objects.create(
+            sesion=self.sesion, caracter="学", tipo="trazo", dificultad=3
+        )
+        catalogo_falso = type("CatalogoFalso", (), {
+            "comparar_trazo": lambda self, hanzi, secuencia, puntos, ancho, alto: {
+                "aprobado": False,
+                "puntaje": 40,
+                "motivo": "forma_distinta",
+                "invertido": True,
+                "detalle": "trazo invertido",
+                "distancia_media": 15.4,
+                "razon_longitud": 0.6,
+                "puntos_lejanos": [[10, 10]],
+            },
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+        resultado = service.evaluar(
+            ejercicio.pk,
+            {"secuencia": 2, "puntos": [[0, 0], [5, 5]], "ancho": 320, "alto": 320},
+        )
+
+        self.assertFalse(resultado["aprobado"])
+        self.assertEqual(resultado["motivo"], "forma_distinta")
+        self.assertTrue(resultado["invertido"])

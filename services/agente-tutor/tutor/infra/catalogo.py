@@ -97,13 +97,23 @@ class CatalogoRemoto(Catalogo):
             logger.warning("Falló la consulta de detalle al servicio de contenido: %s", error)
             return {}
 
-    def comparar_trazo(self, puntos_usuario, mediana, ancho_lienzo, alto_lienzo) -> dict:
-        """Delega en comparar_trazo() del servicio contenido (RF-APR-01, sin mergear).
+    def comparar_trazo(self, hanzi, secuencia, puntos, ancho, alto) -> dict:
+        """Valida un trazo contra el servicio contenido (RF-APR-01).
 
-        TODO: falta la URL real — depende de RF-APR-01. Config futura vía
-        variable de entorno CONTENIDO_TRAZO_URL, sin valor por defecto.
+        POST /api/caracteres/<hanzi>/trazos/<secuencia>/validar/ — contenido
+        ya tiene la mediana internamente, no hace falta enviarla.
         """
-        raise NotImplementedError(
-            "Evaluación de trazo pendiente de RF-APR-01 "
-            "(Trazo.compararConTrazoUsuario aún no disponible)."
-        )
+        try:
+            import requests
+
+            respuesta = requests.post(
+                f"{self._base_url}/api/caracteres/{hanzi}/trazos/{secuencia}/validar/",
+                json={"puntos": puntos, "ancho": ancho, "alto": alto},
+                timeout=TIMEOUT_SEGUNDOS,
+            )
+            respuesta.raise_for_status()
+            return respuesta.json()
+
+        except Exception as error:
+            logger.warning("Falló la validación de trazo en el servicio de contenido: %s", error)
+            return {"aprobado": False, "motivo": "error_servicio"}

@@ -122,12 +122,17 @@ class EvaluarEjercicioService:
         ejercicio = Ejercicio.objects.get(pk=ejercicio_id)
 
         if ejercicio.tipo == "trazo":
-            # comparar_trazo() aún no existe (RF-APR-01 sin mergear): propaga el error.
+            if "secuencia" not in respuesta_usuario:
+                raise ValueError(
+                    "respuesta_usuario debe incluir 'secuencia' para ejercicios de tipo trazo."
+                )
+
             return self._catalogo.comparar_trazo(
-                puntos_usuario=respuesta_usuario,
-                mediana=None,
-                ancho_lienzo=None,
-                alto_lienzo=None,
+                hanzi=ejercicio.caracter,
+                secuencia=respuesta_usuario["secuencia"],
+                puntos=respuesta_usuario["puntos"],
+                ancho=respuesta_usuario["ancho"],
+                alto=respuesta_usuario["alto"],
             )
 
         datos_correctos = self._catalogo.obtener_detalle(ejercicio.caracter)

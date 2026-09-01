@@ -60,11 +60,12 @@ def evaluar_respuesta(tipo: str, dificultad: int, respuesta_usuario, datos_corre
         return _evaluar_significado(respuesta_usuario, dificultad, datos_correctos)
 
     if tipo == "trazo":
-        # Depende de comparar_trazo()/ResultadoComparacion (RF-APR-01),
-        # aún no mergeado a development.
-        raise NotImplementedError(
-            "Evaluación de trazo pendiente de RF-APR-01 "
-            "(Trazo.compararConTrazoUsuario aún no disponible)."
+        # La comparación de trazo no es una regla pura local: depende de la
+        # mediana que vive en contenido. Se resuelve en EvaluarEjercicioService
+        # vía CatalogoRemoto.comparar_trazo(), no en esta función.
+        raise ValueError(
+            "La evaluación de 'trazo' no pasa por evaluar_respuesta(); "
+            "usa EvaluarEjercicioService, que llama a CatalogoRemoto.comparar_trazo()."
         )
 
     raise ValueError(f"Tipo de ejercicio desconocido: {tipo}")
