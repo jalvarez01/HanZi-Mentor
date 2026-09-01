@@ -97,4 +97,14 @@ export function obtenerCaracter(hanzi) {
   return pedir(`${CONTENIDO_URL}/api/caracteres/${encodeURIComponent(hanzi)}/`);
 }
 
+export function validarTrazo(hanzi, secuencia, { puntos, ancho, alto }) {
+  return pedir(
+    `${CONTENIDO_URL}/api/caracteres/${encodeURIComponent(hanzi)}/trazos/${secuencia}/validar/`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ puntos, ancho, alto }),
+    },
+  );
+}
+
 export { ErrorApi };
