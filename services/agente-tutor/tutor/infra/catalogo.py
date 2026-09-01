@@ -80,3 +80,30 @@ class CatalogoRemoto(Catalogo):
             logger.warning("Falló la consulta al servicio de contenido: %s", error)
 
         return self._respaldo.caracteres_de_nivel(nivel, omitir, cantidad)
+
+    def obtener_detalle(self, hanzi: str) -> dict:
+        """Detalle de un carácter (pinyin, definición, trazos), o dict vacío si falla."""
+        try:
+            import requests
+
+            respuesta = requests.get(
+                f"{self._base_url}/api/caracteres/{hanzi}/",
+                timeout=TIMEOUT_SEGUNDOS,
+            )
+            respuesta.raise_for_status()
+            return respuesta.json()
+
+        except Exception as error:
+            logger.warning("Falló la consulta de detalle al servicio de contenido: %s", error)
+            return {}
+
+    def comparar_trazo(self, puntos_usuario, mediana, ancho_lienzo, alto_lienzo) -> dict:
+        """Delega en comparar_trazo() del servicio contenido (RF-APR-01, sin mergear).
+
+        TODO: falta la URL real — depende de RF-APR-01. Config futura vía
+        variable de entorno CONTENIDO_TRAZO_URL, sin valor por defecto.
+        """
+        raise NotImplementedError(
+            "Evaluación de trazo pendiente de RF-APR-01 "
+            "(Trazo.compararConTrazoUsuario aún no disponible)."
+        )

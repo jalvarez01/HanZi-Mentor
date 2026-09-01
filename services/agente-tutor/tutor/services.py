@@ -6,13 +6,17 @@ a estos servicios. Y los servicios no saben qué implementación concreta
 recibieron: las Factories lo resolvieron por ellos.
 """
 
+import os
+
 from django.db import transaction
 from django.utils import timezone
 
 from .domain import progreso_logic, sesion_logic
 from .domain.builders import SesionEstudioBuilder
+from .domain.evaluacion_logic import evaluar_respuesta
 from .domain.exceptions import EjercicioYaRespondidoError
 from .domain.repaso import actualizar_tasa_acierto, calcular_proximo_repaso
+from .infra.catalogo import CatalogoRemoto
 from .infra.factories import MotorTutorFactory, NotificadorFactory
 from .models import Ejercicio
 from progreso.repositories import ProgresoRepository
@@ -104,3 +108,29 @@ class ResponderEjercicioService:
             "proximo_repaso": progreso.agenda_repaso.get(caracter),
             "tasa_acierto": progreso.tasa_acierto,
         }
+
+
+class EvaluarEjercicioService:
+    """Evalúa una respuesta contra el tipo/dificultad del ejercicio. No persiste nada."""
+
+    def __init__(self, catalogo=None):
+        self._catalogo = catalogo or CatalogoRemoto(
+            base_url=os.getenv("CONTENIDO_URL", "http://localhost:8002")
+        )
+
+    def evaluar(self, ejercicio_id, respuesta_usuario):
+        ejercicio = Ejercicio.objects.get(pk=ejercicio_id)
+
+        if ejercicio.tipo == "trazo":
+            # comparar_trazo() aún no existe (RF-APR-01 sin mergear): propaga el error.
+            return self._catalogo.comparar_trazo(
+                puntos_usuario=respuesta_usuario,
+                mediana=None,
+                ancho_lienzo=None,
+                alto_lienzo=None,
+            )
+
+        datos_correctos = self._catalogo.obtener_detalle(ejercicio.caracter)
+        return evaluar_respuesta(
+            ejercicio.tipo, ejercicio.dificultad, respuesta_usuario, datos_correctos
+        )
