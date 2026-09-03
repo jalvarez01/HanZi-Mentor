@@ -19,10 +19,10 @@ class LeccionBuilder:
 
     def con_caracteres_del_nivel(self, cantidad=10, excluir=None):
         excluir = excluir or []
-        hanzis = [h for h in caracteres_hasta(self._leccion.nivel_hsk) if h not in excluir]
-        random.shuffle(hanzis)
-        hanzis = hanzis[:cantidad]
-        self._caracteres = list(Caracter.objects.filter(hanzi__in=hanzis))
+        hanzis_nivel = caracteres_hasta(self._leccion.nivel_hsk)
+        candidatos  = list(Caracter.objects.filter(hanzi__in=hanzis_nivel).exclude(hanzi__in=excluir))
+        random.shuffle(candidatos)
+        self._caracteres = candidatos[:cantidad]
         return self
 
     def con_ejercicios_variados(self, tipos=("trazo", "significado")):
