@@ -11,7 +11,7 @@ TIPOS_EJERCICIO = [
 class Leccion(models.Model):
     """Agrupa un conjunto de Ejercicios generados para un nivel HSK."""
  
-    usuario_id = models.PositiveIntegerField(db_index=True)
+    usuario_id = models.UUIDField(db_index=True)
     nivel_hsk = models.PositiveSmallIntegerField()
     creada_en = models.DateTimeField(auto_now_add=True)
  
