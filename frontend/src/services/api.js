@@ -107,4 +107,21 @@ export function validarTrazo(hanzi, secuencia, { puntos, ancho, alto }) {
   );
 }
 
+// ---------------------------------------------------------------- lecciones
+ 
+export function generarLeccion({ usuarioId, nivelHsk, cantidad = 10 }) {
+  return pedir(`${CONTENIDO_URL}/api/lecciones/generar/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      usuario_id: usuarioId,
+      nivel_hsk: nivelHsk,
+      cantidad,
+    }),
+  });
+}
+ 
+export function obtenerLeccion(leccionId) {
+  return pedir(`${CONTENIDO_URL}/api/lecciones/${leccionId}/`);
+}
+ 
 export { ErrorApi };
