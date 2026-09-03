@@ -26,6 +26,6 @@ class LeccionSerializer(serializers.ModelSerializer):
 class GenerarLeccionSerializer(serializers.Serializer):
     """Entrada: datos para POST /api/lecciones/generar/"""
 
-    usuario_id = serializers.IntegerField(min_value=1)
+    usuario_id = serializers.UUIDField()
     nivel_hsk = serializers.IntegerField(min_value=1, max_value=6)
     cantidad = serializers.IntegerField(min_value=1, max_value=50, default=10)
