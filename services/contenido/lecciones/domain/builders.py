@@ -1,6 +1,5 @@
 import random
 
-from caracteres.hsk import caracteres_hasta
 from caracteres.models import Caracter
 
 from .factories import EjercicioFactory
@@ -18,11 +17,35 @@ class LeccionBuilder:
         self._ejercicios = []
 
     def con_caracteres_del_nivel(self, cantidad=10, excluir=None):
+        """
+        Selecciona caracteres para la lección según el nivel_hsk real en BD
+        (no una lista hardcodeada de referencia). Prioridad:
+
+        1. Caracteres clasificados exactamente en el nivel de la lección
+           (nunca de otro nivel: un caracter con nivel_hsk=1 no debe
+           aparecer en una lección HSK5, ni viceversa).
+        2. Si no alcanzan para completar `cantidad`, se rellena con
+           caracteres sin clasificar (nivel_hsk NULL) — estos sí pueden
+           aparecer en cualquier nivel.
+        """
         excluir = excluir or []
-        hanzis_nivel = caracteres_hasta(self._leccion.nivel_hsk)
-        candidatos  = list(Caracter.objects.filter(hanzi__in=hanzis_nivel).exclude(hanzi__in=excluir))
-        random.shuffle(candidatos)
-        self._caracteres = candidatos[:cantidad]
+        nivel = self._leccion.nivel_hsk
+
+        del_nivel = list(
+            Caracter.objects.filter(nivel_hsk=nivel).exclude(hanzi__in=excluir)
+        )
+        random.shuffle(del_nivel)
+        seleccionados = del_nivel[:cantidad]
+
+        faltantes = cantidad - len(seleccionados)
+        if faltantes > 0:
+            sin_clasificar = list(
+                Caracter.objects.filter(nivel_hsk__isnull=True).exclude(hanzi__in=excluir)
+            )
+            random.shuffle(sin_clasificar)
+            seleccionados += sin_clasificar[:faltantes]
+
+        self._caracteres = seleccionados
         return self
 
     def con_ejercicios_variados(self, tipos=("trazo", "significado")):

@@ -29,6 +29,45 @@ class LeccionGenerarContenidoTests(TestCase):
             self.assertIn(ejercicio.tipo, ["trazo", "significado"])
             self.assertEqual(ejercicio.caracter.nivel_hsk, 1)
 
+    def test_generar_contenido_no_mezcla_otros_niveles(self):
+        """Un caracter clasificado en otro nivel nunca debe aparecer en esta lección."""
+        Caracter.objects.create(hanzi="经", pinyin="jing1", definicion="pasar", nivel_hsk=3)
+        Caracter.objects.create(hanzi="哲", pinyin="zhe2", definicion="filosofía", nivel_hsk=5)
+
+        leccion = Leccion.objects.create(usuario_id=1, nivel_hsk=1)
+        ejercicios = leccion.generarContenido(cantidad=10)
+
+        for ejercicio in ejercicios:
+            self.assertNotEqual(ejercicio.caracter.nivel_hsk, 3)
+            self.assertNotEqual(ejercicio.caracter.nivel_hsk, 5)
+
+    def test_generar_contenido_prioriza_nivel_exacto_sobre_sin_clasificar(self):
+        """Los caracteres sin clasificar solo rellenan si faltan del nivel exacto."""
+        Caracter.objects.create(hanzi="爱", pinyin="ai4", definicion="amar", nivel_hsk=None)
+
+        leccion = Leccion.objects.create(usuario_id=1, nivel_hsk=1)
+        ejercicios = leccion.generarContenido(cantidad=3)
+
+        # Ya había 3 caracteres HSK1 en setUp, alcanzan para cubrir cantidad=3
+        # sin necesidad de tocar el sin-clasificar.
+        self.assertEqual(len(ejercicios), 3)
+        for ejercicio in ejercicios:
+            self.assertEqual(ejercicio.caracter.nivel_hsk, 1)
+
+    def test_generar_contenido_rellena_con_sin_clasificar_si_faltan(self):
+        """Si el nivel exacto no alcanza para `cantidad`, se completa con nivel_hsk NULL."""
+        Caracter.objects.create(hanzi="爱", pinyin="ai4", definicion="amar", nivel_hsk=None)
+        Caracter.objects.create(hanzi="心", pinyin="xin1", definicion="corazón", nivel_hsk=None)
+
+        leccion = Leccion.objects.create(usuario_id=1, nivel_hsk=1)
+        # setUp crea solo 3 caracteres HSK1; pedimos más de los que hay.
+        ejercicios = leccion.generarContenido(cantidad=5)
+
+        niveles = [ejercicio.caracter.nivel_hsk for ejercicio in ejercicios]
+        self.assertEqual(len(ejercicios), 5)
+        self.assertEqual(niveles.count(1), 3)
+        self.assertEqual(niveles.count(None), 2)
+
     def test_endpoint_generar_leccion_devuelve_201(self):
         respuesta = self.client.post(
             "/api/lecciones/generar/",
