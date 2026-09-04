@@ -32,3 +32,6 @@ services/contenido/data_hanzi/
 
 # Archivos temporales de understand-anything (knowledge graph)
 .ua/
+
+# Logs de levantar_backends.sh
+infra/scripts/.logs/
