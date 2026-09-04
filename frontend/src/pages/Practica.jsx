@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import { useUsuario } from '../hooks/useUsuario';
-import { crearSesion, responderEjercicio } from '../services/api';
+import { crearSesion, responderEjercicio, generarLeccion } from '../services/api';
 import './Practica.css';
 
 const NIVELES = [1, 2, 3, 4, 5, 6];
 
 export default function Practica() {
   const { usuarioId } = useUsuario();
+
+  const [modo, setModo] = useState('sesion'); // 'sesion' (agente-tutor) | 'leccion' (contenido)
 
   const [sesion, setSesion] = useState(null);
   const [indice, setIndice] = useState(0);
@@ -17,7 +19,27 @@ export default function Practica() {
   const [error, setError] = useState(null);
   const [terminada, setTerminada] = useState(false);
 
+  const [leccion, setLeccion] = useState(null);
+  const [indiceLeccion, setIndiceLeccion] = useState(0);
+
   const ejercicio = sesion?.ejercicios?.[indice];
+  const ejercicioLeccion = leccion?.ejercicios?.[indiceLeccion];
+
+    async function empezarLeccion(nivel) {
+    setCargando(true);
+    setError(null);
+
+    try {
+      const nueva = await generarLeccion({ usuarioId, nivelHsk: nivel });
+      setLeccion(nueva);
+      setIndiceLeccion(0);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCargando(false);
+    }
+  }
+
 
   async function empezar(nivel) {
     setCargando(true);
@@ -61,13 +83,32 @@ export default function Practica() {
 
   // ---------------------------------------------------------- sin sesión
 
-  if (!sesion) {
+  if (!sesion && !leccion) {
     return (
       <>
         <TopBar title="Practicar" />
         <div className="screen-pad practica">
+          <div className="niveles" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: 20 }}>
+            <button
+              className="nivel-btn"
+              style={modo === 'sesion' ? { background: 'var(--gold)', color: 'var(--paper)' } : undefined}
+              onClick={() => setModo('sesion')}
+            >
+              Sesión adaptativa
+            </button>
+            <button
+              className="nivel-btn"
+              style={modo === 'leccion' ? { background: 'var(--gold)', color: 'var(--paper)' } : undefined}
+              onClick={() => setModo('leccion')}
+            >
+              Lección por nivel
+            </button>
+          </div>
+
           <p className="intro">
-            Elegí un nivel. El tutor arma la sesión priorizando lo que venís fallando.
+            {modo === 'sesion'
+              ? 'Elegí un nivel. El tutor arma la sesión priorizando lo que venís fallando.'
+              : 'Elegí un nivel. Se genera una lección con caracteres y ejercicios de ese HSK.'}
           </p>
 
           {error && <p className="error">{error}</p>}
@@ -78,19 +119,78 @@ export default function Practica() {
                 key={n}
                 className="nivel-btn"
                 disabled={cargando}
-                onClick={() => empezar(n)}
+                onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
               >
                 HSK{n}
               </button>
             ))}
           </div>
 
-          {cargando && <p className="cargando">Armando tu sesión…</p>}
+          {cargando && <p className="cargando">Armando tu {modo === 'sesion' ? 'sesión' : 'lección'}…</p>}
 
-          <p className="nota">
-            Si un nivel no está desbloqueado, el servidor lo rechaza — es la regla
-            que valida el builder.
+          {modo === 'sesion' && (
+            <p className="nota">
+              Si un nivel no está desbloqueado, el servidor lo rechaza — es la regla
+              que valida el builder.
+            </p>
+          )}
+        </div>
+      </>
+    );
+  }
+
+   // -------------------------------------------------------------- lección
+
+  if (leccion) {
+    if (!ejercicioLeccion) {
+      return (
+        <>
+          <TopBar title="Lección completa" />
+          <div className="screen-pad practica resumen">
+            <div className="sello-grande">完</div>
+            <h2>Terminaste la lección</h2>
+            <p className="intro">
+              Revisaste los {leccion.ejercicios.length} ejercicios de nivel HSK{leccion.nivel_hsk}.
+            </p>
+            <button className="btn-principal" onClick={() => { setLeccion(null); setIndiceLeccion(0); }}>
+              Otra lección
+            </button>
+          </div>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <TopBar title={`HSK${leccion.nivel_hsk} · Lección`} />
+        <div className="screen-pad practica">
+          <div className="barra-avance">
+            <div
+              className="barra-relleno"
+              style={{ width: `${(indiceLeccion / leccion.ejercicios.length) * 100}%` }}
+            />
+          </div>
+          <p className="contador">
+            {indiceLeccion + 1} de {leccion.ejercicios.length}
           </p>
+
+          <div className="tarjeta-ejercicio">
+            <div className="hanzi-grande">{ejercicioLeccion.caracter.hanzi}</div>
+            <p className="tipo">
+              {ejercicioLeccion.tipo === 'trazo' ? 'Orden de trazos' : 'Significado'}
+            </p>
+            <p className="dato">{ejercicioLeccion.caracter.pinyin} · {ejercicioLeccion.caracter.definicion}</p>
+          </div>
+
+          {ejercicioLeccion.tipo === 'trazo' && (
+            <Link to={`/trazos?caracter=${ejercicioLeccion.caracter.hanzi}`} className="btn-texto">
+              Ver el orden de trazos
+            </Link>
+          )}
+
+          <button className="btn-principal" onClick={() => setIndiceLeccion((i) => i + 1)}>
+            Siguiente
+          </button>
         </div>
       </>
     );

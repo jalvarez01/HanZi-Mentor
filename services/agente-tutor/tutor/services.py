@@ -6,16 +6,20 @@ a estos servicios. Y los servicios no saben qué implementación concreta
 recibieron: las Factories lo resolvieron por ellos.
 """
 
+import os
+
 from django.db import transaction
 from django.utils import timezone
 
 from .domain import progreso_logic, sesion_logic
 from .domain.builders import SesionEstudioBuilder
-from .domain.exceptions import EjercicioYaRespondidoError
+from .domain.evaluacion_logic import evaluar_respuesta
+from .domain.exceptions import EjercicioNoEncontradoError, EjercicioYaRespondidoError
 from .domain.repaso import actualizar_tasa_acierto, calcular_proximo_repaso
+from .infra.catalogo import CatalogoRemoto
 from .infra.factories import MotorTutorFactory, NotificadorFactory
 from .models import Ejercicio
-from .repositories import ProgresoRepository
+from progreso.repositories import ProgresoRepository
 
 CANTIDAD_REFUERZOS = 3
 CANTIDAD_NUEVOS = 4
@@ -104,3 +108,39 @@ class ResponderEjercicioService:
             "proximo_repaso": progreso.agenda_repaso.get(caracter),
             "tasa_acierto": progreso.tasa_acierto,
         }
+
+
+class EvaluarEjercicioService:
+    """Evalúa una respuesta contra el tipo/dificultad del ejercicio. No persiste nada."""
+
+    def __init__(self, catalogo=None):
+        self._catalogo = catalogo or CatalogoRemoto(
+            base_url=os.getenv("CONTENIDO_URL", "http://localhost:8002")
+        )
+
+    def evaluar(self, ejercicio_id, respuesta_usuario):
+        try:
+            ejercicio = Ejercicio.objects.get(pk=ejercicio_id)
+        except Ejercicio.DoesNotExist:
+            raise EjercicioNoEncontradoError(
+                f"No existe un ejercicio con id={ejercicio_id}."
+            )
+
+        if ejercicio.tipo == "trazo":
+            if "secuencia" not in respuesta_usuario:
+                raise ValueError(
+                    "respuesta_usuario debe incluir 'secuencia' para ejercicios de tipo trazo."
+                )
+
+            return self._catalogo.comparar_trazo(
+                hanzi=ejercicio.caracter,
+                secuencia=respuesta_usuario["secuencia"],
+                puntos=respuesta_usuario["puntos"],
+                ancho=respuesta_usuario["ancho"],
+                alto=respuesta_usuario["alto"],
+            )
+
+        datos_correctos = self._catalogo.obtener_detalle(ejercicio.caracter)
+        return evaluar_respuesta(
+            ejercicio.tipo, ejercicio.dificultad, respuesta_usuario, datos_correctos
+        )

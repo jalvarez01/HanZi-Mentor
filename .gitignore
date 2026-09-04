@@ -23,3 +23,15 @@ npm-debug.log*
 *.swp
 .DS_Store
 Thumbs.db
+
+# Script local de arranque (contiene ruta personal)
+levantar_proyecto.ps1
+
+# Dataset de caracteres (pesado, cada quien lo descarga con git clone)
+services/contenido/data_hanzi/
+
+# Archivos temporales de understand-anything (knowledge graph)
+.ua/
+
+# Logs de levantar_backends.sh
+infra/scripts/.logs/

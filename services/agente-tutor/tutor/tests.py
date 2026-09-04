@@ -10,7 +10,11 @@ from rest_framework.test import APITestCase
 
 from .domain import sesion_logic
 from .domain.builders import SesionEstudioBuilder
-from .domain.exceptions import NivelNoPermitidoError, SesionInvalidaError
+from .domain.exceptions import (
+    EjercicioNoEncontradoError,
+    NivelNoPermitidoError,
+    SesionInvalidaError,
+)
 from .services import SesionEstudioService
 
 
@@ -277,3 +281,185 @@ class AgenteTest(TestCase):
         })
 
         self.assertEqual(resultado["dificultad"], 4)
+
+
+# ---------------------------------------------------------------------------
+# Evaluación de respuestas
+# ---------------------------------------------------------------------------
+
+from .domain.evaluacion_logic import evaluar_respuesta
+from .services import EvaluarEjercicioService
+
+
+class EvaluarRespuestaPinyinTest(TestCase):
+    def test_coincide_con_diacriticos(self):
+        self.assertTrue(
+            evaluar_respuesta("pinyin", 3, "xué", {"pinyin": "xué"})
+        )
+
+    def test_coincide_sin_diacriticos(self):
+        self.assertTrue(
+            evaluar_respuesta("pinyin", 3, "xue", {"pinyin": "xué"})
+        )
+
+    def test_no_coincide(self):
+        self.assertFalse(
+            evaluar_respuesta("pinyin", 3, "xiao", {"pinyin": "xué"})
+        )
+
+
+class EvaluarRespuestaSignificadoTest(TestCase):
+    def test_coincide_exacto(self):
+        self.assertTrue(
+            evaluar_respuesta(
+                "significado", 3, "study, learning",
+                {"definicion": "study, learning"},
+            )
+        )
+
+    def test_coincide_con_orden_de_palabras_distinto(self):
+        self.assertTrue(
+            evaluar_respuesta(
+                "significado", 3, "learning, study",
+                {"definicion": "study, learning"},
+            )
+        )
+
+    def test_no_coincide(self):
+        self.assertFalse(
+            evaluar_respuesta(
+                "significado", 3, "mountain",
+                {"definicion": "study, learning"},
+            )
+        )
+
+    def test_pasa_en_dificultad_baja_pero_falla_en_dificultad_alta(self):
+        respuesta = "aprendio"  # similar pero no idéntico a la definición
+        datos = {"definicion": "aprender"}
+
+        self.assertTrue(evaluar_respuesta("significado", 1, respuesta, datos))
+        self.assertFalse(evaluar_respuesta("significado", 5, respuesta, datos))
+
+
+class EvaluarRespuestaTrazoTest(TestCase):
+    def setUp(self):
+        self.sesion = SesionEstudio.objects.create(
+            usuario_id=uuid.uuid4(), nivel_hsk=2, dificultad=3, estado="activa"
+        )
+        self.ejercicio = Ejercicio.objects.create(
+            sesion=self.sesion, caracter="学", tipo="trazo", dificultad=3
+        )
+
+    def test_evalua_trazo_delegando_en_catalogo_remoto(self):
+        catalogo_falso = type("CatalogoFalso", (), {
+            "comparar_trazo": lambda self, hanzi, secuencia, puntos, ancho, alto: {
+                "aprobado": True,
+                "puntaje": 92,
+                "motivo": "ok",
+                "invertido": False,
+                "detalle": "",
+                "distancia_media": 3.2,
+                "razon_longitud": 1.0,
+                "puntos_lejanos": [],
+            },
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+        resultado = service.evaluar(
+            self.ejercicio.pk,
+            {"secuencia": 1, "puntos": [[0, 0], [1, 1]], "ancho": 320, "alto": 320},
+        )
+
+        self.assertTrue(resultado["aprobado"])
+        self.assertEqual(resultado["puntaje"], 92)
+
+    def test_sin_secuencia_lanza_value_error(self):
+        catalogo_falso = type("CatalogoFalso", (), {
+            "comparar_trazo": lambda self, hanzi, secuencia, puntos, ancho, alto: {},
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+
+        with self.assertRaises(ValueError):
+            service.evaluar(
+                self.ejercicio.pk,
+                {"puntos": [[0, 0], [1, 1]], "ancho": 320, "alto": 320},
+            )
+
+
+class EvaluarRespuestaCasosInvalidosTest(TestCase):
+    def test_dificultad_fuera_de_rango_lanza_value_error(self):
+        with self.assertRaises(ValueError):
+            evaluar_respuesta("significado", 6, "algo", {"definicion": "algo"})
+
+    def test_tipo_desconocido_lanza_value_error(self):
+        with self.assertRaises(ValueError):
+            evaluar_respuesta("audio", 3, "algo", {})
+
+
+class EvaluarEjercicioServiceTest(TestCase):
+    def setUp(self):
+        self.sesion = SesionEstudio.objects.create(
+            usuario_id=uuid.uuid4(), nivel_hsk=2, dificultad=3, estado="activa"
+        )
+
+    def test_evalua_pinyin_correctamente(self):
+        ejercicio = Ejercicio.objects.create(
+            sesion=self.sesion, caracter="学", tipo="pinyin", dificultad=3
+        )
+        catalogo_falso = type("CatalogoFalso", (), {
+            "obtener_detalle": lambda self, hanzi: {"pinyin": "xué"},
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+        resultado = service.evaluar(ejercicio.pk, "xue")
+
+        self.assertTrue(resultado)
+
+    def test_evalua_significado_incorrectamente(self):
+        ejercicio = Ejercicio.objects.create(
+            sesion=self.sesion, caracter="学", tipo="significado", dificultad=3
+        )
+        catalogo_falso = type("CatalogoFalso", (), {
+            "obtener_detalle": lambda self, hanzi: {"definicion": "study, learning"},
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+        resultado = service.evaluar(ejercicio.pk, "mountain")
+
+        self.assertFalse(resultado)
+
+    def test_evalua_trazo_devuelve_resultado_completo(self):
+        ejercicio = Ejercicio.objects.create(
+            sesion=self.sesion, caracter="学", tipo="trazo", dificultad=3
+        )
+        catalogo_falso = type("CatalogoFalso", (), {
+            "comparar_trazo": lambda self, hanzi, secuencia, puntos, ancho, alto: {
+                "aprobado": False,
+                "puntaje": 40,
+                "motivo": "forma_distinta",
+                "invertido": True,
+                "detalle": "trazo invertido",
+                "distancia_media": 15.4,
+                "razon_longitud": 0.6,
+                "puntos_lejanos": [[10, 10]],
+            },
+        })()
+
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+        resultado = service.evaluar(
+            ejercicio.pk,
+            {"secuencia": 2, "puntos": [[0, 0], [5, 5]], "ancho": 320, "alto": 320},
+        )
+
+        self.assertFalse(resultado["aprobado"])
+        self.assertEqual(resultado["motivo"], "forma_distinta")
+        self.assertTrue(resultado["invertido"])
+
+    def test_evaluar_ejercicio_inexistente_lanza_error_de_dominio(self):
+        """No debe dejar escapar Ejercicio.DoesNotExist crudo del ORM."""
+        catalogo_falso = type("CatalogoFalso", (), {})()
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+
+        with self.assertRaises(EjercicioNoEncontradoError):
+            service.evaluar(999999, "cualquier respuesta")

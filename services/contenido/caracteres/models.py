@@ -22,6 +22,9 @@ class Caracter(models.Model):
     class Meta:
         ordering = ["nivel_hsk", "frecuencia", "hanzi"]
 
+    def total_trazos(self):
+        return self.trazos.count()
+
     def __str__(self):
         return f"{self.hanzi} ({self.pinyin})"
 
@@ -46,6 +49,19 @@ class Trazo(models.Model):
     class Meta:
         ordering = ["secuencia"]
         unique_together = [("caracter", "secuencia")]
+
+    def comparar_con_trazo_usuario(self, puntos, ancho_lienzo, alto_lienzo):
+        """
+        Compara el trazo dibujado contra la mediana de este trazo.
+
+        Delegación deliberada: el algoritmo vive en la capa de dominio
+        (domain/comparador.py) y no dentro del modelo. Así el modelo
+        conserva únicamente responsabilidades de persistencia, y la
+        comparación puede probarse sin base de datos.
+        """
+        from .domain.comparador import comparar_trazo
+
+        return comparar_trazo(puntos, self.mediana, ancho_lienzo, alto_lienzo)
 
     def __str__(self):
         return f"{self.caracter.hanzi} · trazo {self.secuencia}"

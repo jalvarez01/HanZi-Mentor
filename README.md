@@ -211,6 +211,13 @@ cp .env.example .env      # Windows: copy .env.example .env
 
 El archivo `.env` está en `.gitignore` — nunca se sube al repositorio.
 
+**`ALLOWED_HOSTS`** merece nota aparte: en local se deja `*` (abierto,
+necesario para probar desde el celular por IP de LAN — ver
+`infra/scripts/levantar_backends.sh`). **En producción hay que ponerle el
+dominio real** (`ALLOWED_HOSTS=hanzimentor.app,www.hanzimentor.app`), nunca
+dejar `*` — Django no valida el header `Host` de la request si esto queda
+abierto, lo que habilita ataques de host header injection.
+
 ---
 
 ## Instalar como app (PWA)
@@ -234,6 +241,43 @@ python manage.py check                # Verificar problemas del proyecto
 ```
 
 Panel de administración: <http://localhost:8001/admin>
+
+---
+
+## Datos de caracteres
+
+Los caracteres del servicio `contenido` (tabla `Caracter`) se arman combinando **dos fuentes externas**, cada una con un rol distinto — no se solapan:
+
+| Fuente | Qué aporta | Repo |
+|---|---|---|
+| **Make Me a Hanzi** | El carácter en sí: pinyin, definición, radical, descomposición, y los **trazos** (orden de escritura, `path_svg`, `mediana`) que usa RF-APR-01 para validar la escritura a mano. Sin esto no hay animación ni comparación de trazos. | [skishore/makemeahanzi](https://github.com/skishore/makemeahanzi) |
+| **Complete HSK Vocabulary** | Solo la clasificación de nivel HSK (1-6) — no trae trazos ni gráficos. Se usa para poblar el campo `nivel_hsk` de los caracteres que ya existen en la base (importados de Make Me a Hanzi). | [drkameleon/complete-hsk-vocabulary](https://github.com/drkameleon/complete-hsk-vocabulary) |
+
+De los ~9500 caracteres importados de Make Me a Hanzi, solo ~700 corresponden al vocabulario oficial HSK 1-6 (`nivel_hsk` asignado); el resto queda con `nivel_hsk = NULL` y sigue siendo válido para practicar — solo no pertenece a ningún nivel oficial (ver `LeccionBuilder.con_caracteres_del_nivel`: los caracteres sin clasificar rellenan una lección cuando el nivel exacto no alcanza, nunca reemplazan a los del nivel correspondiente).
+
+### Importar caracteres (Make Me a Hanzi)
+
+```bash
+cd services/contenido
+
+# Clonar el repo de datos (pesado, no vive dentro de este repo — ver .gitignore)
+git clone https://github.com/skishore/makemeahanzi data_hanzi
+
+python manage.py cargar_hanzi --ruta data_hanzi --todos
+```
+
+`--todos` importa todo el set (~9500 caracteres); sin ese flag, solo importa los niveles pasados en `--nivel` (por defecto 1 y 2), filtrando contra `caracteres/hsk.py`.
+
+### Clasificar nivel HSK (Complete HSK Vocabulary)
+
+Las listas oficiales por nivel ya están volcadas en `caracteres/hsk.py::CARACTERES_POR_NIVEL` (extraídas de `wordlists/exclusive/old/1..6.json` de ese repo, filtrando solo entradas de un carácter). Para aplicar/actualizar la clasificación sobre los caracteres ya importados:
+
+```bash
+python manage.py clasificar_hsk --revisar   # solo informa, no guarda
+python manage.py clasificar_hsk             # aplica los cambios
+```
+
+Corré este comando después de cada `cargar_hanzi`, y también si actualizás `caracteres/hsk.py` con más caracteres clasificados.
 
 ---
 

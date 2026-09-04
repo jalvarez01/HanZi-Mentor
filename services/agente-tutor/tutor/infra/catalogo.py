@@ -80,3 +80,40 @@ class CatalogoRemoto(Catalogo):
             logger.warning("Falló la consulta al servicio de contenido: %s", error)
 
         return self._respaldo.caracteres_de_nivel(nivel, omitir, cantidad)
+
+    def obtener_detalle(self, hanzi: str) -> dict:
+        """Detalle de un carácter (pinyin, definición, trazos), o dict vacío si falla."""
+        try:
+            import requests
+
+            respuesta = requests.get(
+                f"{self._base_url}/api/caracteres/{hanzi}/",
+                timeout=TIMEOUT_SEGUNDOS,
+            )
+            respuesta.raise_for_status()
+            return respuesta.json()
+
+        except Exception as error:
+            logger.warning("Falló la consulta de detalle al servicio de contenido: %s", error)
+            return {}
+
+    def comparar_trazo(self, hanzi, secuencia, puntos, ancho, alto) -> dict:
+        """Valida un trazo contra el servicio contenido (RF-APR-01).
+
+        POST /api/caracteres/<hanzi>/trazos/<secuencia>/validar/ — contenido
+        ya tiene la mediana internamente, no hace falta enviarla.
+        """
+        try:
+            import requests
+
+            respuesta = requests.post(
+                f"{self._base_url}/api/caracteres/{hanzi}/trazos/{secuencia}/validar/",
+                json={"puntos": puntos, "ancho": ancho, "alto": alto},
+                timeout=TIMEOUT_SEGUNDOS,
+            )
+            respuesta.raise_for_status()
+            return respuesta.json()
+
+        except Exception as error:
+            logger.warning("Falló la validación de trazo en el servicio de contenido: %s", error)
+            return {"aprobado": False, "motivo": "error_servicio"}
