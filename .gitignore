@@ -29,3 +29,6 @@ levantar_proyecto.ps1
 
 # Dataset de caracteres (pesado, cada quien lo descarga con git clone)
 services/contenido/data_hanzi/
+
+# Archivos temporales de understand-anything (knowledge graph)
+.ua/
