@@ -12,3 +12,7 @@ class NivelNoPermitidoError(DominioError):
 
 class EjercicioYaRespondidoError(DominioError):
     """No se puede responder dos veces el mismo ejercicio."""
+
+
+class EjercicioNoEncontradoError(DominioError):
+    """No existe un ejercicio con el id solicitado."""

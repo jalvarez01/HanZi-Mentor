@@ -14,7 +14,7 @@ from django.utils import timezone
 from .domain import progreso_logic, sesion_logic
 from .domain.builders import SesionEstudioBuilder
 from .domain.evaluacion_logic import evaluar_respuesta
-from .domain.exceptions import EjercicioYaRespondidoError
+from .domain.exceptions import EjercicioNoEncontradoError, EjercicioYaRespondidoError
 from .domain.repaso import actualizar_tasa_acierto, calcular_proximo_repaso
 from .infra.catalogo import CatalogoRemoto
 from .infra.factories import MotorTutorFactory, NotificadorFactory
@@ -119,7 +119,12 @@ class EvaluarEjercicioService:
         )
 
     def evaluar(self, ejercicio_id, respuesta_usuario):
-        ejercicio = Ejercicio.objects.get(pk=ejercicio_id)
+        try:
+            ejercicio = Ejercicio.objects.get(pk=ejercicio_id)
+        except Ejercicio.DoesNotExist:
+            raise EjercicioNoEncontradoError(
+                f"No existe un ejercicio con id={ejercicio_id}."
+            )
 
         if ejercicio.tipo == "trazo":
             if "secuencia" not in respuesta_usuario:

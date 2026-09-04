@@ -10,10 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# .env vive en la raíz del repo (compartido por los 3 servicios), no
+# dentro de cada servicio — ver README > "Variables de entorno".
+load_dotenv(BASE_DIR.parent.parent / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +32,11 @@ SECRET_KEY = 'django-insecure-5z=3b!n*=)2o5jz$6z0rv$7+4u#wvb3o6l9ueq7&k4ue%z!vcw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# En producción, definir ALLOWED_HOSTS en el .env con el/los dominios
+# reales, separados por coma. Sin definir, Django solo permite localhost
+# (por DEBUG=True) — ver README > "Variables de entorno".
+_allowed_hosts_env = os.environ.get("ALLOWED_HOSTS")
+ALLOWED_HOSTS = _allowed_hosts_env.split(",") if _allowed_hosts_env else []
 
 
 # Application definition

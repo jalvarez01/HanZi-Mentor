@@ -10,7 +10,11 @@ from rest_framework.test import APITestCase
 
 from .domain import sesion_logic
 from .domain.builders import SesionEstudioBuilder
-from .domain.exceptions import NivelNoPermitidoError, SesionInvalidaError
+from .domain.exceptions import (
+    EjercicioNoEncontradoError,
+    NivelNoPermitidoError,
+    SesionInvalidaError,
+)
 from .services import SesionEstudioService
 
 
@@ -451,3 +455,11 @@ class EvaluarEjercicioServiceTest(TestCase):
         self.assertFalse(resultado["aprobado"])
         self.assertEqual(resultado["motivo"], "forma_distinta")
         self.assertTrue(resultado["invertido"])
+
+    def test_evaluar_ejercicio_inexistente_lanza_error_de_dominio(self):
+        """No debe dejar escapar Ejercicio.DoesNotExist crudo del ORM."""
+        catalogo_falso = type("CatalogoFalso", (), {})()
+        service = EvaluarEjercicioService(catalogo=catalogo_falso)
+
+        with self.assertRaises(EjercicioNoEncontradoError):
+            service.evaluar(999999, "cualquier respuesta")

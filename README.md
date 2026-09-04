@@ -211,6 +211,13 @@ cp .env.example .env      # Windows: copy .env.example .env
 
 El archivo `.env` está en `.gitignore` — nunca se sube al repositorio.
 
+**`ALLOWED_HOSTS`** merece nota aparte: en local se deja `*` (abierto,
+necesario para probar desde el celular por IP de LAN — ver
+`infra/scripts/levantar_backends.sh`). **En producción hay que ponerle el
+dominio real** (`ALLOWED_HOSTS=hanzimentor.app,www.hanzimentor.app`), nunca
+dejar `*` — Django no valida el header `Host` de la request si esto queda
+abierto, lo que habilita ataques de host header injection.
+
 ---
 
 ## Instalar como app (PWA)
