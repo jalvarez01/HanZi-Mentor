@@ -4,6 +4,7 @@ import os
 
 from flask import Flask, jsonify
 
+from errores import registrar_manejadores
 from rutas import trazos_bp
 
 NOMBRE_SERVICIO = "trazos-flask"
@@ -18,6 +19,7 @@ def create_app(config=None):
         app.config.update(config)
 
     app.register_blueprint(trazos_bp)
+    registrar_manejadores(app)
 
     @app.get("/health")
     def health():
