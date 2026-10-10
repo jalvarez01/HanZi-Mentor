@@ -225,7 +225,8 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
 
     setValidando(true);
     try {
-      const veredicto = await validarTrazo(hanzi, trazoActual.secuencia, {
+      const veredicto = await validarTrazo({
+        mediana: trazoActual.mediana,
         puntos,
         ancho: Math.round(rect.width),
         alto: Math.round(rect.height),
