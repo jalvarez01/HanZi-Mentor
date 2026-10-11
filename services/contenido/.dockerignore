@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+db.sqlite3
+db.sqlite3-journal
+# El dataset pesa ~30 MB: se monta como volumen, no se copia a la imagen.
+data_hanzi/

@@ -1,0 +1,6 @@
+# Dependencias que solo necesita la imagen Docker: servidor WSGI y driver de
+# PostgreSQL. Van aparte para que el entorno local (SQLite + runserver) no
+# tenga que compilar ni instalar el driver.
+-r requirements.txt
+gunicorn==26.2.0
+psycopg2-binary==2.9.10
