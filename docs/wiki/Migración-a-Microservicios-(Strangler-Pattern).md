@@ -240,6 +240,7 @@ curl -i -X POST http://localhost/api/v2/trazos/validar/ \
 docker compose logs nginx
 docker compose logs flask_trazos
 ```
+- Los comandos están escritos para bash (Linux, macOS, Git Bash o WSL). En Windows PowerShell, `curl` es un alias de `Invoke-WebRequest`; se recomienda ejecutarlos desde Git Bash.
 
 Las peticiones `/api/v1/` aparecen en el log de Nginx y en el de `contenido`; las `/api/v2/trazos/` aparecen en el de Nginx y en el de `flask_trazos`.
 
