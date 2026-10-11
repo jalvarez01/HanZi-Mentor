@@ -188,7 +188,7 @@ El intercambio entre el frontend y Flask queda fijado por el siguiente contrato.
 
 Con la separación en marcha, la migración aporta beneficios concretos, aunque también introduce costos que se asumieron de forma consciente.
 
-El principal beneficio es que la carga de CPU queda aislada: la comparación de trazos ya no consume workers de Django. Además, el servicio escala y se despliega de forma independiente, ya que se pueden añadir réplicas de Flask sin escalar Django y un cambio en el algoritmo no exige redesplegar `contenido`. A esto se suma un ciclo de cambio más rápido, porque el algoritmo vive en un servicio pequeño con pruebas propias. Los fallos también quedan aislados: una caída de Flask no afecta al catálogo, las lecciones ni los usuarios.
+El principal beneficio es que la carga de CPU queda aislada: la comparación de trazos ya no consume workers de Django. Además, el servicio escala y se despliega de forma independiente, ya que se pueden añadir réplicas de Flask sin escalar Django y un cambio en el algoritmo no exige redesplegar `contenido`. A esto se suma un ciclo de cambio más rápido, porque el algoritmo vive en un servicio pequeño con pruebas propias. Los fallos en ejecución también quedan acotados: si Flask cae, solo se ven afectadas las rutas `/api/v2/trazos/`, mientras que el catálogo y las lecciones siguen respondiendo por `/api/v1/`. No obstante, en el `docker-compose.yml` actual Nginx espera a que `flask_trazos` esté sano antes de arrancar, por lo que un fallo de Flask durante el arranque impide el acceso a ambas versiones.
 
 Sin embargo, la separación tiene un precio. Cada petición atraviesa Nginx antes de llegar al backend, lo que añade un salto de red. Por otra parte, el comparador queda duplicado temporalmente en `contenido` y en Flask hasta retirar v1, y ahora hay dos servicios que desplegar, monitorear y versionar.
 
@@ -251,6 +251,6 @@ El trabajo se repartió entre tres integrantes, cada uno en su propia rama.
 |------------|-----------------|------|
 | Juan José Álvarez | Microservicio Flask | `feature/flask-trazos` |
 | Santiago Meneses | Docker y Nginx | `feature/docker-nginx` |
-| Emmanuel Castaño | Matriz de decisión, wiki e integración del frontend | `docs/strangler-wiki` |
+| Emmanuel Castaño | Matriz de decisión, wiki e integración del frontend | `docs-wiki`, `feature/frontend-v2` |
 
 La integración se realiza mediante Pull Requests revisados hacia `development` y commits semánticos (`feat`, `fix`, `docs`, `test`, `chore`).
