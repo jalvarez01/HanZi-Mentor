@@ -80,36 +80,40 @@ Los errores siguen una forma estructurada: toda respuesta de error es JSON con `
 
 ### Contenedorización
 
-Para desplegarse por separado, Flask cuenta con un Dockerfile independiente: una imagen `python:3.11-slim` que ejecuta gunicorn en el puerto 5000 (`gunicorn -b 0.0.0.0:5000 "app:create_app()"`). El archivo `docker-compose.yml` reúne 4 servicios: Django `contenido`, Flask `flask_trazos`, base de datos y Nginx. De ellos, solo Nginx publica un puerto en el host (`80:80`), de modo que Django y Flask solo son accesibles dentro de la red de Docker.
+Para desplegarse por separado, Flask cuenta con un Dockerfile independiente: una imagen `python:3.11-slim` que ejecuta gunicorn en el puerto 5000 (`CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:5000", "--access-logfile", "-", "app:create_app()"]`). El archivo `docker-compose.yml` reúne 4 servicios: Django `contenido`, Flask `flask_trazos`, la base de datos `db` (imagen `postgres:16-alpine`, con los datos en el volumen `contenido_db`) y Nginx. Por su parte, `contenido` usa PostgreSQL cuando está definida la variable `POSTGRES_HOST`, como ocurre en Docker, y SQLite en el desarrollo local (`services/contenido/config/settings.py`). De todos ellos, solo Nginx publica un puerto en el host (`80:80`), de modo que Django y Flask solo son accesibles dentro de la red de Docker.
 
 ### Solución arquitectónica (snippet Nginx)
 
-Dentro de esa red, Nginx decide el backend a partir del prefijo de la URL: `/api/v1/` va a Django y `/api/v2/trazos/` va a Flask.
+Dentro de esa red, Nginx decide el backend a partir del prefijo de la URL: `/api/v1/` va a Django y `/api/v2/trazos/` va a Flask. El siguiente fragmento es un extracto de `infra/nginx/nginx.conf`; el archivo completo define además el formato de log `ruteo`, las cabeceras reenviadas a cada servicio y una respuesta 404 para las rutas no expuestas.
 
 ```nginx
-upstream contenido {
-    server contenido:8002;
-}
-
-upstream flask_trazos {
-    server flask_trazos:5000;
-}
-
-server {
-    listen 80;
-
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-    # v1: Django. Reescribe /api/v1/... a /api/...
-    location /api/v1/ {
-        proxy_pass http://contenido/api/;
+http {
+    upstream contenido {
+        server contenido:8002;
     }
 
-    # v2: Flask. Conserva la ruta completa.
-    location /api/v2/trazos/ {
-        proxy_pass http://flask_trazos;
+    upstream flask_trazos {
+        server flask_trazos:5000;
+    }
+
+    server {
+        listen 80;
+        server_name _;
+
+        # --- v1: monolito Django (caracteres, lecciones) ---
+        # Django declara sus rutas bajo /api/ y no bajo /api/v1/. Al terminar
+        # proxy_pass con la URI /api/, Nginx reemplaza el prefijo /api/v1/
+        # por /api/: la API pública queda versionada sin tocar Django.
+        location /api/v1/ {
+            proxy_pass http://contenido/api/;
+        }
+
+        # --- v2: microservicio Flask (funcionalidad estrangulada) ---
+        # Sin URI en proxy_pass: Flask recibe la ruta completa, porque ya
+        # declara /api/v2/trazos/validar/.
+        location /api/v2/trazos/ {
+            proxy_pass http://flask_trazos;
+        }
     }
 }
 ```
