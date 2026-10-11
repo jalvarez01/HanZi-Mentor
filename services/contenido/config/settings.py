@@ -89,12 +89,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Por defecto SQLite: en local el servicio arranca sin configurar nada.
+# En Docker, docker-compose.yml define POSTGRES_HOST y se usa el contenedor
+# `db` (el driver solo se instala en la imagen — ver requirements-docker.txt).
+if os.environ.get("POSTGRES_HOST"):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'HOST': os.environ["POSTGRES_HOST"],
+            'PORT': os.environ.get("POSTGRES_PORT", "5432"),
+            'NAME': os.environ.get("POSTGRES_DB", "contenido"),
+            'USER': os.environ.get("POSTGRES_USER", "hanzimentor"),
+            'PASSWORD': os.environ.get("POSTGRES_PASSWORD", ""),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

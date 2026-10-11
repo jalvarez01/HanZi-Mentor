@@ -13,7 +13,8 @@ HanZi-Mentor/
 ├── services/
 │   ├── usuarios/          # Django — cuentas, autenticación, suscripciones
 │   ├── contenido/         # Django — caracteres, trazos, lecciones, vocabulario
-│   └── agente-tutor/      # Django — agente IA, progreso, curva de olvido
+│   ├── agente-tutor/      # Django — agente IA, progreso, curva de olvido
+│   └── trazos-flask/      # Flask — validación de trazos (Strangler Pattern)
 ├── gateway/               # API Gateway
 ├── frontend/              # React + Vite (PWA mobile-first)
 ├── shared/                # Eventos, esquemas y utilidades compartidas
@@ -174,11 +175,9 @@ Puertos sugeridos para no chocar entre servicios:
 
 Para salir del entorno virtual: `deactivate`.
 
-**API Gateway (opcional, en local):** el frontend puede pegarle directo a
-cada puerto como se explicó arriba, o pasar por el gateway de
-`infra/nginx/nginx.conf`, que expone todo en un solo puerto (8080) y
-rutea por prefijo al servicio dueño de cada recurso. Ver
-[`infra/nginx/`](infra/nginx/nginx.conf) para instrucciones.
+**API Gateway:** el frontend puede pegarle directo a cada puerto como se
+explicó arriba, o pasar por el gateway Nginx que se levanta con Docker —
+ver [Levantar con Docker](#levantar-con-docker-gateway--microservicio-flask).
 
 ### 3. Levantar el frontend
 
@@ -198,6 +197,51 @@ npm run dev -- --host
 ```
 
 Vite muestra una URL de red (tipo `http://192.168.x.x:5173`) que podés abrir desde el navegador del celular.
+
+---
+
+## Levantar con Docker (gateway + microservicio Flask)
+
+`docker-compose.yml` levanta la topología del Strangler Pattern: Django
+`contenido`, el microservicio Flask `flask_trazos`, PostgreSQL y Nginx. Solo
+Nginx publica un puerto en el host (80) y reparte el tráfico según la URL:
+
+| Ruta | Destino |
+|---|---|
+| `/api/v1/*` | `contenido` (Django) — Nginx reescribe `/api/v1/` a `/api/` |
+| `/api/v2/trazos/*` | `flask_trazos` (Flask) |
+
+Requiere [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+(o Docker Engine con el plugin compose). Desde la raíz del repo:
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+```bash
+# v1 -> Django
+curl "http://localhost/api/v1/caracteres/?nivel=1&limite=5"
+
+# v2 -> Flask
+curl -X POST http://localhost/api/v2/trazos/validar/ \
+  -H "Content-Type: application/json" \
+  -d '{"mediana": [[458,800],[435,764],[400,700],[350,620],[300,540]],
+       "puntos":  [[134,29],[127,40],[117,59],[103,82],[88,105]],
+       "ancho": 300, "alto": 300}'
+
+# Cada línea del log muestra qué backend atendió la petición
+docker compose logs nginx
+```
+
+En el primer arranque `contenido` migra la base y, si encuentra el dataset
+de Make Me a Hanzi en `services/contenido/data_hanzi` (ver
+[Datos de caracteres](#datos-de-caracteres)), carga los caracteres de HSK 1
+a 6. Sin el dataset arranca igual, con la base vacía.
+
+Si el puerto 80 está ocupado, definir `GATEWAY_PORT` en el `.env` de la raíz
+(ver `.env.example`). Para detener todo: `docker compose down` (agregar `-v`
+para borrar también la base de datos).
 
 ---
 
