@@ -237,8 +237,8 @@ curl -i -X POST http://localhost/api/v2/trazos/validar/ \
 6. Confirmar en los logs que cada petición llegó a su backend:
 
 ```bash
-docker compose logs nginx
-docker compose logs flask_trazos
+docker compose logs nginx | grep -- "->"
+docker compose logs flask_trazos | grep -v /health
 ```
 - Los comandos están escritos para bash (Linux, macOS, Git Bash o WSL). En Windows PowerShell, `curl` es un alias de `Invoke-WebRequest`; se recomienda ejecutarlos desde Git Bash.
 
