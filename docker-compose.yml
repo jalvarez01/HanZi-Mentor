@@ -1,0 +1,77 @@
+# Topología del taller 02 (Strangler Pattern): el monolito Django `contenido`
+# y el microservicio Flask `flask_trazos` coexisten detrás de Nginx.
+#
+#   /api/v1/*         -> contenido     (Django, rutas antiguas)
+#   /api/v2/trazos/*  -> flask_trazos  (Flask, funcionalidad estrangulada)
+#
+# Uso, desde la raíz del repo:
+#   docker compose up -d --build
+#   docker compose ps
+#
+# Solo Nginx publica un puerto en el host; Django, Flask y la base de datos
+# quedan accesibles únicamente dentro de la red de Docker.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-contenido}
+      POSTGRES_USER: ${POSTGRES_USER:-hanzimentor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hanzimentor}
+    volumes:
+      - contenido_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  contenido:
+    build: ./services/contenido
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-contenido}
+      POSTGRES_USER: ${POSTGRES_USER:-hanzimentor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hanzimentor}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+    volumes:
+      # Dataset de Make Me a Hanzi (fuera del repo): se usa para la carga
+      # inicial de caracteres cuando la base está vacía.
+      - ./services/contenido/data_hanzi:/datos:ro
+    expose:
+      - "8002"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  flask_trazos:
+    build: ./services/trazos-flask
+    environment:
+      MAX_PUNTOS: ${MAX_PUNTOS:-5000}
+    expose:
+      - "5000"
+    healthcheck:
+      # La imagen slim no trae curl: se consulta /health con la stdlib.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${GATEWAY_PORT:-80}:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      contenido:
+        condition: service_started
+      flask_trazos:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  contenido_db:
