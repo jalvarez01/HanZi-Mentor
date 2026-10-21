@@ -1,11 +1,26 @@
 {
   "app": {
     "name": "HanziMentor",
+    "tagline": "trazo a trazo",
     "description": "Aprendé mandarín trazo a trazo con un tutor adaptativo."
   },
   "language": {
     "label": "Idioma",
     "es": "Español",
     "en": "English"
+  },
+  "nav": {
+    "label": "Navegación principal",
+    "home": "Inicio",
+    "strokes": "Trazos",
+    "practice": "Practicar",
+    "progress": "Progreso"
+  },
+  "topbar": {
+    "back": "Volver",
+    "streak_one": "Mejor racha: {{count}} acierto seguido",
+    "streak_other": "Mejor racha: {{count}} aciertos seguidos",
+    "streakLoading": "Cargando tu mejor racha",
+    "streakUnavailable": "Mejor racha no disponible"
   }
 }

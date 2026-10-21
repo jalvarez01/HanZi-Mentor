@@ -12,7 +12,7 @@
   border-radius: 10px;
   padding: 20px 18px;
   margin-bottom: 18px;
-  scroll-margin-top: 64px;
+  scroll-margin-top: var(--topbar-space);
 }
 
 .step-mark {

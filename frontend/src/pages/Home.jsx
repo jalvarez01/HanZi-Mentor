@@ -29,7 +29,7 @@ const CARDS = [
 export default function Home() {
   return (
     <>
-      <TopBar title="HanZi Mentor" />
+      <TopBar />
 
       <section className="hero">
         <div className="hero-char-box">

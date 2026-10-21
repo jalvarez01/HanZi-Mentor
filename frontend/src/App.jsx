@@ -13,6 +13,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
+        <div className="hm-ink-wash hm-ink-wash--jade" aria-hidden="true" />
+        <div className="hm-ink-wash hm-ink-wash--cinnabar" aria-hidden="true" />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/como-funciona" element={<HowItWorks />} />

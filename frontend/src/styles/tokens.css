@@ -95,6 +95,21 @@
   --tabbar-h: 62px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
+
+  /* TopBar fijo: separación del borde, altura y espacio que reserva el contenido debajo */
+  --topbar-top: 10px;
+  --topbar-h: 60px;
+  --topbar-space: calc(var(--safe-top) + var(--topbar-top) + var(--topbar-h) + 14px);
+
+  /* Shell: ancho máximo, imagen de fondo y velos de la maqueta */
+  --shell-max: 560px;
+  --cinnabar-fill: rgba(167, 46, 36, 0.12);
+  --shell-image: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0039.JPG-e8UyAdHjnJSmhPsIXajDs5b9SSTu6Y.jpeg');
+  --shell-veil: linear-gradient(135deg, rgba(245, 232, 201, 0.76), rgba(231, 216, 181, 0.58) 52%, rgba(39, 79, 72, 0.38));
+  --shell-glow:
+    radial-gradient(circle at 12% 8%, rgba(255, 244, 210, 0.32), transparent 22%),
+    radial-gradient(circle at 92% 63%, rgba(167, 46, 36, 0.14), transparent 25%);
+  --shell-shadow: 0 0 55px rgba(0, 0, 0, 0.35);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline-color: var(--cinnabar); }
@@ -123,24 +138,73 @@ button {
 
 /* Contenedor de app: ancho de celular, centrado en pantallas grandes */
 .app-shell {
-  max-width: 480px;
+  position: relative;
+  isolation: isolate;
+  max-width: var(--shell-max);
   margin: 0 auto;
   min-height: 100dvh;
-  background: var(--paper);
-  padding-top: var(--safe-top);
-  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom));
-  position: relative;
+  /* El TopBar es fijo: el contenido empieza debajo de él */
+  padding-top: var(--topbar-space);
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  /* Recorta los lavados de tinta que se salen por los lados */
+  overflow-x: clip;
 }
 
-/* En desktop se nota que es una app de celular, no una web rota */
-@media (min-width: 900px) {
-  body {
-    background: var(--paper-deep);
-  }
-  .app-shell {
-    box-shadow: 0 0 0 1px var(--line);
-    min-height: 100dvh;
-  }
+/*
+ * Fondo fijo con un pseudoelemento position: fixed en vez de
+ * background-attachment: fixed, que Safari en iOS ignora.
+ * Si la imagen no carga (sin conexión), queda el color papel.
+ */
+.app-shell::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: min(100%, var(--shell-max));
+  transform: translateX(-50%);
+  pointer-events: none;
+  /* Una sola capa (destellos, velo, imagen, color) para que los lavados queden encima */
+  background:
+    var(--shell-glow),
+    var(--shell-veil),
+    var(--shell-image) center top / cover no-repeat,
+    var(--paper);
+}
+
+/* Lavados de tinta difuminados (jade y cinabrio) */
+.hm-ink-wash {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.hm-ink-wash--jade {
+  top: 340px;
+  right: -100px;
+  width: 250px;
+  height: 180px;
+  background: var(--jade);
+  transform: rotate(-25deg);
+}
+
+.hm-ink-wash--cinnabar {
+  top: 800px;
+  left: -100px;
+  width: 210px;
+  height: 130px;
+  background: var(--cinnabar);
+  transform: rotate(20deg);
+}
+
+/* En pantallas anchas se nota que es una app de celular, no una web rota */
+@media (min-width: 561px) {
+  body { background: var(--backdrop); }
+  .app-shell { box-shadow: var(--shell-shadow); }
 }
 
 .screen-pad { padding: 0 20px; }

@@ -1,25 +1,29 @@
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { IconoInicio, IconoPracticar, IconoProgreso, IconoTrazos } from './Iconos';
 import './TabBar.css';
 
 const TABS = [
-  { to: '/', label: 'Inicio', glyph: '家' },
-  { to: '/trazos', label: 'Trazos', glyph: '写' },
-  { to: '/practica', label: 'Practicar', glyph: '师' },
-  { to: '/progreso', label: 'Progreso', glyph: '级' },
+  { to: '/', clave: 'nav.home', Icono: IconoInicio },
+  { to: '/trazos', clave: 'nav.strokes', Icono: IconoTrazos },
+  { to: '/practica', clave: 'nav.practice', Icono: IconoPracticar },
+  { to: '/progreso', clave: 'nav.progress', Icono: IconoProgreso },
 ];
 
 export default function TabBar() {
+  const { t } = useTranslation();
+
   return (
-    <nav className="tabbar">
-      {TABS.map((t) => (
+    <nav className="tabbar" aria-label={t('nav.label')}>
+      {TABS.map(({ to, clave, Icono }) => (
         <NavLink
-          key={t.to}
-          to={t.to}
-          end={t.to === '/'}
+          key={to}
+          to={to}
+          end={to === '/'}
           className={({ isActive }) => `tab ${isActive ? 'is-active' : ''}`}
         >
-          <span className="tab-glyph">{t.glyph}</span>
-          <span className="tab-label">{t.label}</span>
+          <Icono className="tab-icono" />
+          <span className="tab-label">{t(clave)}</span>
         </NavLink>
       ))}
     </nav>

@@ -1,11 +1,26 @@
 {
   "app": {
     "name": "HanziMentor",
+    "tagline": "stroke by stroke",
     "description": "Learn Mandarin stroke by stroke with an adaptive tutor."
   },
   "language": {
     "label": "Language",
     "es": "Español",
     "en": "English"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "home": "Home",
+    "strokes": "Strokes",
+    "practice": "Practice",
+    "progress": "Progress"
+  },
+  "topbar": {
+    "back": "Back",
+    "streak_one": "Best streak: {{count}} correct answer in a row",
+    "streak_other": "Best streak: {{count}} correct answers in a row",
+    "streakLoading": "Loading your best streak",
+    "streakUnavailable": "Best streak unavailable"
   }
 }
