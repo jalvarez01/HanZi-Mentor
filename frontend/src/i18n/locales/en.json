@@ -4,6 +4,9 @@
     "tagline": "stroke by stroke",
     "description": "Learn Mandarin stroke by stroke with an adaptive tutor."
   },
+  "common": {
+    "retry": "Retry"
+  },
   "language": {
     "label": "Language",
     "es": "Español",
@@ -22,5 +25,54 @@
     "streak_other": "Best streak: {{count}} correct answers in a row",
     "streakLoading": "Loading your best streak",
     "streakUnavailable": "Best streak unavailable"
+  },
+  "home": {
+    "opening": {
+      "kicker": "Chapter 01 · The first stroke",
+      "line1": "Write",
+      "line2": "stroke by",
+      "line3": "stroke.",
+      "text": "A tutor that learns from your mistakes and adapts every lesson to your pace.",
+      "cta": "See how it works",
+      "stamp": "Start",
+      "artLabel": "Mountain landscape with the Great Wall and a red sun"
+    },
+    "quote": {
+      "text": "Every character is a landscape.",
+      "emphasis": "Learn to walk through it."
+    },
+    "lesson": {
+      "kicker": "Your journey",
+      "title": "Today's lesson",
+      "countLabel": "HSK level {{nivel}} of 6",
+      "cardKicker": "Adaptive session · HSK {{nivel}}",
+      "cardTitle": "HSK level {{nivel}}",
+      "cardText": "The tutor builds the session around what you keep getting wrong.",
+      "start": "Start",
+      "loading": "Loading your level…",
+      "error": "We couldn't load your progress."
+    },
+    "words": {
+      "kicker": "Three strokes",
+      "title": "Words of the day",
+      "note": "Tap a word to practice its strokes.",
+      "tileLabel": "{{hanzi}}, {{pinyin}}: {{meaning}}. Practice its strokes",
+      "loading": "Finding today's words…",
+      "error": "We couldn't load the words of the day.",
+      "empty": "There are no characters loaded for HSK {{nivel}} yet."
+    },
+    "map": {
+      "kicker": "Route map",
+      "title": "The six levels",
+      "more": "See your progress",
+      "listLabel": "HSK levels",
+      "loading": "Loading your route…",
+      "error": "We couldn't load your route.",
+      "state": {
+        "actual": "Your current level",
+        "abierto": "Unlocked",
+        "bloqueado": "Locked"
+      }
+    }
   }
 }

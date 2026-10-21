@@ -1,136 +1,446 @@
-.hero {
-  padding: 28px 20px 32px;
-  text-align: center;
+/* Inicio: estructura y valores de la maqueta (apertura, cita, lección, palabras, mapa). */
+
+.home {
+  --home-pad: 22px;
+  --img-destacada: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0038.JPG-WPIYTMReohG1LTN6DQPy48OQkokinW.jpeg');
+  --img-mapa: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0036.JPG-qlu3HabmuNV8mKa6yaHzotQlawAT2e.jpeg');
+  padding: 0 var(--home-pad);
 }
 
-.hero-char-box {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  margin: 0 auto 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ------------------------------------------------------------------ apertura */
+
+.home-apertura {
+  display: grid;
+  grid-template-columns: 47% 53%;
+  min-height: 368px;
+  margin: 22px calc(-1 * var(--home-pad)) 0;
+  padding: 28px var(--home-pad) 0;
+  overflow: hidden;
 }
 
-.ink-wash {
-  position: absolute;
-  inset: -30px;
-  background: radial-gradient(circle at 40% 35%, var(--ink-tint), transparent 65%);
-  filter: blur(2px);
-}
+.home-apertura__texto { position: relative; z-index: 2; padding-top: 22px; }
 
-.hero-char {
-  font-family: var(--font-display);
-  font-size: 128px;
-  font-weight: 600;
-  line-height: 1;
-  position: relative;
-}
-
-.hero-title {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 28px;
-  line-height: 1.25;
-  margin: 0 0 12px;
-}
-
-.hero-title .accent { color: var(--cinnabar); }
-
-.hero-sub {
-  font-size: 15px;
-  line-height: 1.65;
-  color: var(--ink-muted);
-  margin: 0 auto;
-  max-width: 300px;
-}
-
-/* Tarjetas táctiles */
-.cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 24px;
-}
-
-.card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 76px;
-  padding: 14px 16px;
-  background: var(--surface);
-  border-radius: 10px;
-  transition: transform 0.12s ease, background 0.12s ease;
-}
-
-.card:active {
-  transform: scale(0.985);
-  background: var(--surface-strong);
-}
-
-.card-num {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 600;
-  width: 30px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.card-body { flex: 1; }
-
-.card-body h3 {
+.home-apertura__titulo {
+  margin: 17px 0 16px;
+  color: var(--jade);
   font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 3px;
+  font-size: var(--fs-display);
+  font-weight: 700;
+  line-height: 0.81;
+  letter-spacing: -5px;
 }
 
-.card-body p {
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  line-height: 1.5;
+.home-apertura__titulo i {
+  color: var(--cinnabar);
+  font-size: 0.72em;
+  font-weight: 400;
+  letter-spacing: -3px;
+}
+
+.home-apertura__titulo b { font-weight: 700; }
+
+.home-apertura__texto p {
+  margin: 0 0 20px;
   color: var(--ink-muted);
-  margin: 0;
+  font-size: var(--fs-base);
+  line-height: 1.25;
 }
 
-.card-chev {
-  font-size: 22px;
-  color: var(--ochre);
-  flex-shrink: 0;
+.home-apertura__arte {
+  position: relative;
+  min-height: 348px;
+  margin-right: calc(-1 * var(--home-pad));
+  overflow: hidden;
+  background: var(--shell-image) 56% center / cover;
+  filter: sepia(0.18) saturate(0.82);
+  clip-path: polygon(18% 0, 100% 0, 100% 100%, 0 100%, 0 20%);
 }
 
-/* CTA */
-.cta-block {
-  padding-top: 28px;
-  padding-bottom: 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+.home-apertura__arte::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, var(--paper) 0%, transparent 26%),
+    linear-gradient(0deg, var(--art-jade-veil), transparent 55%);
 }
 
-.btn-primary {
-  display: block;
-  width: 100%;
-  text-align: center;
+.home-sol {
+  position: absolute;
+  top: 35px;
+  right: 44px;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
   background: var(--cinnabar);
-  color: var(--paper);
-  font-family: var(--font-ui);
-  font-size: 15px;
-  font-weight: 500;
-  padding: 15px 0;
-  border-radius: 8px;
+  opacity: 0.85;
+  mix-blend-mode: multiply;
 }
 
-.btn-primary:active { opacity: 0.85; }
+.home-montana {
+  position: absolute;
+  background: var(--art-mountain);
+  filter: blur(2px);
+  transform: rotate(45deg);
+}
 
-.btn-text {
-  font-family: var(--font-ui);
-  font-size: 14px;
+.home-montana--fondo { top: 78px; left: 35px; width: 170px; height: 170px; }
+
+.home-montana--frente {
+  right: -42px;
+  bottom: -90px;
+  width: 210px;
+  height: 210px;
+  background: var(--art-mountain-front);
+}
+
+.home-muralla {
+  position: absolute;
+  z-index: 2;
+  top: 185px;
+  left: -28px;
+  width: 270px;
+  height: 30px;
+  border: 7px solid var(--art-wall);
+  border-left: 0;
+  border-radius: 0 60% 60% 0;
+  box-shadow: 0 7px 0 var(--art-wall-shadow);
+  transform: rotate(-35deg);
+}
+
+.home-muralla span {
+  position: absolute;
+  top: -7px;
+  width: 5px;
+  height: 10px;
+  background: var(--art-wall-post);
+}
+
+.home-muralla span:nth-child(1) { left: 75px; }
+.home-muralla span:nth-child(2) { left: 145px; }
+.home-muralla span:nth-child(3) { left: 215px; }
+
+.home-arte-caracter {
+  position: absolute;
+  z-index: 3;
+  right: 24px;
+  bottom: 30px;
+  color: var(--gold-glow);
+  font: 58px/1 var(--font-display);
+  writing-mode: vertical-rl;
+  text-shadow: 2px 2px 0 var(--cinnabar);
+}
+
+.home-sello-rojo {
+  position: absolute;
+  z-index: 4;
+  top: 153px;
+  right: 10px;
+  padding: 4px;
+  border: 2px solid var(--cinnabar);
+  color: var(--cinnabar);
+  font: 18px/0.9 var(--font-display);
+  text-align: center;
+  transform: rotate(7deg);
+}
+
+.home-sello-rojo small { font: 6px var(--font-ui); letter-spacing: 1px; }
+
+/* --------------------------------------------------------------- franja cita */
+
+.home-cita {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -3px calc(-1 * var(--home-pad)) 0;
+  padding: 14px var(--home-pad);
+  border-top: 5px solid var(--ochre);
+  border-bottom: 5px solid var(--ochre);
+  background: var(--jade);
+  color: var(--on-jade);
+}
+
+.home-cita__comilla { color: var(--gold-light); font-size: 42px; line-height: 0.5; }
+
+.home-cita p { flex: 1; margin: 0; font-size: var(--fs-base); line-height: 1.2; }
+.home-cita em { color: var(--gold-pale); }
+
+.home-cita__sello {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 37px;
+  border: 1px solid var(--gold-light);
+  color: var(--gold-light);
+  font: 19px var(--font-display);
+}
+
+/* ------------------------------------------------------------- secciones */
+
+.home-seccion { margin-top: 40px; padding: 16px 14px 18px; }
+
+.home-destello { width: 22px; height: 22px; color: var(--cinnabar); }
+
+.home-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-error__reintentar {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--cinnabar);
+  color: var(--cinnabar);
+  font: 700 var(--fs-xs) var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.home-error__reintentar:focus-visible { outline: 2px solid var(--ochre); outline-offset: 3px; }
+
+/* Texto solo para lectores de pantalla */
+.home-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ lección de hoy */
+
+.home-destacada {
+  display: grid;
+  grid-template-columns: 43% 57%;
+  min-height: 202px;
+}
+
+.home-destacada__imagen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--img-destacada) center / cover;
+}
+
+.home-destacada__imagen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--art-jade-veil);
+}
+
+.home-destacada__sol {
+  position: absolute;
+  top: 22px;
+  right: 19px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: var(--art-sun);
+  opacity: 0.82;
+}
+
+.home-destacada__tejado {
+  position: absolute;
+  z-index: 2;
+  bottom: 34px;
+  width: 116px;
+  height: 17px;
+  border-top: 8px solid var(--ink);
+  border-radius: 50% 50% 0 0;
+}
+
+.home-destacada__imagen span {
+  position: relative;
+  z-index: 3;
+  color: var(--art-glyph);
+  font: 48px/1 var(--font-display);
+  writing-mode: vertical-rl;
+}
+
+.home-destacada__contenido { padding: 20px 15px 14px; }
+
+.home-destacada__contenido h3 {
+  margin: 8px 0 7px;
+  color: var(--jade);
+  font-size: 23px;
+  line-height: 0.92;
+}
+
+.home-destacada__contenido p {
+  margin: 0 0 13px;
   color: var(--ink-muted);
-  border-bottom: 1px solid var(--ochre);
-  padding-bottom: 2px;
+  font-size: var(--fs-sm);
+  line-height: 1.25;
+}
+
+/* ----------------------------------------------------------- palabras del día */
+
+.home-palabras {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-palabras .hm-tile { width: 100%; height: 100%; }
+
+/* La definición viene del dataset y puede ser larga: se corta en 2 líneas */
+.home-palabras__significado {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.home-nota {
+  margin: 11px 2px 0;
+  color: var(--ink-muted);
+  font: var(--fs-xs) var(--font-ui);
+  letter-spacing: 0.4px;
+}
+
+/* -------------------------------------------------------------- mapa de ruta */
+
+.home-mapa {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(var(--art-paper-veil), var(--art-paper-veil)),
+    var(--img-mapa) center / cover,
+    var(--map-bg);
+  transition: transform 0.3s ease;
+}
+
+.home-mapa:hover { transform: scale(1.015) rotate(0.4deg); }
+
+.home-mapa::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, var(--art-jade-veil-strong), transparent 70%);
+  pointer-events: none;
+}
+
+.home-mapa__camino {
+  position: absolute;
+  z-index: 2;
+  top: 105px;
+  left: -20%;
+  width: 150%;
+  height: 20px;
+  border-top: 8px solid var(--art-road);
+  border-bottom: 3px solid var(--art-road-edge);
+  border-radius: 50%;
+  transform: rotate(18deg);
+}
+
+.home-mapa__camino i {
+  position: absolute;
+  top: -15px;
+  width: 5px;
+  height: 12px;
+  background: var(--art-road-post);
+}
+
+.home-mapa__camino i:nth-child(1) { left: 25%; }
+.home-mapa__camino i:nth-child(2) { left: 48%; }
+.home-mapa__camino i:nth-child(3) { left: 70%; }
+.home-mapa__camino i:nth-child(4) { left: 88%; }
+
+.home-mapa__niveles { margin: 0; padding: 0; list-style: none; }
+
+.home-mapa__nivel {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: var(--cinnabar);
+  color: var(--map-label-text);
+  font: 700 var(--fs-3xs) var(--font-ui);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.home-mapa__nivel svg { width: 9px; height: 9px; }
+
+/* Posiciones a lo largo del camino, de abajo a la izquierda hacia arriba a la derecha */
+.home-mapa__nivel--1 { left: 6%; top: 34px; }
+.home-mapa__nivel--2 { left: 18%; bottom: 25px; }
+.home-mapa__nivel--3 { left: 38%; top: 58px; }
+.home-mapa__nivel--4 { left: 52%; bottom: 40px; }
+.home-mapa__nivel--5 { right: 24px; top: 73px; }
+.home-mapa__nivel--6 { right: 18px; top: 22px; }
+
+/* Sin datos todavía (cargando o error): neutro, sin sugerir que está desbloqueado */
+.home-mapa__nivel.is-pendiente {
+  background: var(--map-locked-bg);
+  color: var(--ink-muted);
+}
+
+.home-mapa__nivel.is-actual {
+  background: var(--jade);
+  outline: 2px solid var(--ochre);
+  outline-offset: 2px;
+  font-size: var(--fs-2xs);
+}
+
+.home-mapa__nivel.is-bloqueado {
+  background: var(--map-locked-bg);
+  color: var(--ink-faint);
+}
+
+.home-mapa__brujula {
+  position: absolute;
+  z-index: 3;
+  right: 13px;
+  bottom: 11px;
+  color: var(--gold-glow);
+  font: var(--fs-3xl) var(--font-display);
+}
+
+/* ---------------------------------------------------------------- movimiento */
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-apertura__arte { animation: home-respira 10s ease-in-out infinite alternate; }
+  .home-sol { animation: home-brillo 5s ease-in-out infinite alternate; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mapa:hover { transform: none; }
+}
+
+@keyframes home-respira {
+  from { background-position: 56% center; }
+  to { background-position: 61% center; }
+}
+
+@keyframes home-brillo {
+  from { box-shadow: 0 0 0 transparent; }
+  to { box-shadow: 0 0 28px var(--art-sun-glow); }
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 390px) {
+  .home { --home-pad: 17px; }
+  .home-apertura { grid-template-columns: 49% 51%; }
+  .home-apertura__titulo { font-size: 51px; }
+  .home-destacada { grid-template-columns: 40% 60%; }
+  .home-destacada__contenido h3 { font-size: 21px; }
+  .home-palabras .hm-tile { padding-left: 9px; padding-right: 9px; }
+  .home-palabras .hm-tile__hanzi { left: 9px; }
 }

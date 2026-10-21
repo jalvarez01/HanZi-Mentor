@@ -33,6 +33,48 @@ export function IconoLlama(props) {
   );
 }
 
+export function IconoFlecha(props) {
+  return (
+    <Icono {...props}>
+      <path d="M7 17 17 7M8 7h9v9" />
+    </Icono>
+  );
+}
+
+export function IconoPlay(props) {
+  return (
+    <Icono relleno="currentColor" {...props}>
+      <path d="M7 4.5v15l12-7.5z" />
+    </Icono>
+  );
+}
+
+export function IconoDestello(props) {
+  return (
+    <Icono {...props}>
+      <path d="M12 3c.8 4.2 2.8 6.2 7 7-4.2.8-6.2 2.8-7 7-.8-4.2-2.8-6.2-7-7 4.2-.8 6.2-2.8 7-7z" />
+      <path d="M19 16.5v4M17 18.5h4" />
+    </Icono>
+  );
+}
+
+export function IconoChevron(props) {
+  return (
+    <Icono {...props}>
+      <path d="M9 6l6 6-6 6" />
+    </Icono>
+  );
+}
+
+export function IconoCandado(props) {
+  return (
+    <Icono {...props}>
+      <rect x="5" y="11" width="14" height="10" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </Icono>
+  );
+}
+
 export function IconoAtras(props) {
   return (
     <Icono {...props}>

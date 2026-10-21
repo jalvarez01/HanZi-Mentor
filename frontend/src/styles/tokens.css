@@ -96,10 +96,27 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
 
-  /* TopBar fijo: separación del borde, altura y espacio que reserva el contenido debajo */
-  --topbar-top: 10px;
+  /* Ilustraciones del Inicio (sol, montañas, muralla, camino del mapa) */
+  --art-sun: #e3b85f;
+  --art-sun-glow: rgba(227, 184, 95, 0.35);
+  --art-glyph: #f4d28a;
+  --art-mountain: rgba(39, 79, 72, 0.75);
+  --art-mountain-front: rgba(62, 68, 50, 0.8);
+  --art-wall: #d0a058;
+  --art-wall-shadow: rgba(92, 67, 42, 0.45);
+  --art-wall-post: #806447;
+  --art-road: #cf9c4b;
+  --art-road-edge: #574e3e;
+  --art-road-post: #6f563b;
+  --art-jade-veil: rgba(39, 79, 72, 0.26);
+  --art-jade-veil-strong: rgba(39, 79, 72, 0.4);
+  --art-paper-veil: rgba(238, 228, 205, 0.2);
+  --map-bg: #c4c8ab;
+  --map-label-text: #f5e6c4;
+  --map-locked-bg: rgba(238, 228, 205, 0.82);
+
+  /* Altura del TopBar */
   --topbar-h: 60px;
-  --topbar-space: calc(var(--safe-top) + var(--topbar-top) + var(--topbar-h) + 14px);
 
   /* Shell: ancho máximo, imagen de fondo y velos de la maqueta */
   --shell-max: 560px;
@@ -143,8 +160,7 @@ button {
   max-width: var(--shell-max);
   margin: 0 auto;
   min-height: 100dvh;
-  /* El TopBar es fijo: el contenido empieza debajo de él */
-  padding-top: var(--topbar-space);
+  padding-top: var(--safe-top);
   padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
   /* Recorta los lavados de tinta que se salen por los lados */
   overflow-x: clip;

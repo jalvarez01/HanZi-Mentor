@@ -1,20 +1,17 @@
 /*
- * Encabezado de vidrio de la maqueta, fijo arriba y centrado como la TabBar.
- * Altura fija (--topbar-h): .app-shell reserva ese espacio con --topbar-space.
+ * Encabezado de vidrio de la maqueta: en el flujo normal, al inicio de la
+ * página, y se va con el contenido al hacer scroll (como el .header original).
  */
 .topbar {
   --topbar-gutter: 16px;
-  position: fixed;
-  top: calc(var(--safe-top) + var(--topbar-top));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 40;
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  width: calc(min(100%, var(--shell-max)) - 2 * var(--topbar-gutter));
   height: var(--topbar-h);
+  margin: 14px var(--topbar-gutter) 0;
   padding: 0 12px;
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);

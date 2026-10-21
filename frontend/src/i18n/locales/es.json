@@ -4,6 +4,9 @@
     "tagline": "trazo a trazo",
     "description": "Aprendé mandarín trazo a trazo con un tutor adaptativo."
   },
+  "common": {
+    "retry": "Reintentar"
+  },
   "language": {
     "label": "Idioma",
     "es": "Español",
@@ -22,5 +25,54 @@
     "streak_other": "Mejor racha: {{count}} aciertos seguidos",
     "streakLoading": "Cargando tu mejor racha",
     "streakUnavailable": "Mejor racha no disponible"
+  },
+  "home": {
+    "opening": {
+      "kicker": "Capítulo 01 · El primer trazo",
+      "line1": "Escribí",
+      "line2": "trazo a",
+      "line3": "trazo.",
+      "text": "Un tutor que aprende de tus errores y ajusta cada lección a tu ritmo.",
+      "cta": "Ver cómo funciona",
+      "stamp": "Inicio",
+      "artLabel": "Paisaje de montañas con la Gran Muralla y un sol rojo"
+    },
+    "quote": {
+      "text": "Cada carácter es un paisaje.",
+      "emphasis": "Aprendé a recorrerlo."
+    },
+    "lesson": {
+      "kicker": "Tu viaje",
+      "title": "Lección de hoy",
+      "countLabel": "Nivel HSK {{nivel}} de 6",
+      "cardKicker": "Sesión adaptativa · HSK {{nivel}}",
+      "cardTitle": "Nivel HSK {{nivel}}",
+      "cardText": "El tutor arma la sesión priorizando lo que venís fallando.",
+      "start": "Comenzar",
+      "loading": "Cargando tu nivel…",
+      "error": "No pudimos cargar tu progreso."
+    },
+    "words": {
+      "kicker": "Tres trazos",
+      "title": "Palabras del día",
+      "note": "Tocá una palabra para practicar sus trazos.",
+      "tileLabel": "{{hanzi}}, {{pinyin}}: {{meaning}}. Practicar sus trazos",
+      "loading": "Buscando las palabras de hoy…",
+      "error": "No pudimos cargar las palabras del día.",
+      "empty": "Todavía no hay caracteres cargados para HSK {{nivel}}."
+    },
+    "map": {
+      "kicker": "Mapa de ruta",
+      "title": "Los seis niveles",
+      "more": "Ver tu progreso",
+      "listLabel": "Niveles HSK",
+      "loading": "Cargando tu ruta…",
+      "error": "No pudimos cargar tu ruta.",
+      "state": {
+        "actual": "Tu nivel actual",
+        "abierto": "Desbloqueado",
+        "bloqueado": "Bloqueado"
+      }
+    }
   }
 }

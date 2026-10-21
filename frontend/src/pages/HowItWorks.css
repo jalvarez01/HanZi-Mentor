@@ -12,7 +12,8 @@
   border-radius: 10px;
   padding: 20px 18px;
   margin-bottom: 18px;
-  scroll-margin-top: var(--topbar-space);
+  /* Sin encabezado fijo: solo un respiro sobre la sección al saltar al ancla */
+  scroll-margin-top: 16px;
 }
 
 .step-mark {
