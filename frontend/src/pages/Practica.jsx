@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import TopBar from '../components/TopBar';
 import { useUsuario } from '../hooks/useUsuario';
+import { useFormato } from '../i18n/formato';
 import { crearSesion, responderEjercicio, generarLeccion } from '../services/api';
 import './Practica.css';
 
 const NIVELES = [1, 2, 3, 4, 5, 6];
+const NUMERALES = ['一', '二', '三', '四', '五', '六'];
 
 export default function Practica() {
   const { usuarioId } = useUsuario();
+  const { t } = useTranslation();
+  const formato = useFormato();
 
   const [modo, setModo] = useState('sesion'); // 'sesion' (agente-tutor) | 'leccion' (contenido)
 
@@ -25,7 +30,7 @@ export default function Practica() {
   const ejercicio = sesion?.ejercicios?.[indice];
   const ejercicioLeccion = leccion?.ejercicios?.[indiceLeccion];
 
-    async function empezarLeccion(nivel) {
+  async function empezarLeccion(nivel) {
     setCargando(true);
     setError(null);
 
@@ -39,7 +44,6 @@ export default function Practica() {
       setCargando(false);
     }
   }
-
 
   async function empezar(nivel) {
     setCargando(true);
@@ -81,79 +85,101 @@ export default function Practica() {
     setIndice((i) => i + 1);
   }
 
+  const tipoEjercicio = (tipo) =>
+    tipo === 'trazo' ? t('practice.typeStrokes') : t('practice.typeMeaning');
+
   // ---------------------------------------------------------- sin sesión
 
   if (!sesion && !leccion) {
     return (
       <>
-        <TopBar title="Practicar" />
-        <div className="screen-pad practica">
-          <div className="niveles" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: 20 }}>
+        <TopBar title={t('practice.title')} />
+        <div className="hm-page practica">
+          <div className="practica-modos" role="group" aria-label={t('practice.modeLabel')}>
             <button
-              className="nivel-btn"
-              style={modo === 'sesion' ? { background: 'var(--gold)', color: 'var(--paper)' } : undefined}
+              type="button"
+              className="practica-modo"
+              aria-pressed={modo === 'sesion'}
               onClick={() => setModo('sesion')}
             >
-              Sesión adaptativa
+              {t('practice.modeSession')}
             </button>
             <button
-              className="nivel-btn"
-              style={modo === 'leccion' ? { background: 'var(--gold)', color: 'var(--paper)' } : undefined}
+              type="button"
+              className="practica-modo"
+              aria-pressed={modo === 'leccion'}
               onClick={() => setModo('leccion')}
             >
-              Lección por nivel
+              {t('practice.modeLesson')}
             </button>
           </div>
 
-          <p className="intro">
-            {modo === 'sesion'
-              ? 'Elegí un nivel. El tutor arma la sesión priorizando lo que venís fallando.'
-              : 'Elegí un nivel. Se genera una lección con caracteres y ejercicios de ese HSK.'}
-          </p>
+          <section className="hm-panel practica-panel" aria-labelledby="practica-niveles-titulo">
+            <div className="hm-section-head">
+              <div>
+                <span className="hm-kicker">{t('practice.levelKicker')}</span>
+                <h2 id="practica-niveles-titulo">{t('practice.levelTitle')}</h2>
+              </div>
+            </div>
 
-          {error && <p className="error">{error}</p>}
-
-          <div className="niveles">
-            {NIVELES.map((n) => (
-              <button
-                key={n}
-                className="nivel-btn"
-                disabled={cargando}
-                onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
-              >
-                HSK{n}
-              </button>
-            ))}
-          </div>
-
-          {cargando && <p className="cargando">Armando tu {modo === 'sesion' ? 'sesión' : 'lección'}…</p>}
-
-          {modo === 'sesion' && (
-            <p className="nota">
-              Si un nivel no está desbloqueado, el servidor lo rechaza — es la regla
-              que valida el builder.
+            <p className="practica-intro">
+              {modo === 'sesion' ? t('practice.introSession') : t('practice.introLesson')}
             </p>
-          )}
+
+            {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
+
+            <div className="practica-niveles">
+              {NIVELES.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className="practica-nivel"
+                  disabled={cargando}
+                  onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
+                >
+                  <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
+                    {NUMERALES[n - 1]}
+                  </span>
+                  <span>HSK {n}</span>
+                </button>
+              ))}
+            </div>
+
+            {cargando && (
+              <p className="hm-status hm-status--loading" role="status">
+                {modo === 'sesion' ? t('practice.buildingSession') : t('practice.buildingLesson')}
+              </p>
+            )}
+
+            {modo === 'sesion' && <p className="practica-nota">{t('practice.lockedNote')}</p>}
+          </section>
         </div>
       </>
     );
   }
 
-   // -------------------------------------------------------------- lección
+  // -------------------------------------------------------------- lección
 
   if (leccion) {
     if (!ejercicioLeccion) {
       return (
         <>
-          <TopBar title="Lección completa" />
-          <div className="screen-pad practica resumen">
-            <div className="sello-grande">完</div>
-            <h2>Terminaste la lección</h2>
-            <p className="intro">
-              Revisaste los {leccion.ejercicios.length} ejercicios de nivel HSK{leccion.nivel_hsk}.
+          <TopBar title={t('practice.lessonDoneBar')} />
+          <div className="hm-page practica practica-resumen">
+            <span className="hm-seal hm-seal--lg" aria-hidden="true">完</span>
+            <h2>{t('practice.lessonDoneTitle')}</h2>
+            <p className="practica-intro">
+              {t('practice.lessonDoneText', {
+                count: leccion.ejercicios.length,
+                nivel: leccion.nivel_hsk,
+              })}
             </p>
-            <button className="btn-principal" onClick={() => { setLeccion(null); setIndiceLeccion(0); }}>
-              Otra lección
+            <button
+              type="button"
+              className="hm-btn"
+              onClick={() => { setLeccion(null); setIndiceLeccion(0); }}
+            >
+              {t('practice.anotherLesson')}
             </button>
           </div>
         </>
@@ -162,34 +188,30 @@ export default function Practica() {
 
     return (
       <>
-        <TopBar title={`HSK${leccion.nivel_hsk} · Lección`} />
-        <div className="screen-pad practica">
-          <div className="barra-avance">
-            <div
-              className="barra-relleno"
-              style={{ width: `${(indiceLeccion / leccion.ejercicios.length) * 100}%` }}
-            />
-          </div>
-          <p className="contador">
-            {indiceLeccion + 1} de {leccion.ejercicios.length}
-          </p>
+        <TopBar title={t('practice.lessonBar', { nivel: leccion.nivel_hsk })} />
+        <div className="hm-page practica">
+          <Avance actual={indiceLeccion} total={leccion.ejercicios.length} />
 
-          <div className="tarjeta-ejercicio">
-            <div className="hanzi-grande">{ejercicioLeccion.caracter.hanzi}</div>
-            <p className="tipo">
-              {ejercicioLeccion.tipo === 'trazo' ? 'Orden de trazos' : 'Significado'}
+          <article className="hm-card practica-tarjeta">
+            <span className="hm-kicker">{tipoEjercicio(ejercicioLeccion.tipo)}</span>
+            <div className="practica-hanzi" lang="zh-Hans">{ejercicioLeccion.caracter.hanzi}</div>
+            <p className="practica-dato">
+              {ejercicioLeccion.caracter.pinyin} · {ejercicioLeccion.caracter.definicion}
             </p>
-            <p className="dato">{ejercicioLeccion.caracter.pinyin} · {ejercicioLeccion.caracter.definicion}</p>
-          </div>
+          </article>
 
           {ejercicioLeccion.tipo === 'trazo' && (
-            <Link to={`/trazos?caracter=${ejercicioLeccion.caracter.hanzi}`} className="btn-texto">
-              Ver el orden de trazos
+            <Link to={`/trazos?caracter=${ejercicioLeccion.caracter.hanzi}`} className="practica-enlace">
+              {t('practice.seeStrokes')}
             </Link>
           )}
 
-          <button className="btn-principal" onClick={() => setIndiceLeccion((i) => i + 1)}>
-            Siguiente
+          <button
+            type="button"
+            className="hm-btn hm-btn--block practica-siguiente"
+            onClick={() => setIndiceLeccion((i) => i + 1)}
+          >
+            {t('practice.next')}
           </button>
         </div>
       </>
@@ -202,24 +224,25 @@ export default function Practica() {
     const correctas = sesion.ejercicios.length;
     return (
       <>
-        <TopBar title="Sesión completa" />
-        <div className="screen-pad practica resumen">
-          <div className="sello-grande">完</div>
-          <h2>Terminaste la sesión</h2>
-          <p className="intro">
-            Respondiste los {correctas} ejercicios de nivel HSK{sesion.nivel_hsk}.
+        <TopBar title={t('practice.sessionDoneBar')} />
+        <div className="hm-page practica practica-resumen">
+          <span className="hm-seal hm-seal--lg" aria-hidden="true">完</span>
+          <h2>{t('practice.sessionDoneTitle')}</h2>
+          <p className="practica-intro">
+            {t('practice.sessionDoneText', { count: correctas, nivel: sesion.nivel_hsk })}
           </p>
 
           {ultimoResultado && (
-            <p className="dato">
-              Tasa de acierto actual: <strong>{Math.round(ultimoResultado.tasa_acierto * 100)}%</strong>
+            <p className="practica-dato">
+              {t('practice.currentAccuracy')}{' '}
+              <strong>{formato.porcentaje(ultimoResultado.tasa_acierto)}</strong>
             </p>
           )}
 
-          <button className="btn-principal" onClick={() => setSesion(null)}>
-            Otra sesión
+          <button type="button" className="hm-btn" onClick={() => setSesion(null)}>
+            {t('practice.anotherSession')}
           </button>
-          <Link to="/progreso" className="btn-texto">Ver mi progreso</Link>
+          <Link to="/progreso" className="practica-enlace">{t('practice.seeProgress')}</Link>
         </div>
       </>
     );
@@ -229,69 +252,67 @@ export default function Practica() {
 
   return (
     <>
-      <TopBar title={`HSK${sesion.nivel_hsk} · dificultad ${sesion.dificultad}`} />
+      <TopBar
+        title={t('practice.sessionBar', { nivel: sesion.nivel_hsk, dificultad: sesion.dificultad })}
+      />
 
-      <div className="screen-pad practica">
-        <div className="barra-avance">
-          <div
-            className="barra-relleno"
-            style={{ width: `${(indice / sesion.ejercicios.length) * 100}%` }}
-          />
-        </div>
-        <p className="contador">
-          {indice + 1} de {sesion.ejercicios.length}
-          {ejercicio?.es_refuerzo && <span className="etiqueta-refuerzo">refuerzo</span>}
-        </p>
+      <div className="hm-page practica">
+        <Avance actual={indice} total={sesion.ejercicios.length}>
+          {ejercicio?.es_refuerzo && (
+            <span className="practica-refuerzo">{t('practice.reinforcement')}</span>
+          )}
+        </Avance>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
-        <div className="tarjeta-ejercicio">
-          <div className="hanzi-grande">{ejercicio?.caracter}</div>
-          <p className="tipo">
-            {ejercicio?.tipo === 'trazo' ? 'Orden de trazos' : 'Significado'}
-          </p>
-        </div>
+        <article className="hm-card practica-tarjeta">
+          <span className="hm-kicker">{tipoEjercicio(ejercicio?.tipo)}</span>
+          <div className="practica-hanzi" lang="zh-Hans">{ejercicio?.caracter}</div>
+        </article>
 
         {!ultimoResultado ? (
           <>
-            <p className="pregunta">¿Lo respondiste bien?</p>
-            <div className="acciones">
+            <p className="practica-pregunta">{t('practice.question')}</p>
+            <div className="practica-acciones">
               <button
-                className="btn-mal"
+                type="button"
+                className="hm-btn"
                 disabled={cargando}
                 onClick={() => responder(false)}
               >
-                Fallé
+                {t('practice.failed')}
               </button>
               <button
-                className="btn-bien"
+                type="button"
+                className="hm-btn hm-btn--jade"
                 disabled={cargando}
                 onClick={() => responder(true)}
               >
-                Acerté
+                {t('practice.correct')}
               </button>
             </div>
             {ejercicio?.tipo === 'trazo' && (
-              <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="btn-texto">
-                Ver el orden de trazos
+              <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="practica-enlace">
+                {t('practice.seeStrokes')}
               </Link>
             )}
           </>
         ) : (
-          <div className="feedback">
-            <p className={ultimoResultado.acerto ? 'ok' : 'fallo'}>
-              {ultimoResultado.acerto ? 'Sumado a tu racha' : 'Vuelve pronto al repaso'}
+          <div className="hm-panel practica-feedback" role="status">
+            <p className={ultimoResultado.acerto ? 'practica-ok' : 'practica-fallo'}>
+              {ultimoResultado.acerto ? t('practice.feedbackCorrect') : t('practice.feedbackFailed')}
             </p>
-            <p className="dato">
-              Próximo repaso:{' '}
-              <strong>{formatearFecha(ultimoResultado.proximo_repaso)}</strong>
+            <p className="practica-dato">
+              {t('practice.nextReview')}{' '}
+              <strong>{formato.relativo(ultimoResultado.proximo_repaso) ?? '—'}</strong>
             </p>
-            <p className="dato">
-              Tasa de acierto: <strong>{Math.round(ultimoResultado.tasa_acierto * 100)}%</strong>
+            <p className="practica-dato">
+              {t('practice.accuracy')}{' '}
+              <strong>{formato.porcentaje(ultimoResultado.tasa_acierto)}</strong>
             </p>
 
-            <button className="btn-principal" onClick={siguiente}>
-              Siguiente
+            <button type="button" className="hm-btn hm-btn--block practica-siguiente" onClick={siguiente}>
+              {t('practice.next')}
             </button>
           </div>
         )}
@@ -300,12 +321,26 @@ export default function Practica() {
   );
 }
 
-function formatearFecha(iso) {
-  if (!iso) return '—';
+/** Barra de avance y contador "n de m" (con contenido extra opcional, p. ej. la etiqueta de refuerzo). */
+function Avance({ actual, total, children }) {
+  const { t } = useTranslation();
 
-  const fecha = new Date(iso);
-  const horas = Math.round((fecha - new Date()) / 36e5);
-
-  if (horas < 24) return `en ${horas} h`;
-  return `en ${Math.round(horas / 24)} días`;
+  return (
+    <>
+      <div
+        className="practica-barra"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={actual}
+        aria-label={t('practice.progressLabel')}
+      >
+        <div className="practica-barra__relleno" style={{ width: `${(actual / total) * 100}%` }} />
+      </div>
+      <p className="practica-contador">
+        {t('practice.counter', { actual: actual + 1, total })}
+        {children}
+      </p>
+    </>
+  );
 }

@@ -74,5 +74,119 @@
         "bloqueado": "Bloqueado"
       }
     }
+  },
+  "strokes": {
+    "title": "Trazos",
+    "cardKicker": "Carácter actual",
+    "noDefinition": "sin definición",
+    "noStrokeData": "Este carácter todavía no tiene trazos cargados.",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "step": "trazo {{actual}} de {{total}}",
+    "loading": "Cargando…",
+    "listKicker": "Biblioteca",
+    "listTitle": "Elegí un carácter",
+    "listEmpty": "Todavía no hay caracteres cargados.",
+    "canvasLabel": "Lienzo para dibujar el trazo con el dedo o el mouse",
+    "clear": "Borrar",
+    "checking": "Comprobando…",
+    "reversed": "sentido invertido"
+  },
+  "practice": {
+    "title": "Practicar",
+    "modeLabel": "Modo de práctica",
+    "modeSession": "Sesión adaptativa",
+    "modeLesson": "Lección por nivel",
+    "levelKicker": "Elegí tu nivel",
+    "levelTitle": "Niveles HSK",
+    "introSession": "Elegí un nivel. El tutor arma la sesión priorizando lo que venís fallando.",
+    "introLesson": "Elegí un nivel. Se genera una lección con caracteres y ejercicios de ese HSK.",
+    "buildingSession": "Armando tu sesión…",
+    "buildingLesson": "Armando tu lección…",
+    "lockedNote": "Si un nivel todavía no está desbloqueado, el tutor no puede armar la sesión.",
+    "typeStrokes": "Orden de trazos",
+    "typeMeaning": "Significado",
+    "lessonDoneBar": "Lección completa",
+    "lessonDoneTitle": "Terminaste la lección",
+    "lessonDoneText_one": "Revisaste {{count}} ejercicio de nivel HSK{{nivel}}.",
+    "lessonDoneText_other": "Revisaste los {{count}} ejercicios de nivel HSK{{nivel}}.",
+    "anotherLesson": "Otra lección",
+    "lessonBar": "HSK{{nivel}} · Lección",
+    "seeStrokes": "Ver el orden de trazos",
+    "next": "Siguiente",
+    "sessionDoneBar": "Sesión completa",
+    "sessionDoneTitle": "Terminaste la sesión",
+    "sessionDoneText_one": "Respondiste {{count}} ejercicio de nivel HSK{{nivel}}.",
+    "sessionDoneText_other": "Respondiste los {{count}} ejercicios de nivel HSK{{nivel}}.",
+    "currentAccuracy": "Tasa de acierto actual:",
+    "anotherSession": "Otra sesión",
+    "seeProgress": "Ver mi progreso",
+    "sessionBar": "HSK{{nivel}} · dificultad {{dificultad}}",
+    "reinforcement": "refuerzo",
+    "question": "¿Lo respondiste bien?",
+    "failed": "Fallé",
+    "correct": "Acerté",
+    "feedbackCorrect": "Sumado a tu racha",
+    "feedbackFailed": "Vuelve pronto al repaso",
+    "nextReview": "Próximo repaso:",
+    "accuracy": "Tasa de acierto:",
+    "progressLabel": "Avance del ejercicio",
+    "counter": "{{actual}} de {{total}}"
+  },
+  "progress": {
+    "title": "Progreso",
+    "loading": "Cargando…",
+    "accuracy": "Tasa de acierto",
+    "mastered": "Dominados",
+    "toReinforce": "Por reforzar",
+    "levelKicker": "Tu camino",
+    "levelTitle": "Nivel",
+    "levelSummary": "Practicando HSK{{nivel}} · desbloqueado hasta HSK{{maximo}}",
+    "weakKicker": "A reforzar",
+    "weakTitle": "Lo que más te cuesta",
+    "weakEmpty": "Todavía no hay errores registrados.",
+    "failures_one": "{{count}} fallo",
+    "failures_other": "{{count}} fallos",
+    "masteredKicker": "Tu colección",
+    "masteredEmpty": "Ninguno todavía. Acertá un carácter para sumarlo.",
+    "reviewKicker": "Repaso espaciado",
+    "reviewTitle": "Próximo repaso",
+    "reviewNone": "Sin repasos agendados.",
+    "refresh": "Actualizar",
+    "newUser": "Empezar como usuario nuevo",
+    "userId": "id: {{id}}"
+  },
+  "howItWorks": {
+    "title": "Cómo funciona",
+    "intro": "Tres piezas trabajando juntas: lo que dibujás, lo que el tutor aprende de vos, y cuándo te toca repasar.",
+    "strokes": {
+      "title": "Trazos guiados",
+      "text": "Dibujás el carácter con el dedo. El sistema compara, trazo por trazo, tu orden y dirección contra el correcto.",
+      "demoCorrect": "Correcto",
+      "demoReversed": "Trazo invertido",
+      "bullets": [
+        "Feedback inmediato mientras dibujás.",
+        "Secuencia oficial de trazos desde datasets abiertos (Make Me a Hanzi)."
+      ]
+    },
+    "tutor": {
+      "title": "Tutor adaptativo",
+      "text": "Un agente de IA analiza tu historial: qué caracteres confundís seguido y en qué tipo de trazo fallás más.",
+      "demoConfusion": "目 vs 且",
+      "demoConfusionValue": "6 confusiones",
+      "demoRadical": "氵 radical agua",
+      "demoRadicalValue": "dominado",
+      "bullets": [
+        "Prioriza justo lo que te cuesta, no listas al azar.",
+        "Explica el error en lenguaje simple."
+      ]
+    },
+    "progress": {
+      "title": "Progreso por niveles",
+      "text": "Avanzás de HSK 1 a HSK 6. El sistema calcula tu curva de olvido y decide cuándo repasar cada carácter.",
+      "bullets": [
+        "Repaso justo antes de que lo olvides, no todos los días."
+      ]
+    }
   }
 }

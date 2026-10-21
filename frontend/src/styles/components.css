@@ -3,6 +3,15 @@
  * Prefijo hm- para no chocar con las clases genéricas de cada página.
  */
 
+/* -------------------------------------------------------------- página */
+
+/* Contenedor de las páginas internas, con los márgenes de la maqueta */
+.hm-page { padding: 22px 22px 0; }
+
+@media (max-width: 390px) {
+  .hm-page { padding-left: 17px; padding-right: 17px; }
+}
+
 /* --------------------------------------------------------------- botones */
 
 .hm-btn {

@@ -1,64 +1,46 @@
-.trazos { padding-top: 18px; padding-bottom: 40px; }
-
-.trazos .error,
-.trazos .aviso {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  line-height: 1.55;
-  border-radius: 6px;
-  padding: 11px 13px;
-  margin: 0 0 16px;
-}
-
-.trazos .error { color: var(--cinnabar); background: var(--cinnabar-tint); }
-.trazos .aviso { color: var(--ink-muted); background: var(--ochre-tint); }
-.trazos .aviso code { font-size: 12px; }
-
-.trazos .cargando {
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  color: var(--ink-muted);
-  text-align: center;
-}
+.trazos { padding-bottom: 24px; }
 
 /* Ficha del carácter */
-.ficha {
+.trazos-ficha {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: 14px 16px;
 }
 
-.ficha-hanzi {
-  font-family: var(--font-display);
-  font-size: 42px;
-  line-height: 1;
-  color: var(--ink);
-}
+.trazos-ficha__hanzi { color: var(--jade); font: var(--fs-hanzi)/1 var(--font-display); }
 
-.ficha-pinyin {
-  font-family: var(--font-ui);
-  font-size: 15px;
+.trazos-ficha__pinyin {
+  margin: 6px 0 2px;
   color: var(--cinnabar);
-  margin: 0 0 3px;
+  font-size: var(--fs-lg);
+  font-style: italic;
 }
 
-.ficha-def {
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  color: var(--ink-muted);
+.trazos-ficha__def {
   margin: 0;
+  color: var(--ink-muted);
+  font: var(--fs-sm)/1.4 var(--font-ui);
 }
 
-/* Lienzo */
+/*
+ * Lienzo: el canvas ocupa exactamente la caja interior de .lienzo-wrap
+ * (inset: 0). Trazos.jsx mide el canvas con getBoundingClientRect para
+ * su resolución y para el ancho/alto que envía a validarTrazo, así que
+ * borde y sombra van en el contenedor y no alteran esas medidas.
+ * Sin backdrop-filter sobre el canvas.
+ */
 .lienzo-wrap {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  background: var(--surface);
-  border-radius: 12px;
-  overflow: hidden;
   margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  /* Fondo sólido: el fondo ilustrado del shell no debe competir con el trazo */
+  background: var(--paper);
+  box-shadow: var(--shadow-offset-sm);
 }
 
 .lienzo-svg,
@@ -86,118 +68,111 @@
   position: absolute;
   right: 10px;
   bottom: 10px;
-  font-family: var(--font-ui);
-  font-size: 12px;
+  padding: 7px 12px;
   background: var(--ink);
   color: var(--paper);
-  padding: 7px 14px;
-  border-radius: 99px;
+  font: 700 var(--fs-xs) var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 /* Validación del trazo */
 .validando {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--ink-muted);
   margin: -4px 0 14px;
+  color: var(--ink-muted);
+  font: var(--fs-md) var(--font-ui);
 }
 
 .resultado {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  border-radius: 8px;
-  padding: 10px 13px;
   margin: -4px 0 14px;
+  padding: 10px 13px;
+  border-left: 3px solid var(--cinnabar);
+  background: var(--cinnabar-tint);
+  font: var(--fs-md) var(--font-ui);
 }
 
 .resultado-puntaje {
-  font-family: var(--font-display);
-  font-size: 20px;
-  line-height: 1;
   min-width: 32px;
+  color: var(--cinnabar);
+  font: 700 var(--fs-xl)/1 var(--font-body);
   text-align: center;
 }
 
-.resultado-detalle { margin: 0; flex: 1; color: var(--ink-muted); }
+.resultado-detalle { flex: 1; margin: 0; color: var(--ink-muted); }
 
 .resultado-tag {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--ochre);
-  border: 1px solid var(--ochre);
-  border-radius: 99px;
   padding: 2px 8px;
+  border: 1px solid var(--ochre);
+  color: var(--ochre);
+  font: 700 var(--fs-2xs) var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
-/* Aprobado: verde jade */
-.resultado.aprobado { background: var(--jade-tint); }
+/* Aprobado: jade */
+.resultado.aprobado { border-left-color: var(--jade); background: var(--jade-tint); }
 .resultado.aprobado .resultado-puntaje { color: var(--jade); }
 
-/* Impreciso/incompleto: rojo sello */
-.resultado.fallado { background: var(--cinnabar-tint); }
-.resultado.fallado .resultado-puntaje { color: var(--cinnabar); }
-
-/* Invertido: error conceptual, no de pulso. Se distingue con el acento dorado. */
-.resultado.invertido {
-  background: var(--ochre-tint);
-  border: 1px solid var(--ochre);
-}
-.resultado.invertido .resultado-puntaje { color: var(--cinnabar); }
+/* Invertido: error conceptual, no de pulso. Se distingue con el acento ocre. */
+.resultado.invertido { border-left-color: var(--ochre); background: var(--ochre-tint); }
 
 /* Controles */
-.controles {
+.trazos-controles {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
-.controles button {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  background: var(--surface-strong);
+.trazos-control {
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  background: var(--glass-bg);
   color: var(--ink);
-  padding: 11px 16px;
-  border-radius: 8px;
+  font: 700 var(--fs-xs) var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
-.controles button:disabled { opacity: 0.4; }
+.trazos-control:disabled { opacity: 0.4; cursor: default; }
 
-.paso {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--ink-muted);
-}
+.trazos-paso { color: var(--ink-muted); font: var(--fs-sm) var(--font-ui); }
 
-/* Grilla de selección */
-.titulo-lista {
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0 0 12px;
-}
+/* Lista de caracteres */
+.trazos-lista { padding: 16px 14px 18px; }
 
-.grilla {
+.trazos-grilla {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
 }
 
-.celda {
-  font-family: var(--font-display);
-  font-size: 22px;
+.trazos-celda {
   aspect-ratio: 1;
-  background: var(--surface);
-  border-radius: 7px;
-  color: var(--ink);
-  transition: background 0.12s ease;
+  border: 1px solid var(--line-tile);
+  background: var(--tile-ochre);
+  color: var(--jade);
+  font: var(--fs-xl) var(--font-display);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.celda.activa { background: var(--cinnabar); color: var(--paper); }
-.celda:active { transform: scale(0.94); }
+.trazos-celda:hover { transform: translateY(-2px); box-shadow: 3px 3px 0 var(--cinnabar-tint); }
+
+.trazos-celda.is-activa {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: var(--on-cinnabar);
+  box-shadow: 3px 3px 0 var(--jade);
+}
+
+.trazos-control:focus-visible,
+.trazos-celda:focus-visible,
+.limpiar:focus-visible {
+  outline: 2px solid var(--ochre);
+  outline-offset: 3px;
+}

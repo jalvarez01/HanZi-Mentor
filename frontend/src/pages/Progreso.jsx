@@ -1,119 +1,114 @@
+import { useTranslation } from 'react-i18next';
 import TopBar from '../components/TopBar';
-import { useAsync } from '../hooks/useAsync';
-import { useUsuario } from '../hooks/useUsuario';
-import { obtenerProgreso } from '../services/api';
+import { useProgreso } from '../hooks/useProgreso';
+import { useFormato } from '../i18n/formato';
 import './Progreso.css';
 
 export default function Progreso() {
-  const { usuarioId, reiniciar } = useUsuario();
-
-  const { datos, cargando, error, recargar } = useAsync(
-    () => obtenerProgreso(usuarioId),
-    [usuarioId],
-    Boolean(usuarioId),
-  );
+  // Mismo estado que el TopBar: una sola petición, misma recarga y mismo usuario.
+  const { datos, cargando, error, recargar, usuarioId, reiniciar } = useProgreso();
+  const { t } = useTranslation();
+  const formato = useFormato();
 
   return (
     <>
-      <TopBar title="Progreso" />
+      <TopBar title={t('progress.title')} />
 
-      <div className="screen-pad progreso">
-        {error && <p className="error">{error}</p>}
-        {cargando && <p className="cargando">Cargando…</p>}
+      <div className="hm-page progreso">
+        {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
+        {cargando && <p className="hm-status hm-status--loading" role="status">{t('progress.loading')}</p>}
 
         {datos && (
           <>
-            <div className="tarjetas">
-              <Tarjeta
-                valor={`${Math.round(datos.tasa_acierto * 100)}%`}
-                etiqueta="Tasa de acierto"
-                color="var(--jade)"
+            <div className="progreso-metricas">
+              <Metrica
+                valor={formato.porcentaje(datos.tasa_acierto)}
+                etiqueta={t('progress.accuracy')}
+                tono="jade"
               />
-              <Tarjeta
-                valor={datos.total_dominados}
-                etiqueta="Dominados"
-                color="var(--gold)"
-              />
-              <Tarjeta
+              <Metrica valor={datos.total_dominados} etiqueta={t('progress.mastered')} tono="ochre" />
+              <Metrica
                 valor={datos.total_por_reforzar}
-                etiqueta="Por reforzar"
-                color="var(--seal)"
+                etiqueta={t('progress.toReinforce')}
+                tono="cinnabar"
               />
             </div>
 
-            <section className="bloque">
-              <h3>Nivel</h3>
-              <div className="niveles-fila">
+            <Bloque kicker={t('progress.levelKicker')} titulo={t('progress.levelTitle')} id="progreso-nivel">
+              <ol className="progreso-niveles">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <span
+                  <li
                     key={n}
-                    className={`nivel ${n <= datos.nivel_max_desbloqueado ? 'abierto' : ''}`}
+                    className={`progreso-nivel ${n <= datos.nivel_max_desbloqueado ? 'is-abierto' : ''} ${
+                      n === datos.nivel_hsk ? 'is-actual' : ''
+                    }`}
+                    aria-current={n === datos.nivel_hsk ? 'step' : undefined}
                   >
                     HSK{n}
-                  </span>
+                  </li>
                 ))}
-              </div>
-              <p className="pie">
-                Practicando HSK{datos.nivel_hsk} · desbloqueado hasta HSK
-                {datos.nivel_max_desbloqueado}
+              </ol>
+              <p className="progreso-pie">
+                {t('progress.levelSummary', {
+                  nivel: datos.nivel_hsk,
+                  maximo: datos.nivel_max_desbloqueado,
+                })}
               </p>
-            </section>
+            </Bloque>
 
-            <section className="bloque">
-              <h3>Lo que más te cuesta</h3>
+            <Bloque kicker={t('progress.weakKicker')} titulo={t('progress.weakTitle')} id="progreso-debiles">
               {datos.caracteres_debiles.length === 0 ? (
-                <p className="vacio">Todavía no hay errores registrados.</p>
+                <p className="hm-status hm-status--empty">{t('progress.weakEmpty')}</p>
               ) : (
-                datos.caracteres_debiles.map((d) => (
-                  <div key={d.caracter} className="fila-debil">
-                    <span className="hanzi">{d.caracter}</span>
-                    <div className="barra">
-                      <div
-                        className="relleno"
-                        style={{ width: `${Math.min(100, d.fallos * 15)}%` }}
-                      />
-                    </div>
-                    <span className="cuenta">{d.fallos}</span>
-                  </div>
-                ))
-              )}
-            </section>
-
-            <section className="bloque">
-              <h3>Dominados</h3>
-              {datos.caracteres_dominados.length === 0 ? (
-                <p className="vacio">Ninguno todavía. Acertá un carácter para sumarlo.</p>
-              ) : (
-                <div className="chips">
-                  {datos.caracteres_dominados.map((c) => (
-                    <span key={c} className="chip">{c}</span>
+                <ul className="progreso-debiles">
+                  {datos.caracteres_debiles.map((d) => (
+                    <li key={d.caracter} className="progreso-debil">
+                      <span className="progreso-debil__hanzi" lang="zh-Hans">{d.caracter}</span>
+                      <div className="progreso-debil__barra" aria-hidden="true">
+                        <div
+                          className="progreso-debil__relleno"
+                          style={{ width: `${Math.min(100, d.fallos * 15)}%` }}
+                        />
+                      </div>
+                      <span className="progreso-debil__cuenta">
+                        {t('progress.failures', { count: d.fallos })}
+                      </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
-            </section>
+            </Bloque>
 
-            <section className="bloque">
-              <h3>Próximo repaso</h3>
-              <p className="pie">
+            <Bloque kicker={t('progress.masteredKicker')} titulo={t('progress.mastered')} id="progreso-dominados">
+              {datos.caracteres_dominados.length === 0 ? (
+                <p className="hm-status hm-status--empty">{t('progress.masteredEmpty')}</p>
+              ) : (
+                <ul className="progreso-chips">
+                  {datos.caracteres_dominados.map((c) => (
+                    <li key={c} className="progreso-chip" lang="zh-Hans">{c}</li>
+                  ))}
+                </ul>
+              )}
+            </Bloque>
+
+            <Bloque kicker={t('progress.reviewKicker')} titulo={t('progress.reviewTitle')} id="progreso-repaso">
+              <p className="progreso-pie">
                 {datos.proximo_repaso
-                  ? new Date(datos.proximo_repaso).toLocaleString('es-CO', {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })
-                  : 'Sin repasos agendados.'}
+                  ? formato.fechaHora(datos.proximo_repaso)
+                  : t('progress.reviewNone')}
               </p>
-            </section>
+            </Bloque>
 
-            <div className="acciones-pie">
-              <button className="btn-secundario" onClick={recargar}>
-                Actualizar
+            <div className="progreso-acciones">
+              <button type="button" className="hm-btn hm-btn--block" onClick={recargar}>
+                {t('progress.refresh')}
               </button>
-              <button className="btn-secundario peligro" onClick={reiniciar}>
-                Empezar como usuario nuevo
+              <button type="button" className="progreso-reiniciar" onClick={reiniciar}>
+                {t('progress.newUser')}
               </button>
             </div>
 
-            <p className="id-usuario">id: {usuarioId}</p>
+            <p className="progreso-id">{t('progress.userId', { id: usuarioId })}</p>
           </>
         )}
       </div>
@@ -121,11 +116,25 @@ export default function Progreso() {
   );
 }
 
-function Tarjeta({ valor, etiqueta, color }) {
+function Metrica({ valor, etiqueta, tono }) {
   return (
-    <div className="tarjeta">
-      <span className="tarjeta-valor" style={{ color }}>{valor}</span>
-      <span className="tarjeta-etiqueta">{etiqueta}</span>
+    <div className={`progreso-metrica progreso-metrica--${tono}`}>
+      <span className="progreso-metrica__valor">{valor}</span>
+      <span className="progreso-metrica__etiqueta">{etiqueta}</span>
     </div>
+  );
+}
+
+function Bloque({ kicker, titulo, id, children }) {
+  return (
+    <section className="hm-panel progreso-bloque" aria-labelledby={id}>
+      <div className="hm-section-head">
+        <div>
+          <span className="hm-kicker">{kicker}</span>
+          <h2 id={id}>{titulo}</h2>
+        </div>
+      </div>
+      {children}
+    </section>
   );
 }

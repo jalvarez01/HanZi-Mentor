@@ -223,13 +223,6 @@ button {
   .app-shell { box-shadow: var(--shell-shadow); }
 }
 
-.screen-pad { padding: 0 20px; }
-
-.divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--ochre), transparent);
-}
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

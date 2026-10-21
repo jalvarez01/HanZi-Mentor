@@ -1,22 +1,14 @@
-import { obtenerProgreso } from '../services/api';
-import { useAsync } from './useAsync';
-import { useUsuario } from './useUsuario';
+import { useContext } from 'react';
+import { ProgresoContext } from './progresoContexto';
 
 /**
- * Progreso del usuario actual (agente-tutor), con su estado de carga.
- *
- * Cada pantalla monta su propia instancia: al navegar se vuelve a pedir,
- * así la racha y el nivel se ven al día después de practicar.
+ * Progreso del usuario actual, compartido por el TopBar y las páginas.
+ * Lo provee <ProgresoProvider> (una sola petición por navegación).
  */
 export function useProgreso() {
-  const { usuarioId, reiniciar } = useUsuario();
-  const estado = useAsync(
-    () => obtenerProgreso(usuarioId),
-    [usuarioId],
-    Boolean(usuarioId),
-  );
-
-  return { usuarioId, reiniciar, ...estado };
+  const valor = useContext(ProgresoContext);
+  if (!valor) throw new Error('useProgreso debe usarse dentro de <ProgresoProvider>');
+  return valor;
 }
 
 /** Mayor cantidad de aciertos seguidos en un mismo carácter. */
