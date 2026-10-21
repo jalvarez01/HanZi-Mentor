@@ -10,6 +10,7 @@ Pattern (taller 02): la lógica de `comparador.py` es una copia del dominio de
 | Archivo         | Responsabilidad                                              |
 |-----------------|--------------------------------------------------------------|
 | `app.py`        | Fábrica `create_app()`: config, rutas, manejadores, `/health` |
+| `config.py`     | Configuración desde variables de entorno                     |
 | `rutas.py`      | Controlador: lee el JSON, delega y responde                  |
 | `validacion.py` | Valida la forma de la entrada (`EntradaInvalida` → 400)      |
 | `servicio.py`   | Caso de uso: invoca `comparar_trazo()` y arma el resultado   |
@@ -38,6 +39,10 @@ Variables de entorno:
 | `HOST`        | `0.0.0.0` | Interfaz de escucha                     |
 | `FLASK_DEBUG` | `0`       | `1` activa el modo debug (solo en local) |
 | `MAX_PUNTOS`  | `5000`    | Máximo de puntos por lista              |
+| `SERVICE_NAME`| `trazos-flask` | Nombre que devuelve `/health`      |
+
+Ver `.env.example`. El servicio sigue el estándar de `services/flask-base`;
+como no guarda estado, no usa `DATABASE_URL`.
 
 ## Pruebas
 
