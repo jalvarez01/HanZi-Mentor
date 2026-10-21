@@ -1,36 +1,33 @@
 """Microservicio de validación de trazos (Strangler Pattern, taller 02)."""
 
-import os
+from flask import Flask, current_app, jsonify
 
-from flask import Flask, jsonify
-
+import config
 from errores import registrar_manejadores
 from rutas import trazos_bp
 
-NOMBRE_SERVICIO = "trazos-flask"
 
-
-def create_app(config=None):
+def create_app(config_extra=None):
     app = Flask(__name__)
-    app.config.update(
-        MAX_PUNTOS=int(os.environ.get("MAX_PUNTOS", "5000")),
-    )
-    if config:
-        app.config.update(config)
+    app.config.update(config.desde_entorno())
+    if config_extra:
+        app.config.update(config_extra)
 
     app.register_blueprint(trazos_bp)
     registrar_manejadores(app)
 
-    @app.get("/health")
-    def health():
-        return jsonify({"estado": "ok", "servicio": NOMBRE_SERVICIO}), 200
-
+    app.add_url_rule("/health", view_func=health, methods=["GET"])
     return app
 
 
+def health():
+    return jsonify({"estado": "ok", "servicio": current_app.config["SERVICE_NAME"]}), 200
+
+
 if __name__ == "__main__":
-    create_app().run(
-        host=os.environ.get("HOST", "0.0.0.0"),
-        port=int(os.environ.get("PORT", "5000")),
-        debug=os.environ.get("FLASK_DEBUG", "0") == "1",
+    app = create_app()
+    app.run(
+        host=app.config["HOST"],
+        port=app.config["PORT"],
+        debug=app.config["FLASK_DEBUG"],
     )

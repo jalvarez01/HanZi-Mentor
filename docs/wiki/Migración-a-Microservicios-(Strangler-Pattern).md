@@ -80,36 +80,40 @@ Los errores siguen una forma estructurada: toda respuesta de error es JSON con `
 
 ### Contenedorización
 
-Para desplegarse por separado, Flask cuenta con un Dockerfile independiente: una imagen `python:3.11-slim` que ejecuta gunicorn en el puerto 5000 (`gunicorn -b 0.0.0.0:5000 "app:create_app()"`). El archivo `docker-compose.yml` reúne 4 servicios: Django `contenido`, Flask `flask_trazos`, base de datos y Nginx. De ellos, solo Nginx publica un puerto en el host (`80:80`), de modo que Django y Flask solo son accesibles dentro de la red de Docker.
+Para desplegarse por separado, Flask cuenta con un Dockerfile independiente: una imagen `python:3.11-slim` que ejecuta gunicorn en el puerto 5000 (`CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:5000", "--access-logfile", "-", "app:create_app()"]`). El archivo `docker-compose.yml` reúne 4 servicios: Django `contenido`, Flask `flask_trazos`, la base de datos `db` (imagen `postgres:16-alpine`, con los datos en el volumen `contenido_db`) y Nginx. Por su parte, `contenido` usa PostgreSQL cuando está definida la variable `POSTGRES_HOST`, como ocurre en Docker, y SQLite en el desarrollo local (`services/contenido/config/settings.py`). De todos ellos, solo Nginx publica un puerto en el host (`80:80`), de modo que Django y Flask solo son accesibles dentro de la red de Docker.
 
 ### Solución arquitectónica (snippet Nginx)
 
-Dentro de esa red, Nginx decide el backend a partir del prefijo de la URL: `/api/v1/` va a Django y `/api/v2/trazos/` va a Flask.
+Dentro de esa red, Nginx decide el backend a partir del prefijo de la URL: `/api/v1/` va a Django y `/api/v2/trazos/` va a Flask. El siguiente fragmento es un extracto de `infra/nginx/nginx.conf`; el archivo completo define además el formato de log `ruteo`, las cabeceras reenviadas a cada servicio y una respuesta 404 para las rutas no expuestas.
 
 ```nginx
-upstream contenido {
-    server contenido:8002;
-}
-
-upstream flask_trazos {
-    server flask_trazos:5000;
-}
-
-server {
-    listen 80;
-
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-    # v1: Django. Reescribe /api/v1/... a /api/...
-    location /api/v1/ {
-        proxy_pass http://contenido/api/;
+http {
+    upstream contenido {
+        server contenido:8002;
     }
 
-    # v2: Flask. Conserva la ruta completa.
-    location /api/v2/trazos/ {
-        proxy_pass http://flask_trazos;
+    upstream flask_trazos {
+        server flask_trazos:5000;
+    }
+
+    server {
+        listen 80;
+        server_name _;
+
+        # --- v1: monolito Django (caracteres, lecciones) ---
+        # Django declara sus rutas bajo /api/ y no bajo /api/v1/. Al terminar
+        # proxy_pass con la URI /api/, Nginx reemplaza el prefijo /api/v1/
+        # por /api/: la API pública queda versionada sin tocar Django.
+        location /api/v1/ {
+            proxy_pass http://contenido/api/;
+        }
+
+        # --- v2: microservicio Flask (funcionalidad estrangulada) ---
+        # Sin URI en proxy_pass: Flask recibe la ruta completa, porque ya
+        # declara /api/v2/trazos/validar/.
+        location /api/v2/trazos/ {
+            proxy_pass http://flask_trazos;
+        }
     }
 }
 ```
@@ -184,7 +188,7 @@ El intercambio entre el frontend y Flask queda fijado por el siguiente contrato.
 
 Con la separación en marcha, la migración aporta beneficios concretos, aunque también introduce costos que se asumieron de forma consciente.
 
-El principal beneficio es que la carga de CPU queda aislada: la comparación de trazos ya no consume workers de Django. Además, el servicio escala y se despliega de forma independiente, ya que se pueden añadir réplicas de Flask sin escalar Django y un cambio en el algoritmo no exige redesplegar `contenido`. A esto se suma un ciclo de cambio más rápido, porque el algoritmo vive en un servicio pequeño con pruebas propias. Los fallos también quedan aislados: una caída de Flask no afecta al catálogo, las lecciones ni los usuarios.
+El principal beneficio es que la carga de CPU queda aislada: la comparación de trazos ya no consume workers de Django. Además, el servicio escala y se despliega de forma independiente, ya que se pueden añadir réplicas de Flask sin escalar Django y un cambio en el algoritmo no exige redesplegar `contenido`. A esto se suma un ciclo de cambio más rápido, porque el algoritmo vive en un servicio pequeño con pruebas propias. Los fallos en ejecución también quedan acotados: si Flask cae, solo se ven afectadas las rutas `/api/v2/trazos/`, mientras que el catálogo y las lecciones siguen respondiendo por `/api/v1/`. No obstante, en el `docker-compose.yml` actual Nginx espera a que `flask_trazos` esté sano antes de arrancar, por lo que un fallo de Flask durante el arranque impide el acceso a ambas versiones.
 
 Sin embargo, la separación tiene un precio. Cada petición atraviesa Nginx antes de llegar al backend, lo que añade un salto de red. Por otra parte, el comparador queda duplicado temporalmente en `contenido` y en Flask hasta retirar v1, y ahora hay dos servicios que desplegar, monitorear y versionar.
 
@@ -233,9 +237,10 @@ curl -i -X POST http://localhost/api/v2/trazos/validar/ \
 6. Confirmar en los logs que cada petición llegó a su backend:
 
 ```bash
-docker compose logs nginx
-docker compose logs flask_trazos
+docker compose logs nginx | grep -- "->"
+docker compose logs flask_trazos | grep -v /health
 ```
+- Los comandos están escritos para bash (Linux, macOS, Git Bash o WSL). En Windows PowerShell, `curl` es un alias de `Invoke-WebRequest`; se recomienda ejecutarlos desde Git Bash.
 
 Las peticiones `/api/v1/` aparecen en el log de Nginx y en el de `contenido`; las `/api/v2/trazos/` aparecen en el de Nginx y en el de `flask_trazos`.
 
@@ -247,6 +252,6 @@ El trabajo se repartió entre tres integrantes, cada uno en su propia rama.
 |------------|-----------------|------|
 | Juan José Álvarez | Microservicio Flask | `feature/flask-trazos` |
 | Santiago Meneses | Docker y Nginx | `feature/docker-nginx` |
-| Emmanuel Castaño | Matriz de decisión, wiki e integración del frontend | `docs/strangler-wiki` |
+| Emmanuel Castaño | Matriz de decisión, wiki e integración del frontend | `docs-wiki`, `feature/frontend-v2` |
 
 La integración se realiza mediante Pull Requests revisados hacia `development` y commits semánticos (`feat`, `fix`, `docs`, `test`, `chore`).
