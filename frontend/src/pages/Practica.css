@@ -3,14 +3,14 @@
 .practica .intro {
   font-size: 15px;
   line-height: 1.6;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 0 0 24px;
 }
 
 .practica .nota {
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   opacity: 0.75;
   line-height: 1.55;
   margin-top: 28px;
@@ -19,8 +19,8 @@
 .practica .error {
   font-family: var(--font-ui);
   font-size: 13px;
-  color: var(--seal);
-  background: rgba(178, 58, 46, 0.08);
+  color: var(--cinnabar);
+  background: var(--cinnabar-tint);
   border-radius: 6px;
   padding: 10px 12px;
   margin: 0 0 16px;
@@ -29,7 +29,7 @@
 .practica .cargando {
   font-family: var(--font-ui);
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   text-align: center;
   margin-top: 20px;
 }
@@ -47,19 +47,19 @@
   font-weight: 600;
   padding: 18px 0;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   color: var(--ink);
   transition: transform 0.12s ease, background 0.12s ease;
 }
 
-.nivel-btn:active { transform: scale(0.97); background: var(--gold); color: var(--paper); }
+.nivel-btn:active { transform: scale(0.97); background: var(--ochre); color: var(--paper); }
 .nivel-btn:disabled { opacity: 0.5; }
 
 /* Avance */
 .barra-avance {
   height: 4px;
   border-radius: 99px;
-  background: rgba(74, 70, 66, 0.12);
+  background: var(--ink-tint);
   overflow: hidden;
   margin-bottom: 8px;
 }
@@ -74,7 +74,7 @@
 .contador {
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 0 0 20px;
   display: flex;
   align-items: center;
@@ -82,7 +82,7 @@
 }
 
 .etiqueta-refuerzo {
-  background: var(--seal);
+  background: var(--cinnabar);
   color: var(--paper);
   font-size: 10px;
   padding: 2px 7px;
@@ -92,7 +92,7 @@
 
 /* Tarjeta del ejercicio */
 .tarjeta-ejercicio {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   border-radius: 12px;
   padding: 36px 20px 24px;
   text-align: center;
@@ -110,7 +110,7 @@
 .tarjeta-ejercicio .tipo {
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 0;
   letter-spacing: 0.02em;
 }
@@ -118,7 +118,7 @@
 .pregunta {
   font-size: 15px;
   text-align: center;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 0 0 14px;
 }
 
@@ -138,26 +138,26 @@
   color: var(--paper);
 }
 
-.btn-mal { background: var(--seal); }
+.btn-mal { background: var(--cinnabar); }
 .btn-bien { background: var(--jade); }
 .btn-mal:active, .btn-bien:active { opacity: 0.85; }
 .btn-mal:disabled, .btn-bien:disabled { opacity: 0.5; }
 
 /* Feedback */
 .feedback {
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--surface);
   border-radius: 10px;
   padding: 20px;
   text-align: center;
 }
 
 .feedback .ok { color: var(--jade); font-weight: 600; margin: 0 0 12px; }
-.feedback .fallo { color: var(--seal); font-weight: 600; margin: 0 0 12px; }
+.feedback .fallo { color: var(--cinnabar); font-weight: 600; margin: 0 0 12px; }
 
 .dato {
   font-family: var(--font-ui);
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 4px 0;
 }
 
@@ -180,10 +180,10 @@
   text-align: center;
   font-family: var(--font-ui);
   font-size: 13.5px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin-top: 14px;
   text-decoration: underline;
-  text-decoration-color: var(--gold);
+  text-decoration-color: var(--ochre);
   text-underline-offset: 3px;
 }
 
@@ -194,7 +194,7 @@
   font-family: var(--font-display);
   font-size: 76px;
   color: var(--paper);
-  background: var(--seal);
+  background: var(--cinnabar);
   width: 120px;
   height: 120px;
   line-height: 120px;

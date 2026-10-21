@@ -9,10 +9,10 @@
   padding-bottom: var(--safe-bottom);
   display: flex;
   align-items: stretch;
-  background: rgba(238, 234, 224, 0.94);
+  background: var(--bar-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(169, 139, 79, 0.35);
+  border-top: 1px solid var(--line);
   z-index: 50;
 }
 
@@ -23,14 +23,14 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   opacity: 0.55;
   transition: opacity 0.15s ease, color 0.15s ease;
 }
 
 .tab.is-active {
   opacity: 1;
-  color: var(--seal);
+  color: var(--cinnabar);
 }
 
 .tab-glyph {

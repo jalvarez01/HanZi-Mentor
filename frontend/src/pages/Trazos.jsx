@@ -171,7 +171,8 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
     ctx.lineWidth = 8;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#B23A2E';
+    // El color sale de --trazo-usuario (vía `color` en .lienzo-canvas), no del JS.
+    ctx.strokeStyle = getComputedStyle(canvas).color;
 
     // Nuevo trazo: se limpia el lienzo anterior y su veredicto.
     puntosRef.current = [];

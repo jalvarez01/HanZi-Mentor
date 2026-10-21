@@ -10,14 +10,14 @@
   margin: 0 0 16px;
 }
 
-.trazos .error { color: var(--seal); background: rgba(178, 58, 46, 0.08); }
-.trazos .aviso { color: var(--ink-soft); background: rgba(169, 139, 79, 0.12); }
+.trazos .error { color: var(--cinnabar); background: var(--cinnabar-tint); }
+.trazos .aviso { color: var(--ink-muted); background: var(--ochre-tint); }
 .trazos .aviso code { font-size: 12px; }
 
 .trazos .cargando {
   font-family: var(--font-ui);
   font-size: 12.5px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   text-align: center;
 }
 
@@ -39,14 +39,14 @@
 .ficha-pinyin {
   font-family: var(--font-ui);
   font-size: 15px;
-  color: var(--seal);
+  color: var(--cinnabar);
   margin: 0 0 3px;
 }
 
 .ficha-def {
   font-family: var(--font-ui);
   font-size: 12.5px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 0;
 }
 
@@ -55,7 +55,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--surface);
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 14px;
@@ -69,10 +69,11 @@
   height: 100%;
 }
 
-.lienzo-canvas { touch-action: none; cursor: crosshair; }
+/* `color` no pinta nada en el canvas: Trazos.jsx lo lee para el strokeStyle. */
+.lienzo-canvas { touch-action: none; cursor: crosshair; color: var(--trazo-usuario); }
 
 .guia {
-  stroke: var(--gold);
+  stroke: var(--ochre);
   stroke-width: 1.5;
   stroke-dasharray: 8 10;
   opacity: 0.45;
@@ -97,7 +98,7 @@
 .validando {
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: -4px 0 14px;
 }
 
@@ -120,33 +121,33 @@
   text-align: center;
 }
 
-.resultado-detalle { margin: 0; flex: 1; color: var(--ink-soft); }
+.resultado-detalle { margin: 0; flex: 1; color: var(--ink-muted); }
 
 .resultado-tag {
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--gold);
-  border: 1px solid var(--gold);
+  color: var(--ochre);
+  border: 1px solid var(--ochre);
   border-radius: 99px;
   padding: 2px 8px;
   white-space: nowrap;
 }
 
 /* Aprobado: verde jade */
-.resultado.aprobado { background: rgba(76, 107, 88, 0.12); }
+.resultado.aprobado { background: var(--jade-tint); }
 .resultado.aprobado .resultado-puntaje { color: var(--jade); }
 
 /* Impreciso/incompleto: rojo sello */
-.resultado.fallado { background: rgba(178, 58, 46, 0.08); }
-.resultado.fallado .resultado-puntaje { color: var(--seal); }
+.resultado.fallado { background: var(--cinnabar-tint); }
+.resultado.fallado .resultado-puntaje { color: var(--cinnabar); }
 
 /* Invertido: error conceptual, no de pulso. Se distingue con el acento dorado. */
 .resultado.invertido {
-  background: rgba(169, 139, 79, 0.14);
-  border: 1px solid var(--gold);
+  background: var(--ochre-tint);
+  border: 1px solid var(--ochre);
 }
-.resultado.invertido .resultado-puntaje { color: var(--seal); }
+.resultado.invertido .resultado-puntaje { color: var(--cinnabar); }
 
 /* Controles */
 .controles {
@@ -160,7 +161,7 @@
 .controles button {
   font-family: var(--font-ui);
   font-size: 13px;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface-strong);
   color: var(--ink);
   padding: 11px 16px;
   border-radius: 8px;
@@ -171,7 +172,7 @@
 .paso {
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
 }
 
 /* Grilla de selección */
@@ -192,11 +193,11 @@
   font-family: var(--font-display);
   font-size: 22px;
   aspect-ratio: 1;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   border-radius: 7px;
   color: var(--ink);
   transition: background 0.12s ease;
 }
 
-.celda.activa { background: var(--seal); color: var(--paper); }
+.celda.activa { background: var(--cinnabar); color: var(--paper); }
 .celda:active { transform: scale(0.94); }

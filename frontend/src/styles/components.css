@@ -1,0 +1,196 @@
+/*
+ * Piezas visuales reutilizables del sistema de diseño.
+ * Prefijo hm- para no chocar con las clases genéricas de cada página.
+ */
+
+/* --------------------------------------------------------------- botones */
+
+.hm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--radius-none);
+  padding: 11px 13px;
+  background: var(--cinnabar);
+  color: var(--on-cinnabar);
+  font: 700 var(--fs-xs) var(--font-ui);
+  letter-spacing: 0.4px;
+  box-shadow: var(--shadow-offset-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.hm-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+.hm-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-offset-md);
+  background: var(--cinnabar-hover);
+}
+
+.hm-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--jade);
+}
+
+.hm-btn:disabled { opacity: 0.5; cursor: default; }
+
+.hm-btn--jade { background: var(--jade); box-shadow: 4px 4px 0 var(--ochre); }
+.hm-btn--jade:hover:not(:disabled) { background: var(--jade); box-shadow: 6px 6px 0 var(--ochre); }
+
+.hm-btn--block { display: flex; width: 100%; }
+
+/* Botón circular con borde fino (perfil, "ver más") */
+.hm-btn-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+}
+
+.hm-btn-icon svg { width: 17px; height: 17px; }
+.hm-btn-icon--sm { width: 32px; height: 32px; }
+
+.hm-btn:focus-visible,
+.hm-btn-icon:focus-visible,
+.hm-tile:focus-visible {
+  outline: 2px solid var(--ochre);
+  outline-offset: 4px;
+}
+
+/* ------------------------------------------------------ paneles y tarjetas */
+
+/* Panel de vidrio: único lugar (junto a las barras) con backdrop-filter */
+.hm-panel {
+  position: relative;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+}
+
+.hm-panel:hover { background: var(--glass-bg-hover); box-shadow: var(--glass-shadow-hover); }
+
+/* Tarjeta destacada con sombra desplazada cinabrio */
+.hm-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-offset-card);
+}
+
+/* ----------------------------------------------------- encabezados de sección */
+
+.hm-kicker {
+  display: block;
+  color: var(--cinnabar);
+  font: 700 var(--fs-2xs) var(--font-ui);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+}
+
+.hm-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.hm-section-head h2 {
+  margin: 6px 0 0;
+  color: var(--jade);
+  font-family: var(--font-body);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 0.95;
+}
+
+.hm-count {
+  color: var(--cinnabar);
+  font: 700 16px var(--font-ui);
+  white-space: nowrap;
+}
+
+.hm-count i { color: var(--ink-subtle); font-style: normal; font-size: var(--fs-sm); }
+
+/* ----------------------------------------------------------------- sellos */
+
+.hm-seal {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--cinnabar);
+  color: var(--cinnabar);
+  font: 22px/1 var(--font-display);
+  transform: rotate(-5deg);
+}
+
+.hm-seal--lg { width: 96px; height: 96px; border-width: 3px; font-size: 56px; }
+
+/* -------------------------------------------------------------- baldosas */
+
+.hm-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-height: 143px;
+  padding: 12px;
+  border: 1px solid var(--line-tile);
+  border-radius: var(--radius-none);
+  background: var(--tile-ochre);
+  color: var(--ink);
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.hm-tile--jade { background: var(--tile-jade); }
+.hm-tile--red { background: var(--tile-red); }
+
+.hm-tile:hover,
+.hm-tile.is-selected {
+  transform: translateY(-5px) rotate(-1deg);
+  box-shadow: var(--shadow-offset-tile);
+}
+
+.hm-tile__hanzi {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  color: var(--jade);
+  font: var(--fs-hanzi)/1 var(--font-display);
+}
+
+.hm-tile__pinyin { color: var(--cinnabar); font-size: var(--fs-md); font-style: italic; }
+
+.hm-tile__meaning {
+  margin-top: 3px;
+  font: 700 var(--fs-2xs) var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ----------------------------------------------- estados de carga, error, vacío */
+
+.hm-status {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  font: var(--fs-md)/1.5 var(--font-ui);
+  color: var(--ink-muted);
+}
+
+.hm-status--loading { text-align: center; }
+.hm-status--error { color: var(--cinnabar); background: var(--cinnabar-tint); border-left: 3px solid var(--cinnabar); }
+.hm-status--empty { background: var(--ochre-tint); border-left: 3px solid var(--ochre); }

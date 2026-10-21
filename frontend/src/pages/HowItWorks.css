@@ -3,12 +3,12 @@
 .hiw-intro {
   font-size: 15px;
   line-height: 1.65;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 0 0 24px;
 }
 
 .step {
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--surface);
   border-radius: 10px;
   padding: 20px 18px;
   margin-bottom: 18px;
@@ -41,7 +41,7 @@
 .body-text {
   font-size: 14.5px;
   line-height: 1.65;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   margin: 0 0 18px;
 }
 
@@ -54,7 +54,7 @@
 .bullets li {
   font-family: var(--font-ui);
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
   line-height: 1.55;
   padding-left: 16px;
   position: relative;
@@ -65,7 +65,7 @@
   content: '·';
   position: absolute;
   left: 3px;
-  color: var(--gold);
+  color: var(--ochre);
   font-weight: 700;
   font-size: 18px;
   line-height: 1;
@@ -121,7 +121,7 @@
 .pb-track {
   height: 6px;
   border-radius: 99px;
-  background: rgba(74, 70, 66, 0.12);
+  background: var(--ink-tint);
   overflow: hidden;
 }
 
@@ -141,10 +141,10 @@
   padding: 11px 0;
   border-radius: 6px;
   background: var(--paper);
-  color: var(--ink-soft);
+  color: var(--ink-muted);
 }
 
 .level.active {
-  background: var(--gold);
+  background: var(--ochre);
   color: var(--paper);
 }

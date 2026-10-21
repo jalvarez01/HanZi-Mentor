@@ -1,17 +1,95 @@
 /* Las fuentes se cargan desde @fontsource en main.jsx. */
 
 :root {
-  --paper: #EEEAE0;
-  --paper-2: #E6E0D2;
-  --ink: #1A1A1A;
-  --ink-soft: #4A4642;
-  --seal: #B23A2E;
-  --jade: #4C6B58;
-  --gold: #A98B4F;
+  /* Paleta: tinta, papel, cinabrio, jade y ocre */
+  --ink: #272521;
+  --ink-muted: #625b4c;
+  --ink-faint: #95886f;
+  --ink-subtle: #9c927c;
+  --paper: #eee4cd;
+  --paper-deep: #dfd1b1;
+  --cinnabar: #a72e24;
+  --cinnabar-hover: #bd392d;
+  --jade: #274f48;
+  --ochre: #b8873f;
 
+  /* Claros sobre fondos oscuros (franja jade, botones, ilustraciones) */
+  --on-cinnabar: #f9eed8;
+  --on-jade: #efe4c9;
+  --gold-light: #d9aa5e;
+  --gold-pale: #dbb46b;
+  --gold-glow: #f1d18a;
+
+  /* Líneas y bordes */
+  --line: #b6a37f;
+  --line-soft: #ad9d7e;
+  --line-tile: #b9a780;
+
+  /* Fondos de las baldosas de palabras */
+  --tile-ochre: rgba(210, 177, 117, 0.42);
+  --tile-jade: #b0c1ae;
+  --tile-red: #cc8370;
+
+  /* Tintes translúcidos para estados y superficies */
+  --surface: rgba(255, 255, 255, 0.5);
+  --surface-strong: rgba(255, 255, 255, 0.65);
+  --ink-tint: rgba(39, 37, 33, 0.12);
+  --cinnabar-tint: rgba(167, 46, 36, 0.08);
+  --jade-tint: rgba(39, 79, 72, 0.12);
+  --ochre-tint: rgba(184, 135, 63, 0.14);
+
+  /* Paneles translúcidos (vidrio) */
+  --glass-bg: rgba(248, 239, 214, 0.18);
+  --glass-bg-hover: rgba(248, 239, 214, 0.28);
+  --glass-border: rgba(255, 248, 224, 0.32);
+  --glass-shadow: 0 12px 30px rgba(31, 38, 32, 0.08);
+  --glass-shadow-hover: 0 18px 38px rgba(31, 38, 32, 0.14);
+  --card-bg: rgba(238, 228, 205, 0.34);
+  --card-border: rgba(255, 248, 224, 0.42);
+  --bar-bg: rgba(238, 228, 205, 0.96);
+  --backdrop: #191b1a;
+
+  /* Sombras desplazadas */
+  --shadow-offset-sm: 4px 4px 0 var(--jade);
+  --shadow-offset-md: 6px 6px 0 var(--jade);
+  --shadow-offset-card: 6px 6px 0 rgba(167, 46, 36, 0.72);
+  --shadow-offset-tile: 5px 5px 0 rgba(167, 46, 36, 0.58);
+
+  /* Radios: la maqueta usa esquinas rectas; los redondeados quedan para círculos y píldoras */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-full: 999px;
+
+  /* Tipografías */
   --font-display: 'Noto Serif SC', serif;
-  --font-body: 'Source Serif 4', serif;
-  --font-ui: 'Inter', sans-serif;
+  --font-body: 'Source Serif 4', Georgia, serif;
+  --font-ui: 'Inter', Arial, sans-serif;
+
+  /* Escala tipográfica (valores de la maqueta) */
+  --fs-3xs: 8px;
+  --fs-2xs: 9px;
+  --fs-xs: 10px;
+  --fs-sm: 11px;
+  --fs-md: 13px;
+  --fs-base: 14px;
+  --fs-lg: 17px;
+  --fs-xl: 22px;
+  --fs-2xl: 25px;
+  --fs-3xl: 31px;
+  --fs-4xl: 42px;
+  --fs-hanzi: 52px;
+  --fs-display: clamp(52px, 14vw, 76px);
+  --tracking-kicker: 1.6px;
+
+  /* Color del trazo que dibuja el usuario en el lienzo */
+  --trazo-usuario: var(--cinnabar);
+
+  /* Alias de los nombres anteriores, usados por las páginas aún no migradas */
+  --paper-2: var(--paper-deep);
+  --ink-soft: var(--ink-muted);
+  --seal: var(--cinnabar);
+  --gold: var(--ochre);
 
   /* Altura de la barra inferior + safe area del iPhone */
   --tabbar-h: 62px;
@@ -19,7 +97,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline-color: var(--cinnabar); }
 
 html, body {
   margin: 0;
@@ -57,10 +135,10 @@ button {
 /* En desktop se nota que es una app de celular, no una web rota */
 @media (min-width: 900px) {
   body {
-    background: var(--paper-2);
+    background: var(--paper-deep);
   }
   .app-shell {
-    box-shadow: 0 0 0 1px rgba(169,139,79,0.25);
+    box-shadow: 0 0 0 1px var(--line);
     min-height: 100dvh;
   }
 }
@@ -69,5 +147,13 @@ button {
 
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  background: linear-gradient(90deg, transparent, var(--ochre), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
