@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "HanziMentor",
+    "description": "Learn Mandarin stroke by stroke with an adaptive tutor."
+  },
+  "language": {
+    "label": "Language",
+    "es": "Español",
+    "en": "English"
+  }
+}

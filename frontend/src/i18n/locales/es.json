@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "HanziMentor",
+    "description": "Aprendé mandarín trazo a trazo con un tutor adaptativo."
+  },
+  "language": {
+    "label": "Idioma",
+    "es": "Español",
+    "en": "English"
+  }
+}
