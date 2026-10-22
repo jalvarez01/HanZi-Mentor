@@ -78,14 +78,14 @@
 .hm-panel {
   position: relative;
   border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
+  background: var(--panel-bg);
   box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
   transition: background 0.35s ease, box-shadow 0.35s ease;
 }
 
-.hm-panel:hover { background: var(--glass-bg-hover); box-shadow: var(--glass-shadow-hover); }
+.hm-panel:hover { background: var(--panel-bg-hover); box-shadow: var(--glass-shadow-hover); }
 
 /* Tarjeta destacada con sombra desplazada cinabrio */
 .hm-card {

@@ -44,6 +44,14 @@
   --glass-border: rgba(255, 248, 224, 0.32);
   --glass-shadow: 0 12px 30px rgba(31, 38, 32, 0.08);
   --glass-shadow-hover: 0 18px 38px rgba(31, 38, 32, 0.14);
+
+  /*
+   * Paneles de sección (.hm-panel): papel al 75 % y más desenfoque que el
+   * vidrio del TopBar, para que el paisaje se intuya pero el texto se lea.
+   */
+  --panel-bg: rgba(238, 228, 205, 0.75);
+  --panel-bg-hover: rgba(238, 228, 205, 0.82);
+  --panel-blur: 14px;
   --card-bg: rgba(238, 228, 205, 0.34);
   --card-border: rgba(255, 248, 224, 0.42);
   --bar-bg: rgba(238, 228, 205, 0.96);
