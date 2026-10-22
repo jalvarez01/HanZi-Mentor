@@ -6,9 +6,8 @@
     <g stroke-width="2.3">
       <path d="M10.6 7.4 12 9.6M15.4 7 16.3 9.2M21.6 7 20.2 9.6"/>
       <path d="M8.6 14V11.6H23.4L22.4 13.8"/>
-      <path d="M11.2 15.9H20.4L16.6 18.8"/>
+      <path d="M11.2 15.9H20.4L16.6 18.8V25.2L14.4 24.4" stroke-linejoin="round"/>
       <path d="M8 21.4H24"/>
-      <path d="M16.6 18.8V25.2L14.4 24.4" stroke-linejoin="round"/>
     </g>
   </g>
 </svg>

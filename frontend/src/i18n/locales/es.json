@@ -188,5 +188,12 @@
         "Repaso justo antes de que lo olvides, no todos los días."
       ]
     }
+  },
+  "api": {
+    "network": "No se pudo conectar con el servidor. Revisá tu conexión o si el backend está corriendo.",
+    "notFound": "No se encontró lo que buscabas.",
+    "rejected": "El servidor rechazó la solicitud.",
+    "server": "El servidor tuvo un problema (error {{status}}). Probá de nuevo en un momento.",
+    "http": "Error {{status}}"
   }
 }

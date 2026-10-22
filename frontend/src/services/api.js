@@ -1,19 +1,26 @@
 /**
  * Cliente HTTP de HanZi Mentor.
  *
- * Habla con dos servicios distintos:
- *   - agente-tutor (8003): sesiones, respuestas, progreso
- *   - contenido    (8002): caracteres y sus trazos
- *   - trazos-flask (v2, vía Nginx): validación de trazos
+ * Todo pasa por el gateway (Nginx), que enruta según el prefijo:
+ *   - /api/v1/tutor/*   -> agente-tutor: sesiones, respuestas, progreso
+ *   - /api/v1/*         -> contenido: caracteres, trazos y lecciones
+ *   - /api/v2/trazos/*  -> trazos-flask: validación de trazos
  *
- * Las URLs salen de variables de entorno de Vite para no hardcodear puertos.
- * Creá un archivo `.env.local` en frontend/ si necesitás cambiarlas.
+ * Cada base sale de una variable VITE_* y por defecto es vacía (mismo
+ * origen): en desarrollo lo resuelve el proxy de Vite hacia Nginx y en
+ * Docker el propio Nginx que sirve el frontend. Solo hace falta definirlas
+ * si el gateway está en otro origen (ver frontend/.env.example).
  */
 
-const TUTOR_URL = import.meta.env.VITE_TUTOR_URL || 'http://localhost:8003';
-const CONTENIDO_URL = import.meta.env.VITE_CONTENIDO_URL || 'http://localhost:8002';
-// Vacío = mismo origen: en desarrollo lo resuelve el proxy de Vite hacia Nginx.
+import i18n from '../i18n';
+
+const CONTENIDO_URL = import.meta.env.VITE_CONTENIDO_URL || '';
+const TUTOR_URL = import.meta.env.VITE_TUTOR_URL || '';
 const TRAZOS_URL = import.meta.env.VITE_TRAZOS_URL || '';
+
+const CONTENIDO_API = `${CONTENIDO_URL}/api/v1`;
+const TUTOR_API = `${TUTOR_URL}/api/v1/tutor`;
+const TRAZOS_API = `${TRAZOS_URL}/api/v2/trazos`;
 
 class ErrorApi extends Error {
   constructor(mensaje, status, cuerpo) {
@@ -23,6 +30,22 @@ class ErrorApi extends Error {
     this.cuerpo = cuerpo;
     this.codigo = cuerpo?.codigo ?? null;
   }
+}
+
+/**
+ * Mensaje de error en el idioma activo.
+ *
+ * Los servicios responden sus errores de negocio en español (p. ej. un nivel
+ * no permitido). En español se muestra ese texto tal cual, como antes; en otro
+ * idioma se usa un mensaje traducido según el status. El texto del servidor
+ * queda siempre disponible en `error.cuerpo`.
+ */
+function mensajeDeError(status, cuerpo) {
+  if (cuerpo?.error && i18n.resolvedLanguage === 'es') return cuerpo.error;
+  if (status === 404) return i18n.t('api.notFound');
+  if (status === 400 || status === 409) return i18n.t('api.rejected');
+  if (status >= 500) return i18n.t('api.server', { status });
+  return i18n.t('api.http', { status });
 }
 
 async function pedir(url, opciones = {}) {
@@ -35,11 +58,7 @@ async function pedir(url, opciones = {}) {
     });
   } catch {
     // fetch solo tira excepción si la red falla; un 400 llega como respuesta.
-    throw new ErrorApi(
-      'No se pudo conectar con el servidor. ¿Está corriendo el backend?',
-      0,
-      null,
-    );
+    throw new ErrorApi(i18n.t('api.network'), 0, null);
   }
 
   const texto = await respuesta.text();
@@ -51,11 +70,7 @@ async function pedir(url, opciones = {}) {
   }
 
   if (!respuesta.ok) {
-    throw new ErrorApi(
-      cuerpo?.error || `Error ${respuesta.status}`,
-      respuesta.status,
-      cuerpo,
-    );
+    throw new ErrorApi(mensajeDeError(respuesta.status, cuerpo), respuesta.status, cuerpo);
   }
 
   return cuerpo;
@@ -64,7 +79,7 @@ async function pedir(url, opciones = {}) {
 // ---------------------------------------------------------------- sesiones
 
 export function crearSesion({ usuarioId, nivelHsk, duracionMin = 10 }) {
-  return pedir(`${TUTOR_URL}/api/sesiones/`, {
+  return pedir(`${TUTOR_API}/sesiones/`, {
     method: 'POST',
     body: JSON.stringify({
       usuario_id: usuarioId,
@@ -75,11 +90,11 @@ export function crearSesion({ usuarioId, nivelHsk, duracionMin = 10 }) {
 }
 
 export function obtenerSesion(sesionId) {
-  return pedir(`${TUTOR_URL}/api/sesiones/${sesionId}/`);
+  return pedir(`${TUTOR_API}/sesiones/${sesionId}/`);
 }
 
 export function responderEjercicio(ejercicioId, acerto) {
-  return pedir(`${TUTOR_URL}/api/ejercicios/${ejercicioId}/responder/`, {
+  return pedir(`${TUTOR_API}/ejercicios/${ejercicioId}/responder/`, {
     method: 'POST',
     body: JSON.stringify({ acerto }),
   });
@@ -88,7 +103,7 @@ export function responderEjercicio(ejercicioId, acerto) {
 // ---------------------------------------------------------------- progreso
 
 export function obtenerProgreso(usuarioId) {
-  return pedir(`${TUTOR_URL}/api/progreso/${usuarioId}/`);
+  return pedir(`${TUTOR_API}/progreso/${usuarioId}/`);
 }
 
 // --------------------------------------------------------------- contenido
@@ -99,18 +114,18 @@ export function listarCaracteres({ nivel, excluir = [], limite = 20 } = {}) {
   if (excluir.length) params.set('excluir', excluir.join(','));
   params.set('limite', limite);
 
-  return pedir(`${CONTENIDO_URL}/api/caracteres/?${params}`);
+  return pedir(`${CONTENIDO_API}/caracteres/?${params}`);
 }
 
 export function obtenerCaracter(hanzi) {
-  return pedir(`${CONTENIDO_URL}/api/caracteres/${encodeURIComponent(hanzi)}/`);
+  return pedir(`${CONTENIDO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
 }
 
 // ------------------------------------------------------------------ trazos
 
 export async function validarTrazo({ mediana, puntos, ancho, alto }) {
   try {
-    return await pedir(`${TRAZOS_URL}/api/v2/trazos/validar/`, {
+    return await pedir(`${TRAZOS_API}/validar/`, {
       method: 'POST',
       body: JSON.stringify({ mediana, puntos, ancho, alto }),
     });
@@ -124,9 +139,9 @@ export async function validarTrazo({ mediana, puntos, ancho, alto }) {
 }
 
 // ---------------------------------------------------------------- lecciones
- 
+
 export function generarLeccion({ usuarioId, nivelHsk, cantidad = 10 }) {
-  return pedir(`${CONTENIDO_URL}/api/lecciones/generar/`, {
+  return pedir(`${CONTENIDO_API}/lecciones/generar/`, {
     method: 'POST',
     body: JSON.stringify({
       usuario_id: usuarioId,
@@ -135,9 +150,9 @@ export function generarLeccion({ usuarioId, nivelHsk, cantidad = 10 }) {
     }),
   });
 }
- 
+
 export function obtenerLeccion(leccionId) {
-  return pedir(`${CONTENIDO_URL}/api/lecciones/${leccionId}/`);
+  return pedir(`${CONTENIDO_API}/lecciones/${leccionId}/`);
 }
- 
+
 export { ErrorApi };

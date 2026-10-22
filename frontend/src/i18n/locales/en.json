@@ -188,5 +188,12 @@
         "Review right before you forget, not every day."
       ]
     }
+  },
+  "api": {
+    "network": "Could not connect to the server. Check your connection or whether the backend is running.",
+    "notFound": "We could not find what you were looking for.",
+    "rejected": "The server rejected the request.",
+    "server": "The server had a problem (error {{status}}). Try again in a moment.",
+    "http": "Error {{status}}"
   }
 }
