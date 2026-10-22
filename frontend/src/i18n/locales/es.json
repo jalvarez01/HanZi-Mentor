@@ -5,7 +5,8 @@
     "description": "Aprendé mandarín trazo a trazo con un tutor adaptativo."
   },
   "common": {
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "genericError": "Algo salió mal."
   },
   "language": {
     "label": "Idioma",

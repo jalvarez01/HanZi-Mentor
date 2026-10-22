@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import i18n from '../i18n';
 import { obtenerProgreso } from '../services/api';
 import { ProgresoContext } from './progresoContexto';
 import { useUsuario } from './useUsuario';
@@ -43,7 +44,7 @@ export function ProgresoProvider({ children }) {
     } catch (e) {
       if (peticion !== ultimaPeticion.current) return;
       // Como useAsync: se conserva el último dato válido y se informa el error.
-      setEstado((previo) => ({ ...previo, cargando: false, error: e.message || 'error' }));
+      setEstado((previo) => ({ ...previo, cargando: false, error: e.message || i18n.t('common.genericError') }));
     }
   }, [usuarioId]);
 

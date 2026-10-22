@@ -5,7 +5,8 @@
     "description": "Learn Mandarin stroke by stroke with an adaptive tutor."
   },
   "common": {
-    "retry": "Retry"
+    "retry": "Retry",
+    "genericError": "Something went wrong."
   },
   "language": {
     "label": "Language",
