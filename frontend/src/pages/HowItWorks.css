@@ -1,7 +1,12 @@
 .hiw { padding-bottom: 24px; }
 
+/* Texto suelto sobre el paisaje: mismo papel y desenfoque que .hm-panel */
 .hiw-intro {
   margin: 0 0 22px;
+  padding: 10px 12px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
   color: var(--ink-muted);
   font-size: var(--fs-base);
   line-height: 1.55;

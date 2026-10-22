@@ -124,6 +124,14 @@
 
 .progreso-acciones .hm-btn { padding: 14px 13px; font-size: var(--fs-md); }
 
+/* Botón y texto sueltos sobre el paisaje: mismo papel y desenfoque que .hm-panel */
+.progreso-reiniciar,
+.progreso-id {
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+}
+
 .progreso-reiniciar {
   padding: 12px;
   border: 1px solid var(--cinnabar);
@@ -136,7 +144,9 @@
 .progreso-reiniciar:focus-visible { outline: 2px solid var(--ochre); outline-offset: 3px; }
 
 .progreso-id {
-  margin-top: 18px;
+  width: fit-content;
+  margin: 18px auto 0;
+  padding: 4px 10px;
   color: var(--ink-muted);
   font: var(--fs-xs) var(--font-ui);
   text-align: center;

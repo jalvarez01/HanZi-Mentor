@@ -203,3 +203,17 @@
 .hm-status--loading { text-align: center; }
 .hm-status--error { color: var(--cinnabar); background: var(--cinnabar-tint); border-left: 3px solid var(--cinnabar); }
 .hm-status--empty { background: var(--ochre-tint); border-left: 3px solid var(--ochre); }
+
+/*
+ * Estados sueltos en la página (fuera de un panel) quedan sobre el paisaje:
+ * llevan el papel de .hm-panel debajo de su tinte. Dentro de un panel no cambian.
+ */
+.hm-page > .hm-status {
+  --tinte: transparent;
+  background: linear-gradient(var(--tinte), var(--tinte)), var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+}
+
+.hm-page > .hm-status--error { --tinte: var(--cinnabar-tint); }
+.hm-page > .hm-status--empty { --tinte: var(--ochre-tint); }

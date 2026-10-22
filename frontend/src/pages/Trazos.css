@@ -76,21 +76,32 @@
   text-transform: uppercase;
 }
 
-/* Validación del trazo */
+/*
+ * Validación del trazo. Estos elementos quedan sobre el paisaje del shell:
+ * llevan el mismo papel y desenfoque que .hm-panel (--panel-bg, --panel-blur);
+ * el tinte de cada estado se pinta encima de ese papel.
+ */
 .validando {
   margin: -4px 0 14px;
+  padding: 6px 10px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
   color: var(--ink-muted);
   font: var(--fs-md) var(--font-ui);
 }
 
 .resultado {
+  --tinte: var(--cinnabar-tint);
   display: flex;
   align-items: center;
   gap: 10px;
   margin: -4px 0 14px;
   padding: 10px 13px;
   border-left: 3px solid var(--cinnabar);
-  background: var(--cinnabar-tint);
+  background: linear-gradient(var(--tinte), var(--tinte)), var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
   font: var(--fs-md) var(--font-ui);
 }
 
@@ -114,19 +125,22 @@
 }
 
 /* Aprobado: jade */
-.resultado.aprobado { border-left-color: var(--jade); background: var(--jade-tint); }
+.resultado.aprobado { --tinte: var(--jade-tint); border-left-color: var(--jade); }
 .resultado.aprobado .resultado-puntaje { color: var(--jade); }
 
 /* Invertido: error conceptual, no de pulso. Se distingue con el acento ocre. */
-.resultado.invertido { border-left-color: var(--ochre); background: var(--ochre-tint); }
+.resultado.invertido { --tinte: var(--ochre-tint); border-left-color: var(--ochre); }
 
-/* Controles */
+/* Controles: la fila lleva el papel de los paneles; botones y contador sin cambios */
 .trazos-controles {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 26px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
 }
 
 .trazos-control {
