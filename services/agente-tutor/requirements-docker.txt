@@ -1,0 +1,4 @@
+# Dependencias que solo necesita la imagen Docker: servidor WSGI. Van aparte
+# para que el entorno local (runserver) no cambie.
+-r requirements.txt
+gunicorn==26.2.0
