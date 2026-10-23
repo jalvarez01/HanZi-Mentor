@@ -6,6 +6,7 @@ import config
 import modelos  # noqa: F401  (registra las tablas antes de iniciar_db)
 from db import db_disponible, iniciar_db, usa_db
 from errores import registrar_manejadores
+from rutas import catalogo_bp
 
 
 def create_app(config_extra=None):
@@ -17,9 +18,12 @@ def create_app(config_extra=None):
     # `modelos` ya está importado arriba: iniciar_db crea sus tablas.
     iniciar_db(app)
     registrar_manejadores(app)
+    # Igual que DRF en v1: hanzi como UTF-8 legible y claves en el orden
+    # de los campos, no en orden alfabético.
+    app.json.ensure_ascii = False
+    app.json.sort_keys = False
 
-    # Las rutas del servicio se registran acá como blueprints:
-    # app.register_blueprint(mi_bp)
+    app.register_blueprint(catalogo_bp)
 
     app.add_url_rule("/health", view_func=health, methods=["GET"])
     return app
