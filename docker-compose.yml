@@ -160,20 +160,22 @@ services:
       - "${GATEWAY_PORT:-80}:80"
     volumes:
       - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    # Nginx resuelve cada servicio por DNS en cada petición (ver nginx.conf):
+    # no necesita que estén sanos para arrancar. depends_on solo ordena el
+    # arranque; un servicio que no responde da 502 JSON solo en sus rutas.
     depends_on:
       contenido:
         condition: service_started
       flask_trazos:
-        condition: service_healthy
-      # Nginx resuelve los upstreams al arrancar: los servicios deben existir.
+        condition: service_started
       flask_catalogo:
-        condition: service_healthy
+        condition: service_started
       flask_ejemplos:
-        condition: service_healthy
+        condition: service_started
       agente_tutor:
-        condition: service_healthy
+        condition: service_started
       frontend:
-        condition: service_healthy
+        condition: service_started
     restart: unless-stopped
 
 volumes:
