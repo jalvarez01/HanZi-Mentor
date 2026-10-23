@@ -21,5 +21,6 @@ def buscar_ejemplos(proveedor, hanzi, idioma, limite):
         "hanzi": hanzi,
         "idioma": idioma,
         "proveedor": proveedor.nombre,
+        "atribucion": proveedor.atribucion,
         "ejemplos": [ejemplo.a_dict() for ejemplo in ejemplos[:limite]],
     }

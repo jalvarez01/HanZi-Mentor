@@ -5,8 +5,10 @@ del servicio solo recibe un ProveedorEjemplos.
 """
 
 from adaptadores.falso import EjemplosFalsos
+from adaptadores.tatoeba import AdaptadorTatoeba
 
 _PROVEEDORES = {
+    "tatoeba": lambda config: AdaptadorTatoeba(config["TATOEBA_URL"], config["TATOEBA_TIMEOUT"]),
     "falso": lambda config: EjemplosFalsos(),
 }
 

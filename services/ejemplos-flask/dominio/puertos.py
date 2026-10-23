@@ -18,6 +18,8 @@ class ProveedorEjemplos(ABC):
 
     #: Nombre corto del proveedor, se devuelve en la respuesta de la API.
     nombre = "desconocido"
+    #: Crédito que exige la licencia de los datos, o None si no aplica.
+    atribucion = None
 
     @abstractmethod
     def obtener(self, hanzi, idioma, limite):
