@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.vscode/
+# La base local no entra en la imagen: en Docker vive en el volumen agente_tutor_db.
+db.sqlite3
+db.sqlite3-journal

@@ -1,15 +1,17 @@
 # Topología del taller 02 (Strangler Pattern): el monolito Django `contenido`
 # y el microservicio Flask `flask_trazos` coexisten detrás de Nginx.
 #
+#   /api/v1/tutor/*   -> agente_tutor  (Django, sesiones y progreso)
 #   /api/v1/*         -> contenido     (Django, rutas antiguas)
 #   /api/v2/trazos/*  -> flask_trazos  (Flask, funcionalidad estrangulada)
+#   /*                -> frontend      (PWA estática)
 #
 # Uso, desde la raíz del repo:
 #   docker compose up -d --build
 #   docker compose ps
 #
-# Solo Nginx publica un puerto en el host; Django, Flask y la base de datos
-# quedan accesibles únicamente dentro de la red de Docker.
+# Solo Nginx publica un puerto en el host; el frontend, Django, Flask y la
+# base de datos quedan accesibles únicamente dentro de la red de Docker.
 
 services:
   db:
@@ -60,6 +62,49 @@ services:
       retries: 5
     restart: unless-stopped
 
+  agente_tutor:
+    build: ./services/agente-tutor
+    environment:
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      # Catálogo remoto: pide los caracteres a contenido y, si no responde,
+      # usa su lista local.
+      CATALOGO: ${CATALOGO:-REMOTO}
+      # Fijo a propósito (sin interpolar): dentro de Docker contenido siempre
+      # es contenido:8002; el CONTENIDO_URL=localhost del .env es para local.
+      CONTENIDO_URL: http://contenido:8002
+      TUTOR_ENGINE: ${TUTOR_ENGINE:-MOCK}
+      NOTIFICADOR: ${NOTIFICADOR:-CONSOLE}
+    volumes:
+      # settings.py usa SQLite en /app/db.sqlite3, que en la imagen es un
+      # enlace a /app/data/db.sqlite3: la base persiste en este volumen.
+      - agente_tutor_db:/app/data
+    expose:
+      - "8003"
+    depends_on:
+      contenido:
+        condition: service_started
+    healthcheck:
+      # Sin endpoint /health: se consulta el progreso de un UUID inexistente,
+      # que responde 200 con valores por defecto y no escribe en la base.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/api/progreso/00000000-0000-0000-0000-000000000000/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    expose:
+      - "80"
+    healthcheck:
+      # 127.0.0.1 y no localhost: en alpine localhost resuelve primero a ::1 y nginx escucha en IPv4.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   nginx:
     image: nginx:1.27-alpine
     ports:
@@ -71,7 +116,12 @@ services:
         condition: service_started
       flask_trazos:
         condition: service_healthy
+      agente_tutor:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   contenido_db:
+  agente_tutor_db:

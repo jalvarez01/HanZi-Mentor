@@ -1,0 +1,27 @@
+.selector-idioma {
+  display: flex;
+  border: 1px solid var(--line-soft);
+}
+
+.selector-idioma__opcion {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 6px;
+  color: var(--ink-faint);
+  font: 700 var(--fs-xs) var(--font-ui);
+  letter-spacing: 1px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.selector-idioma__opcion + .selector-idioma__opcion { border-left: 1px solid var(--line-soft); }
+
+.selector-idioma__opcion[aria-pressed='true'] {
+  background: var(--cinnabar);
+  color: var(--on-cinnabar);
+}
+
+.selector-idioma__opcion:focus-visible {
+  outline: 2px solid var(--ochre);
+  outline-offset: 2px;
+  position: relative;
+}

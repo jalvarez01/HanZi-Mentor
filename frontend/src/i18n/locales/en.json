@@ -1,0 +1,200 @@
+{
+  "app": {
+    "name": "HanziMentor",
+    "tagline": "stroke by stroke",
+    "description": "Learn Mandarin stroke by stroke with an adaptive tutor."
+  },
+  "common": {
+    "retry": "Retry",
+    "genericError": "Something went wrong."
+  },
+  "language": {
+    "label": "Language",
+    "es": "Español",
+    "en": "English"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "home": "Home",
+    "strokes": "Strokes",
+    "practice": "Practice",
+    "progress": "Progress"
+  },
+  "topbar": {
+    "back": "Back",
+    "streak_one": "Best streak: {{count}} correct answer in a row",
+    "streak_other": "Best streak: {{count}} correct answers in a row",
+    "streakLoading": "Loading your best streak",
+    "streakUnavailable": "Best streak unavailable"
+  },
+  "home": {
+    "opening": {
+      "kicker": "Chapter 01 · The first stroke",
+      "line1": "Write",
+      "line2": "stroke by",
+      "line3": "stroke.",
+      "text": "A tutor that learns from your mistakes and adapts every lesson to your pace.",
+      "cta": "See how it works",
+      "stamp": "Start",
+      "artLabel": "Mountain landscape with the Great Wall and a red sun"
+    },
+    "quote": {
+      "text": "Every character is a landscape.",
+      "emphasis": "Learn to walk through it."
+    },
+    "lesson": {
+      "kicker": "Your journey",
+      "title": "Today's lesson",
+      "countLabel": "HSK level {{nivel}} of 6",
+      "cardKicker": "Adaptive session · HSK {{nivel}}",
+      "cardTitle": "HSK level {{nivel}}",
+      "cardText": "The tutor builds the session around what you keep getting wrong.",
+      "start": "Start",
+      "loading": "Loading your level…",
+      "error": "We couldn't load your progress."
+    },
+    "words": {
+      "kicker": "Three strokes",
+      "title": "Words of the day",
+      "note": "Tap a word to practice its strokes.",
+      "tileLabel": "{{hanzi}}, {{pinyin}}: {{meaning}}. Practice its strokes",
+      "loading": "Finding today's words…",
+      "error": "We couldn't load the words of the day.",
+      "empty": "There are no characters loaded for HSK {{nivel}} yet."
+    },
+    "map": {
+      "kicker": "Route map",
+      "title": "The six levels",
+      "more": "See your progress",
+      "listLabel": "HSK levels",
+      "loading": "Loading your route…",
+      "error": "We couldn't load your route.",
+      "state": {
+        "actual": "Your current level",
+        "abierto": "Unlocked",
+        "bloqueado": "Locked"
+      }
+    }
+  },
+  "strokes": {
+    "title": "Strokes",
+    "cardKicker": "Current character",
+    "noDefinition": "no definition",
+    "noStrokeData": "This character has no stroke data loaded yet.",
+    "previous": "Previous",
+    "next": "Next",
+    "step": "stroke {{actual}} of {{total}}",
+    "loading": "Loading…",
+    "listKicker": "Library",
+    "listTitle": "Choose a character",
+    "listEmpty": "There are no characters loaded yet.",
+    "canvasLabel": "Canvas to draw the stroke with your finger or mouse",
+    "clear": "Clear",
+    "checking": "Checking…",
+    "reversed": "reversed direction"
+  },
+  "practice": {
+    "title": "Practice",
+    "modeLabel": "Practice mode",
+    "modeSession": "Adaptive session",
+    "modeLesson": "Lesson by level",
+    "levelKicker": "Choose your level",
+    "levelTitle": "HSK levels",
+    "introSession": "Choose a level. The tutor builds the session around what you keep getting wrong.",
+    "introLesson": "Choose a level. A lesson is generated with characters and exercises from that HSK level.",
+    "buildingSession": "Building your session…",
+    "buildingLesson": "Building your lesson…",
+    "lockedNote": "If a level is not unlocked yet, the tutor cannot build the session.",
+    "typeStrokes": "Stroke order",
+    "typeMeaning": "Meaning",
+    "lessonDoneBar": "Lesson complete",
+    "lessonDoneTitle": "You finished the lesson",
+    "lessonDoneText_one": "You reviewed {{count}} HSK{{nivel}} exercise.",
+    "lessonDoneText_other": "You reviewed all {{count}} HSK{{nivel}} exercises.",
+    "anotherLesson": "Another lesson",
+    "lessonBar": "HSK{{nivel}} · Lesson",
+    "seeStrokes": "See the stroke order",
+    "next": "Next",
+    "sessionDoneBar": "Session complete",
+    "sessionDoneTitle": "You finished the session",
+    "sessionDoneText_one": "You answered {{count}} HSK{{nivel}} exercise.",
+    "sessionDoneText_other": "You answered all {{count}} HSK{{nivel}} exercises.",
+    "currentAccuracy": "Current accuracy:",
+    "anotherSession": "Another session",
+    "seeProgress": "See my progress",
+    "sessionBar": "HSK{{nivel}} · difficulty {{dificultad}}",
+    "reinforcement": "review",
+    "question": "Did you get it right?",
+    "failed": "I missed it",
+    "correct": "I got it",
+    "feedbackCorrect": "Added to your streak",
+    "feedbackFailed": "It will come back for review soon",
+    "nextReview": "Next review:",
+    "accuracy": "Accuracy:",
+    "progressLabel": "Exercise progress",
+    "counter": "{{actual}} of {{total}}"
+  },
+  "progress": {
+    "title": "Progress",
+    "loading": "Loading…",
+    "accuracy": "Accuracy",
+    "mastered": "Mastered",
+    "toReinforce": "To reinforce",
+    "levelKicker": "Your path",
+    "levelTitle": "Level",
+    "levelSummary": "Practicing HSK{{nivel}} · unlocked up to HSK{{maximo}}",
+    "weakKicker": "To reinforce",
+    "weakTitle": "What you struggle with most",
+    "weakEmpty": "No mistakes recorded yet.",
+    "failures_one": "{{count}} miss",
+    "failures_other": "{{count}} misses",
+    "masteredKicker": "Your collection",
+    "masteredEmpty": "None yet. Get a character right to add it.",
+    "reviewKicker": "Spaced review",
+    "reviewTitle": "Next review",
+    "reviewNone": "No reviews scheduled.",
+    "refresh": "Refresh",
+    "newUser": "Start as a new user",
+    "userId": "id: {{id}}"
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "intro": "Three pieces working together: what you draw, what the tutor learns about you, and when it is time to review.",
+    "strokes": {
+      "title": "Guided strokes",
+      "text": "You draw the character with your finger. The system compares your order and direction, stroke by stroke, against the correct one.",
+      "demoCorrect": "Correct",
+      "demoReversed": "Reversed stroke",
+      "bullets": [
+        "Instant feedback while you draw.",
+        "Official stroke order from open datasets (Make Me a Hanzi)."
+      ]
+    },
+    "tutor": {
+      "title": "Adaptive tutor",
+      "text": "An AI agent analyzes your history: which characters you often confuse and which kind of stroke you miss most.",
+      "demoConfusion": "目 vs 且",
+      "demoConfusionValue": "6 confusions",
+      "demoRadical": "氵 water radical",
+      "demoRadicalValue": "mastered",
+      "bullets": [
+        "It focuses on exactly what you struggle with, not random lists.",
+        "It explains the mistake in plain language."
+      ]
+    },
+    "progress": {
+      "title": "Progress by level",
+      "text": "You move from HSK 1 to HSK 6. The system models your forgetting curve and decides when to review each character.",
+      "bullets": [
+        "Review right before you forget, not every day."
+      ]
+    }
+  },
+  "api": {
+    "network": "Could not connect to the server. Check your connection or whether the backend is running.",
+    "notFound": "We could not find what you were looking for.",
+    "rejected": "The server rejected the request.",
+    "server": "The server had a problem (error {{status}}). Try again in a moment.",
+    "http": "Error {{status}}"
+  }
+}

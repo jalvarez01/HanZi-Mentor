@@ -1,25 +1,143 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap');
+/* Las fuentes se cargan desde @fontsource en main.jsx. */
 
 :root {
-  --paper: #EEEAE0;
-  --paper-2: #E6E0D2;
-  --ink: #1A1A1A;
-  --ink-soft: #4A4642;
-  --seal: #B23A2E;
-  --jade: #4C6B58;
-  --gold: #A98B4F;
+  /* Paleta: tinta, papel, cinabrio, jade y ocre */
+  --ink: #272521;
+  --ink-muted: #625b4c;
+  --ink-faint: #95886f;
+  --ink-subtle: #9c927c;
+  --paper: #eee4cd;
+  --paper-deep: #dfd1b1;
+  --cinnabar: #a72e24;
+  --cinnabar-hover: #bd392d;
+  --jade: #274f48;
+  --ochre: #b8873f;
 
+  /* Claros sobre fondos oscuros (franja jade, botones, ilustraciones) */
+  --on-cinnabar: #f9eed8;
+  --on-jade: #efe4c9;
+  --gold-light: #d9aa5e;
+  --gold-pale: #dbb46b;
+  --gold-glow: #f1d18a;
+
+  /* Líneas y bordes */
+  --line: #b6a37f;
+  --line-soft: #ad9d7e;
+  --line-tile: #b9a780;
+
+  /* Fondos de las baldosas de palabras */
+  --tile-ochre: rgba(210, 177, 117, 0.42);
+  --tile-jade: #b0c1ae;
+  --tile-red: #cc8370;
+
+  /* Tintes translúcidos para estados y superficies */
+  --surface: rgba(255, 255, 255, 0.5);
+  --surface-strong: rgba(255, 255, 255, 0.65);
+  --ink-tint: rgba(39, 37, 33, 0.12);
+  --cinnabar-tint: rgba(167, 46, 36, 0.08);
+  --jade-tint: rgba(39, 79, 72, 0.12);
+  --ochre-tint: rgba(184, 135, 63, 0.14);
+
+  /* Paneles translúcidos (vidrio) */
+  --glass-bg: rgba(248, 239, 214, 0.18);
+  --glass-bg-hover: rgba(248, 239, 214, 0.28);
+  --glass-border: rgba(255, 248, 224, 0.32);
+  --glass-shadow: 0 12px 30px rgba(31, 38, 32, 0.08);
+  --glass-shadow-hover: 0 18px 38px rgba(31, 38, 32, 0.14);
+
+  /*
+   * Paneles de sección (.hm-panel): papel al 75 % y más desenfoque que el
+   * vidrio del TopBar, para que el paisaje se intuya pero el texto se lea.
+   */
+  --panel-bg: rgba(238, 228, 205, 0.75);
+  --panel-bg-hover: rgba(238, 228, 205, 0.82);
+  --panel-blur: 14px;
+  --card-bg: rgba(238, 228, 205, 0.34);
+  --card-border: rgba(255, 248, 224, 0.42);
+  --bar-bg: rgba(238, 228, 205, 0.96);
+  --backdrop: #191b1a;
+
+  /* Sombras desplazadas */
+  --shadow-offset-sm: 4px 4px 0 var(--jade);
+  --shadow-offset-md: 6px 6px 0 var(--jade);
+  --shadow-offset-card: 6px 6px 0 rgba(167, 46, 36, 0.72);
+  --shadow-offset-tile: 5px 5px 0 rgba(167, 46, 36, 0.58);
+
+  /* Radios: la maqueta usa esquinas rectas; los redondeados quedan para círculos y píldoras */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-full: 999px;
+
+  /* Tipografías */
   --font-display: 'Noto Serif SC', serif;
-  --font-body: 'Source Serif 4', serif;
-  --font-ui: 'Inter', sans-serif;
+  --font-body: 'Source Serif 4', Georgia, serif;
+  --font-ui: 'Inter', Arial, sans-serif;
+
+  /* Escala tipográfica (valores de la maqueta) */
+  --fs-3xs: 8px;
+  --fs-2xs: 9px;
+  --fs-xs: 10px;
+  --fs-sm: 11px;
+  --fs-md: 13px;
+  --fs-base: 14px;
+  --fs-lg: 17px;
+  --fs-xl: 22px;
+  --fs-2xl: 25px;
+  --fs-3xl: 31px;
+  --fs-4xl: 42px;
+  --fs-hanzi: 52px;
+  --fs-display: clamp(52px, 14vw, 76px);
+  --tracking-kicker: 1.6px;
+
+  /* Color del trazo que dibuja el usuario en el lienzo */
+  --trazo-usuario: var(--cinnabar);
+
+  /* Alias de los nombres anteriores, usados por las páginas aún no migradas */
+  --paper-2: var(--paper-deep);
+  --ink-soft: var(--ink-muted);
+  --seal: var(--cinnabar);
+  --gold: var(--ochre);
 
   /* Altura de la barra inferior + safe area del iPhone */
   --tabbar-h: 62px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
+
+  /* Ilustraciones del Inicio (sol, montañas, muralla, camino del mapa) */
+  --art-sun: #e3b85f;
+  --art-sun-glow: rgba(227, 184, 95, 0.35);
+  --art-glyph: #f4d28a;
+  --art-mountain: rgba(39, 79, 72, 0.75);
+  --art-mountain-front: rgba(62, 68, 50, 0.8);
+  --art-wall: #d0a058;
+  --art-wall-shadow: rgba(92, 67, 42, 0.45);
+  --art-wall-post: #806447;
+  --art-road: #cf9c4b;
+  --art-road-edge: #574e3e;
+  --art-road-post: #6f563b;
+  --art-jade-veil: rgba(39, 79, 72, 0.26);
+  --art-jade-veil-strong: rgba(39, 79, 72, 0.4);
+  --art-paper-veil: rgba(238, 228, 205, 0.2);
+  --map-bg: #c4c8ab;
+  --map-label-text: #f5e6c4;
+  --map-locked-bg: rgba(238, 228, 205, 0.82);
+
+  /* Altura del TopBar */
+  --topbar-h: 60px;
+
+  /* Shell: ancho máximo, imagen de fondo y velos de la maqueta */
+  --shell-max: 560px;
+  --cinnabar-fill: rgba(167, 46, 36, 0.12);
+  --shell-image: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0039.JPG-e8UyAdHjnJSmhPsIXajDs5b9SSTu6Y.jpeg');
+  --shell-veil: linear-gradient(135deg, rgba(245, 232, 201, 0.76), rgba(231, 216, 181, 0.58) 52%, rgba(39, 79, 72, 0.38));
+  --shell-glow:
+    radial-gradient(circle at 12% 8%, rgba(255, 244, 210, 0.32), transparent 22%),
+    radial-gradient(circle at 92% 63%, rgba(167, 46, 36, 0.14), transparent 25%);
+  --shell-shadow: 0 0 55px rgba(0, 0, 0, 0.35);
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline-color: var(--cinnabar); }
 
 html, body {
   margin: 0;
@@ -45,29 +163,78 @@ button {
 
 /* Contenedor de app: ancho de celular, centrado en pantallas grandes */
 .app-shell {
-  max-width: 480px;
+  position: relative;
+  isolation: isolate;
+  max-width: var(--shell-max);
   margin: 0 auto;
   min-height: 100dvh;
-  background: var(--paper);
   padding-top: var(--safe-top);
-  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom));
-  position: relative;
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  /* Recorta los lavados de tinta que se salen por los lados */
+  overflow-x: clip;
 }
 
-/* En desktop se nota que es una app de celular, no una web rota */
-@media (min-width: 900px) {
-  body {
-    background: var(--paper-2);
-  }
-  .app-shell {
-    box-shadow: 0 0 0 1px rgba(169,139,79,0.25);
-    min-height: 100dvh;
-  }
+/*
+ * Fondo fijo con un pseudoelemento position: fixed en vez de
+ * background-attachment: fixed, que Safari en iOS ignora.
+ * Si la imagen no carga (sin conexión), queda el color papel.
+ */
+.app-shell::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: min(100%, var(--shell-max));
+  transform: translateX(-50%);
+  pointer-events: none;
+  /* Una sola capa (destellos, velo, imagen, color) para que los lavados queden encima */
+  background:
+    var(--shell-glow),
+    var(--shell-veil),
+    var(--shell-image) center top / cover no-repeat,
+    var(--paper);
 }
 
-.screen-pad { padding: 0 20px; }
+/* Lavados de tinta difuminados (jade y cinabrio) */
+.hm-ink-wash {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.18;
+  pointer-events: none;
+}
 
-.divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+.hm-ink-wash--jade {
+  top: 340px;
+  right: -100px;
+  width: 250px;
+  height: 180px;
+  background: var(--jade);
+  transform: rotate(-25deg);
+}
+
+.hm-ink-wash--cinnabar {
+  top: 800px;
+  left: -100px;
+  width: 210px;
+  height: 130px;
+  background: var(--cinnabar);
+  transform: rotate(20deg);
+}
+
+/* En pantallas anchas se nota que es una app de celular, no una web rota */
+@media (min-width: 561px) {
+  body { background: var(--backdrop); }
+  .app-shell { box-shadow: var(--shell-shadow); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

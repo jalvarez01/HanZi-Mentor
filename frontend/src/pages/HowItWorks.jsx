@@ -1,105 +1,101 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import TopBar from '../components/TopBar';
 import './HowItWorks.css';
 
-function Bar({ value, color }) {
+function Bar({ value, tono }) {
   return (
-    <div className="pb-track">
-      <div className="pb-fill" style={{ width: `${value * 100}%`, background: color }} />
+    <div className="pb-track" aria-hidden="true">
+      <div className={`pb-fill pb-fill--${tono}`} style={{ width: `${value * 100}%` }} />
     </div>
   );
 }
 
-function Step({ id, mark, title, color, children }) {
+function Step({ id, mark, title, tono, children }) {
   return (
-    <section className="step" id={id}>
-      <div className="step-mark" style={{ color }}>
+    <section className={`hm-panel step step--${tono}`} id={id} aria-labelledby={`${id}-titulo`}>
+      <div className="step-mark">
         <span>{mark}</span>
-        <i style={{ background: color }} />
+        <i />
       </div>
-      <h2>{title}</h2>
+      <h2 id={`${id}-titulo`}>{title}</h2>
       {children}
     </section>
   );
 }
 
+function Puntos({ items }) {
+  return (
+    <ul className="bullets">
+      {items.map((texto) => <li key={texto}>{texto}</li>)}
+    </ul>
+  );
+}
+
 export default function HowItWorks() {
   const { hash } = useLocation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (hash) {
       const el = document.querySelector(hash);
-      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+      // Sin animación si el usuario pidió reducir el movimiento.
+      const reducir = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: reducir ? 'auto' : 'smooth', block: 'start' }), 120);
     } else {
       window.scrollTo(0, 0);
     }
   }, [hash]);
 
+  const lista = (clave) => t(clave, { returnObjects: true });
+
   return (
     <>
-      <TopBar title="Cómo funciona" back />
+      <TopBar title={t('howItWorks.title')} back />
 
-      <div className="screen-pad hiw">
-        <p className="hiw-intro">
-          Tres piezas trabajando juntas: lo que dibujás, lo que el tutor aprende
-          de vos, y cuándo te toca repasar.
-        </p>
+      <div className="hm-page hiw">
+        <p className="hiw-intro">{t('howItWorks.intro')}</p>
 
-        <Step id="trazos" mark="壹 · 01" title="Trazos guiados" color="var(--seal)">
-          <p className="body-text">
-            Dibujás el carácter con el dedo. El sistema compara, trazo por trazo,
-            tu orden y dirección contra el correcto.
-          </p>
+        <Step id="trazos" mark="壹 · 01" title={t('howItWorks.strokes.title')} tono="cinnabar">
+          <p className="body-text">{t('howItWorks.strokes.text')}</p>
 
           <div className="demo-row">
-            <div className="demo-card">
-              <div className="demo-char" style={{ borderColor: 'var(--jade)' }}>人</div>
-              <span style={{ color: 'var(--jade)' }}>Correcto</span>
+            <div className="demo-card demo-card--jade">
+              <div className="demo-char" lang="zh-Hans">人</div>
+              <span>{t('howItWorks.strokes.demoCorrect')}</span>
             </div>
-            <div className="demo-card">
-              <div className="demo-char" style={{ borderColor: 'var(--seal)' }}>入</div>
-              <span style={{ color: 'var(--seal)' }}>Trazo invertido</span>
+            <div className="demo-card demo-card--cinnabar">
+              <div className="demo-char" lang="zh-Hans">入</div>
+              <span>{t('howItWorks.strokes.demoReversed')}</span>
             </div>
           </div>
 
-          <ul className="bullets">
-            <li>Feedback inmediato mientras dibujás.</li>
-            <li>Secuencia oficial de trazos desde datasets abiertos (Hanzi Writer).</li>
-          </ul>
+          <Puntos items={lista('howItWorks.strokes.bullets')} />
         </Step>
 
-        <Step id="tutor" mark="贰 · 02" title="Tutor adaptativo" color="var(--jade)">
-          <p className="body-text">
-            Un agente de IA analiza tu historial: qué caracteres confundís seguido
-            y en qué tipo de trazo fallás más.
-          </p>
+        <Step id="tutor" mark="贰 · 02" title={t('howItWorks.tutor.title')} tono="jade">
+          <p className="body-text">{t('howItWorks.tutor.text')}</p>
 
           <div className="demo-panel">
             <div className="demo-line">
-              <span className="hanzi-inline">目 vs 且</span>
-              <span style={{ color: 'var(--seal)' }}>6 confusiones</span>
+              <span className="hanzi-inline">{t('howItWorks.tutor.demoConfusion')}</span>
+              <span className="demo-line__valor--cinnabar">{t('howItWorks.tutor.demoConfusionValue')}</span>
             </div>
-            <Bar value={0.75} color="var(--seal)" />
+            <Bar value={0.75} tono="cinnabar" />
 
             <div className="demo-line">
-              <span className="hanzi-inline">氵 radical agua</span>
-              <span style={{ color: 'var(--jade)' }}>dominado</span>
+              <span className="hanzi-inline">{t('howItWorks.tutor.demoRadical')}</span>
+              <span className="demo-line__valor--jade">{t('howItWorks.tutor.demoRadicalValue')}</span>
             </div>
-            <Bar value={0.95} color="var(--jade)" />
+            <Bar value={0.95} tono="jade" />
           </div>
 
-          <ul className="bullets">
-            <li>Prioriza justo lo que te cuesta, no listas al azar.</li>
-            <li>Explica el error en lenguaje simple.</li>
-          </ul>
+          <Puntos items={lista('howItWorks.tutor.bullets')} />
         </Step>
 
-        <Step id="progreso" mark="叁 · 03" title="Progreso por niveles" color="var(--gold)">
-          <p className="body-text">
-            Avanzás de HSK 1 a HSK 6. El sistema calcula tu curva de olvido y
-            decide cuándo repasar cada carácter.
-          </p>
+        <Step id="progreso" mark="叁 · 03" title={t('howItWorks.progress.title')} tono="ochre">
+          <p className="body-text">{t('howItWorks.progress.text')}</p>
 
           <div className="levels">
             {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -107,9 +103,7 @@ export default function HowItWorks() {
             ))}
           </div>
 
-          <ul className="bullets">
-            <li>Repaso justo antes de que lo olvides, no todos los días.</li>
-          </ul>
+          <Puntos items={lista('howItWorks.progress.bullets')} />
         </Step>
       </div>
     </>
