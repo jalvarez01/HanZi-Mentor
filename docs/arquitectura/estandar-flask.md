@@ -13,7 +13,7 @@ Servicios que deben cumplirlo:
 | `catalogo-flask`   | T13   | Sí                   | Cumple        |
 | `evaluacion-flask` | T10   | Según diseño         | Por crear     |
 | `progreso-flask`   | T11   | Sí                   | Cumple        |
-| `sesiones-flask`   | T12   | Sí                   | Por crear     |
+| `sesiones-flask`   | T12   | Sí                   | Cumple        |
 
 ## Checklist
 
@@ -87,6 +87,23 @@ usa `dominio` y `modelos`. El controlador no tiene lógica de negocio.
 5. Mantener `tests/test_base.py` y agregar las pruebas propias.
 6. Exponer las rutas bajo `/api/v2/<modulo>/` para que Nginx las enrute sin
    chocar con `/api/v1/` (Django).
+
+## Comunicación entre servicios
+
+Un servicio nunca importa código de otro ni lee su base: pide lo que
+necesita por HTTP a la URL base del otro servicio (sin `/api/v2`), que llega
+por variable de entorno, por ejemplo `CATALOGO_URL=http://flask_catalogo:5000`.
+
+La implementación de referencia es `services/sesiones-flask/clientes.py`
+(base de T16):
+
+- **Timeout** en cada petición (`HTTP_TIMEOUT`, 3 s por defecto).
+- **Reintentos acotados** con una espera corta y creciente, solo en GET
+  (`HTTP_REINTENTOS`, 2 por defecto). No se reintenta un 4xx ni un POST.
+- **Respuesta degradada**: si el otro servicio no responde, el cliente
+  devuelve un valor de respaldo (una lista local, valores por defecto) o
+  la ruta agrega un campo `aviso`, en vez de responder 500. Nunca se
+  reenvía al cliente una página HTML de error.
 
 ## Integración con Docker y Nginx
 
