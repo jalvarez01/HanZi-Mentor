@@ -3,6 +3,7 @@
 from flask import Flask, current_app, jsonify
 
 import config
+import modelos  # noqa: F401  (registra las tablas antes de iniciar_db)
 from db import db_disponible, iniciar_db, usa_db
 from errores import registrar_manejadores
 
@@ -13,8 +14,7 @@ def create_app(config_extra=None):
     if config_extra:
         app.config.update(config_extra)
 
-    # Los modelos deben estar importados antes de iniciar_db para que se
-    # creen sus tablas. Ejemplo en un servicio nuevo: `import modelos`.
+    # `modelos` ya está importado arriba: iniciar_db crea sus tablas.
     iniciar_db(app)
     registrar_manejadores(app)
 
