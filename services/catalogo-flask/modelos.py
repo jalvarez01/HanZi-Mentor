@@ -26,11 +26,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db import Base
-
-TIPOS_EJERCICIO = {
-    "trazo": "Orden de trazos",
-    "significado": "Significado",
-}
+from dominio.lecciones import TIPOS_EJERCICIO
 
 
 def _ahora():
