@@ -26,6 +26,8 @@ y parte de la plantilla `services/flask-base`.
 | `serializacion.py`   | Fechas en ISO 8601 con `Z`, igual que DRF                         |
 | `rutas.py`           | Blueprint con los tres endpoints                                  |
 | `errores.py`         | Manejadores globales; todo error responde JSON                    |
+| `crear_base.py`      | Crea la base PostgreSQL de `DATABASE_URL` si no existe (idempotente) |
+| `docker-entrypoint.sh` | En Docker, crea la base y las tablas antes de arrancar gunicorn |
 
 Equivalencias con v1:
 
@@ -71,8 +73,29 @@ el progreso de un usuario se crea con su primera respuesta.
 | `DB_CREAR_TABLAS`  | `1`                    | Crea las tablas al arrancar                  |
 | `GUNICORN_WORKERS` | `2`                    | Procesos de gunicorn (Docker)                |
 
-Ver `.env.example`. En Docker:
-`DATABASE_URL=postgresql+psycopg2://hanzimentor:hanzimentor@db_progreso:5432/progreso`.
+Ver `.env.example`.
+
+## Base de datos en Docker
+
+Sigue el esquema del equipo, el mismo de `catalogo-flask`: un solo
+PostgreSQL (`db` en `docker-compose.yml`) con una base por servicio. La de
+este servicio es `db_progreso`:
+
+`DATABASE_URL=postgresql+psycopg2://hanzimentor:hanzimentor@db:5432/db_progreso`
+
+Arranque en Docker, en orden:
+
+1. `crear_base.py` crea `db_progreso` si no existe. Si ya existe, solo lo
+   informa, así que reiniciar el contenedor no falla.
+2. Se crean las tablas una sola vez, antes de que arranquen los workers.
+3. gunicorn.
+
+Ningún paso detiene el arranque: si PostgreSQL no responde queda un `AVISO`
+en el log y `/health` responde 503 hasta que la base vuelva.
+
+Los clientes (agente-tutor, flask_sesiones) usan la URL base del servicio,
+sin `/api/v2`, con la misma convención que `CATALOGO_URL`:
+`PROGRESO_URL=http://flask_progreso:5000`.
 
 ## Contrato
 
@@ -158,5 +181,10 @@ mayúsculas y se devuelve normalizado.
 
 ```bash
 docker build -t progreso-flask services/progreso-flask
-docker run --rm -p 5083:5000 progreso-flask
+docker run --rm -p 5083:5000 progreso-flask   # SQLite dentro del contenedor
+
+# Con PostgreSQL, como en docker-compose.yml:
+docker run --rm -p 5083:5000 \
+  -e DATABASE_URL=postgresql+psycopg2://hanzimentor:hanzimentor@db:5432/db_progreso \
+  --network <red de compose> progreso-flask
 ```
