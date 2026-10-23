@@ -12,7 +12,7 @@ Servicios que deben cumplirlo:
 | `trazos-flask`     | Taller 02 | No (sin estado)      | Cumple        |
 | `catalogo-flask`   | T13   | Sí                   | Cumple        |
 | `evaluacion-flask` | T10   | Según diseño         | Por crear     |
-| `progreso-flask`   | T11   | Sí                   | Por crear     |
+| `progreso-flask`   | T11   | Sí                   | Cumple        |
 | `sesiones-flask`   | T12   | Sí                   | Por crear     |
 
 ## Checklist
