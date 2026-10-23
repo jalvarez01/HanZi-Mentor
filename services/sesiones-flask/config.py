@@ -23,4 +23,13 @@ def desde_entorno():
         "FLASK_DEBUG": _booleano("FLASK_DEBUG"),
         "DATABASE_URL": os.environ.get("DATABASE_URL", DATABASE_URL_LOCAL) or None,
         "DB_CREAR_TABLAS": _booleano("DB_CREAR_TABLAS", "1"),
+        # Servicios de los que depende, por HTTP. URL base sin /api/v2.
+        "CATALOGO_URL": os.environ.get("CATALOGO_URL", "http://localhost:5081"),
+        "PROGRESO_URL": os.environ.get("PROGRESO_URL", "http://localhost:5083"),
+        # Segundos por petición y reintentos de los GET (ver clientes.py).
+        "HTTP_TIMEOUT": float(os.environ.get("HTTP_TIMEOUT", "3")),
+        "HTTP_REINTENTOS": int(os.environ.get("HTTP_REINTENTOS", "2")),
+        # Implementaciones elegidas por las fábricas (ver fabricas.py).
+        "TUTOR_ENGINE": os.environ.get("TUTOR_ENGINE", "MOCK").strip().upper(),
+        "NOTIFICADOR": os.environ.get("NOTIFICADOR", "CONSOLE").strip().upper(),
     }
