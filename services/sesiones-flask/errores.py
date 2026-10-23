@@ -3,6 +3,8 @@
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
 
+from dominio.excepciones import DominioError
+
 _CODIGOS_HTTP = {
     400: "ENTRADA_INVALIDA",
     404: "NO_ENCONTRADO",
@@ -29,6 +31,11 @@ def registrar_manejadores(app):
     @app.errorhandler(ErrorDominio)
     def error_dominio(exc):
         return respuesta_error(exc.mensaje, exc.codigo, exc.estado)
+
+    @app.errorhandler(DominioError)
+    def regla_de_negocio(exc):
+        # Mismo mensaje que v1; cada clase trae su estado y su código.
+        return respuesta_error(str(exc), exc.codigo, exc.estado)
 
     @app.errorhandler(400)
     def solicitud_incorrecta(exc):
