@@ -31,7 +31,7 @@ if [ -n "$DATOS" ]; then
     python cargar.py --ruta "$DATOS" --nivel 1 2 3 4 5 6 --si-vacia \
         || echo "AVISO: falló la carga del dataset; el catálogo arranca sin caracteres."
 else
-    echo "AVISO: no hay dataset en /datos ni descargado; la base queda sin caracteres."
+    echo "Sin dataset en /datos ni descargado: no se importan caracteres."
 fi
 
 exec "$@"
