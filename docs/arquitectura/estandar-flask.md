@@ -10,7 +10,7 @@ Servicios que deben cumplirlo:
 | Servicio           | Tarea | Base de datos propia | Estado        |
 |--------------------|-------|----------------------|---------------|
 | `trazos-flask`     | Taller 02 | No (sin estado)      | Cumple        |
-| `catalogo-flask`   | T13   | Sí                   | Por crear     |
+| `catalogo-flask`   | T13   | Sí                   | Cumple        |
 | `evaluacion-flask` | T10   | Según diseño         | Por crear     |
 | `progreso-flask`   | T11   | Sí                   | Por crear     |
 | `sesiones-flask`   | T12   | Sí                   | Por crear     |

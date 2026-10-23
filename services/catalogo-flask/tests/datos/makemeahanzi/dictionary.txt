@@ -1,0 +1,6 @@
+{"character":"丶","definition":"dot","pinyin":["zhǔ"],"decomposition":"？","radical":"丶"}
+{"character":"人","definition":"man; people; mankind; someone else","pinyin":["rén"],"decomposition":"？","radical":"人"}
+esta linea no es json y se ignora
+
+{"character":"大","definition":"big, great, vast, large, high","pinyin":["dà","dài"],"decomposition":"⿻一人","radical":"大"}
+{"character":"两","definition":"two, both, pair, couple; ounce","pinyin":["liǎng"],"decomposition":"⿻一从","radical":"一"}
