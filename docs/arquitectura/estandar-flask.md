@@ -95,8 +95,10 @@ En `docker-compose.yml`, cada servicio:
 - usa el nombre `flask_<modulo>` (por ejemplo `flask_catalogo`);
 - no publica puertos en el host, solo `expose: ["5000"]`;
 - recibe `SERVICE_NAME` y `DATABASE_URL` por `environment`;
-- si usa PostgreSQL, tiene su propia base (no comparte la de `contenido`) y
-  `depends_on` con `condition: service_healthy`;
+- si usa PostgreSQL, tiene su propia base `db_<modulo>` dentro del
+  PostgreSQL compartido `db` (no comparte la de `contenido`), que crea su
+  `crear_base.py` en el arranque, y `depends_on: db` con
+  `condition: service_healthy`;
 - tiene `restart: unless-stopped`.
 
 En `infra/nginx/nginx.conf`, cada servicio tiene su `upstream` y un
