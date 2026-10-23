@@ -4,7 +4,12 @@
 #   /api/v1/tutor/*   -> agente_tutor  (Django, sesiones y progreso)
 #   /api/v1/*         -> contenido     (Django, rutas antiguas)
 #   /api/v2/trazos/*  -> flask_trazos  (Flask, funcionalidad estrangulada)
+#   /api/v2/caracteres/*, /api/v2/lecciones/* -> flask_catalogo (Flask)
+#   /api/v2/ejemplos/* -> flask_ejemplos (Flask, API de terceros)
 #   /*                -> frontend      (PWA estática)
+#
+# Bases de datos: un solo PostgreSQL (`db`) con una base por servicio:
+# `contenido` (Django) y `db_catalogo` (flask_catalogo, la crea su arranque).
 #
 # Uso, desde la raíz del repo:
 #   docker compose up -d --build
@@ -62,6 +67,45 @@ services:
       retries: 5
     restart: unless-stopped
 
+  flask_catalogo:
+    build: ./services/catalogo-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_catalogo
+      GUNICORN_WORKERS: ${CATALOGO_WORKERS:-2}
+    volumes:
+      # Mismo dataset que contenido. Si la carpeta no existe (instancia
+      # nueva), el arranque lo descarga de GitHub cuando la base está vacía.
+      - ./services/contenido/data_hanzi:/datos:ro
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      # La primera vez descarga y carga el dataset antes de abrir el puerto.
+      start_period: 180s
+      retries: 5
+    restart: unless-stopped
+
+  flask_ejemplos:
+    build: ./services/ejemplos-flask
+    environment:
+      PROVEEDOR_EJEMPLOS: ${PROVEEDOR_EJEMPLOS:-tatoeba}
+      TATOEBA_TIMEOUT: ${TATOEBA_TIMEOUT:-3}
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   agente_tutor:
     build: ./services/agente-tutor
     environment:
@@ -69,8 +113,11 @@ services:
       # Catálogo remoto: pide los caracteres a contenido y, si no responde,
       # usa su lista local.
       CATALOGO: ${CATALOGO:-REMOTO}
-      # Fijo a propósito (sin interpolar): dentro de Docker contenido siempre
-      # es contenido:8002; el CONTENIDO_URL=localhost del .env es para local.
+      # Fijos a propósito (sin interpolar): son los nombres de la red de
+      # Docker; los valores localhost del .env son para local.
+      # Listado y detalle de caracteres: catálogo v2 (Flask).
+      CATALOGO_URL: http://flask_catalogo:5000
+      # Validación de trazos: sigue en contenido v1.
       CONTENIDO_URL: http://contenido:8002
       TUTOR_ENGINE: ${TUTOR_ENGINE:-MOCK}
       NOTIFICADOR: ${NOTIFICADOR:-CONSOLE}
@@ -83,6 +130,8 @@ services:
     depends_on:
       contenido:
         condition: service_started
+      flask_catalogo:
+        condition: service_healthy
     healthcheck:
       # Sin endpoint /health: se consulta el progreso de un UUID inexistente,
       # que responde 200 con valores por defecto y no escribe en la base.
@@ -115,6 +164,11 @@ services:
       contenido:
         condition: service_started
       flask_trazos:
+        condition: service_healthy
+      # Nginx resuelve los upstreams al arrancar: los servicios deben existir.
+      flask_catalogo:
+        condition: service_healthy
+      flask_ejemplos:
         condition: service_healthy
       agente_tutor:
         condition: service_healthy
