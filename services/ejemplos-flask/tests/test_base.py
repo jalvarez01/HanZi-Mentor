@@ -82,6 +82,7 @@ def test_config_desde_entorno(monkeypatch):
     monkeypatch.setenv("PORT", "5099")
     monkeypatch.setenv("FLASK_DEBUG", "1")
     monkeypatch.setenv("PROVEEDOR_EJEMPLOS", "FALSO")
+    monkeypatch.setenv("TATOEBA_TIMEOUT", "1.5")
 
     app = create_app()
 
@@ -89,3 +90,13 @@ def test_config_desde_entorno(monkeypatch):
     assert app.config["PORT"] == 5099
     assert app.config["FLASK_DEBUG"] is True
     assert app.config["PROVEEDOR_EJEMPLOS"] == "falso"
+    assert app.config["TATOEBA_TIMEOUT"] == 1.5
+
+
+def test_por_defecto_usa_tatoeba(monkeypatch):
+    monkeypatch.delenv("PROVEEDOR_EJEMPLOS", raising=False)
+
+    app = create_app()
+
+    assert app.config["PROVEEDOR_EJEMPLOS"] == "tatoeba"
+    assert app.extensions["proveedor_ejemplos"].nombre == "tatoeba"
