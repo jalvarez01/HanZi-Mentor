@@ -115,7 +115,8 @@ class EvaluarEjercicioService:
 
     def __init__(self, catalogo=None):
         self._catalogo = catalogo or CatalogoRemoto(
-            base_url=os.getenv("CONTENIDO_URL", "http://localhost:8002")
+            base_url=os.getenv("CATALOGO_URL", "http://localhost:5000"),
+            contenido_url=os.getenv("CONTENIDO_URL", "http://localhost:8002"),
         )
 
     def evaluar(self, ejercicio_id, respuesta_usuario):
