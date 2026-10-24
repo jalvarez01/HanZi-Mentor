@@ -29,7 +29,9 @@ trazo en el detalle del carácter, que es lo que trazos-flask necesita.
 | `rutas.py`            | Blueprint con los cuatro endpoints                               |
 | `errores.py`          | Manejadores globales; todo error responde JSON                   |
 | `carga.py`, `cargar.py` | Importación de Make Me a Hanzi (lógica y línea de comandos)    |
-| `docker-entrypoint.sh`| En Docker, carga el dataset si la base está vacía               |
+| `docker-entrypoint.sh`| En Docker, crea la base y carga el dataset si la base está vacía |
+| `crear_base.py`       | Crea la base PostgreSQL de `DATABASE_URL` si no existe (idempotente) |
+| `descargar_datos.py`  | Descarga Make Me a Hanzi de GitHub si no hay volumen y la base está vacía |
 
 Equivalencias con v1:
 
@@ -106,8 +108,20 @@ trazos, sin duplicar. Para pruebas hay un dataset mínimo en
 | `DB_CREAR_TABLAS`  | `1`                    | Crea las tablas al arrancar                  |
 | `GUNICORN_WORKERS` | `2`                    | Procesos de gunicorn (Docker)                |
 
-Ver `.env.example`. En Docker:
-`DATABASE_URL=postgresql+psycopg2://hanzimentor:hanzimentor@db_catalogo:5432/catalogo`.
+Ver `.env.example`. En Docker (`docker-compose.yml`) la base es `db_catalogo`
+dentro del PostgreSQL compartido `db`:
+`DATABASE_URL=postgresql+psycopg2://hanzimentor:hanzimentor@db:5432/db_catalogo`.
+
+Arranque en Docker, en orden:
+
+1. `crear_base.py` crea `db_catalogo` si no existe.
+2. Si no hay dataset montado en `/datos` y la base está vacía,
+   `descargar_datos.py` baja `dictionary.txt` y `graphics.txt` (unos 33 MB)
+   a `/tmp/makemeahanzi`.
+3. `cargar.py --si-vacia` importa HSK 1 a 6 solo si la base está vacía.
+
+Ningún paso detiene el arranque: si falla, queda un `AVISO` en el log y el
+servicio arranca con el catálogo vacío.
 
 ## Contrato
 

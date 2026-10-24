@@ -6,7 +6,8 @@ Variables relevantes (.env):
     TUTOR_ENGINE    = MOCK | REAL       (por defecto MOCK)
     NOTIFICADOR     = CONSOLE | EMAIL   (por defecto CONSOLE)
     CATALOGO        = LOCAL | REMOTO    (por defecto LOCAL)
-    CONTENIDO_URL   = http://localhost:8002
+    CATALOGO_URL    = http://localhost:5000   (catalogo-flask: listado y detalle)
+    CONTENIDO_URL   = http://localhost:8002   (contenido: validación de trazos)
 """
 
 import os
@@ -24,8 +25,11 @@ class CatalogoFactory:
         modo = os.getenv("CATALOGO", "LOCAL").upper()
 
         if modo == "REMOTO":
-            url = os.getenv("CONTENIDO_URL", "http://localhost:8002")
-            return CatalogoRemoto(base_url=url, respaldo=CatalogoLocal())
+            return CatalogoRemoto(
+                base_url=os.getenv("CATALOGO_URL", "http://localhost:5000"),
+                contenido_url=os.getenv("CONTENIDO_URL", "http://localhost:8002"),
+                respaldo=CatalogoLocal(),
+            )
 
         return CatalogoLocal()
 

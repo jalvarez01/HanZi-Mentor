@@ -2,9 +2,13 @@
  * Cliente HTTP de HanZi Mentor.
  *
  * Todo pasa por el gateway (Nginx), que enruta según el prefijo:
- *   - /api/v1/tutor/*   -> agente-tutor: sesiones, respuestas, progreso
- *   - /api/v1/*         -> contenido: caracteres, trazos y lecciones
- *   - /api/v2/trazos/*  -> trazos-flask: validación de trazos
+ *   - /api/v1/tutor/*      -> agente-tutor: sesiones, respuestas, progreso
+ *   - /api/v2/caracteres/* -> catalogo-flask: caracteres y sus trazos
+ *   - /api/v2/lecciones/*  -> catalogo-flask: lecciones
+ *   - /api/v2/trazos/*     -> trazos-flask: validación de trazos
+ *
+ * v2 de caracteres y lecciones responde los mismos campos que v1
+ * (contenido); /api/v1/ sigue en el gateway solo como respaldo.
  *
  * Cada base sale de una variable VITE_* y por defecto es vacía (mismo
  * origen): en desarrollo lo resuelve el proxy de Vite hacia Nginx y en
@@ -14,11 +18,11 @@
 
 import i18n from '../i18n';
 
-const CONTENIDO_URL = import.meta.env.VITE_CONTENIDO_URL || '';
+const CATALOGO_URL = import.meta.env.VITE_CATALOGO_URL || '';
 const TUTOR_URL = import.meta.env.VITE_TUTOR_URL || '';
 const TRAZOS_URL = import.meta.env.VITE_TRAZOS_URL || '';
 
-const CONTENIDO_API = `${CONTENIDO_URL}/api/v1`;
+const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
 const TUTOR_API = `${TUTOR_URL}/api/v1/tutor`;
 const TRAZOS_API = `${TRAZOS_URL}/api/v2/trazos`;
 
@@ -114,11 +118,11 @@ export function listarCaracteres({ nivel, excluir = [], limite = 20 } = {}) {
   if (excluir.length) params.set('excluir', excluir.join(','));
   params.set('limite', limite);
 
-  return pedir(`${CONTENIDO_API}/caracteres/?${params}`);
+  return pedir(`${CATALOGO_API}/caracteres/?${params}`);
 }
 
 export function obtenerCaracter(hanzi) {
-  return pedir(`${CONTENIDO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
+  return pedir(`${CATALOGO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
 }
 
 // ------------------------------------------------------------------ trazos
@@ -141,7 +145,7 @@ export async function validarTrazo({ mediana, puntos, ancho, alto }) {
 // ---------------------------------------------------------------- lecciones
 
 export function generarLeccion({ usuarioId, nivelHsk, cantidad = 10 }) {
-  return pedir(`${CONTENIDO_API}/lecciones/generar/`, {
+  return pedir(`${CATALOGO_API}/lecciones/generar/`, {
     method: 'POST',
     body: JSON.stringify({
       usuario_id: usuarioId,
@@ -152,7 +156,7 @@ export function generarLeccion({ usuarioId, nivelHsk, cantidad = 10 }) {
 }
 
 export function obtenerLeccion(leccionId) {
-  return pedir(`${CONTENIDO_API}/lecciones/${leccionId}/`);
+  return pedir(`${CATALOGO_API}/lecciones/${leccionId}/`);
 }
 
 export { ErrorApi };
