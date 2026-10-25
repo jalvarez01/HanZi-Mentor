@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 const UN_DIA = 60 * 60 * 24;
 
 export default defineConfig(({ mode }) => {
-  // Destino del proxy de desarrollo: Nginx enruta /api/v1 (contenido y tutor) y /api/v2 (trazos).
+  // Destino del proxy de desarrollo: Nginx enruta /api/v1/tutor (tutor) y /api/v2 (catálogo, lecciones y trazos).
   const env = loadEnv(mode, process.cwd(), '');
   const gatewayUrl = env.VITE_GATEWAY_URL || 'http://localhost:80';
 
