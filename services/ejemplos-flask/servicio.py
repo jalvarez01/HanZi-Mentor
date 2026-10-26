@@ -5,6 +5,7 @@ Solo conoce el puerto ProveedorEjemplos, nunca un adaptador concreto.
 
 from dominio.puertos import ProveedorNoDisponible
 from errores import ErrorDominio
+from mensajes import N_
 
 
 def buscar_ejemplos(proveedor, hanzi, idioma, limite):
@@ -12,7 +13,7 @@ def buscar_ejemplos(proveedor, hanzi, idioma, limite):
         ejemplos = proveedor.obtener(hanzi, idioma, limite)
     except ProveedorNoDisponible:
         raise ErrorDominio(
-            "El proveedor de ejemplos no está disponible",
+            N_("El proveedor de ejemplos no está disponible"),
             "PROVEEDOR_NO_DISPONIBLE",
             estado=503,
         ) from None

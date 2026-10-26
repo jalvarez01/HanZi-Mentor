@@ -5,6 +5,7 @@ from flask import Flask, current_app, jsonify
 import config
 from adaptadores.fabrica import crear_proveedor
 from errores import registrar_manejadores
+from i18n import iniciar_i18n
 from rutas import ejemplos_bp
 
 
@@ -22,6 +23,8 @@ def create_app(config_extra=None, proveedor=None):
     app.extensions["proveedor_ejemplos"] = proveedor or crear_proveedor(app.config)
 
     app.register_blueprint(ejemplos_bp)
+    # Idioma de los mensajes según Accept-Language (es por defecto).
+    iniciar_i18n(app)
     registrar_manejadores(app)
 
     app.add_url_rule("/health", view_func=health, methods=["GET"])

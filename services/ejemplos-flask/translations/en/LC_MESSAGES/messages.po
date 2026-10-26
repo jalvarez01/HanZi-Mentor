@@ -1,0 +1,52 @@
+# Mensajes de ejemplos-flask en en.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ejemplos-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-25 21:54-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:44
+msgid "Solicitud incorrecta"
+msgstr "Bad request"
+
+#: errores.py:48
+msgid "Recurso no encontrado"
+msgstr "Resource not found"
+
+#: errores.py:52
+msgid "Método no permitido"
+msgstr "Method not allowed"
+
+#: errores.py:56 errores.py:66
+msgid "Error interno"
+msgstr "Internal error"
+
+#: servicio.py:16
+msgid "El proveedor de ejemplos no está disponible"
+msgstr "The examples provider is not available"
+
+#: validacion.py:22
+#, python-format
+msgid "Se espera de 1 a %(maximo)s caracteres chinos"
+msgstr "Expected 1 to %(maximo)s Chinese characters"
+
+#: validacion.py:30
+#, python-format
+msgid "Idioma no soportado: use %(idiomas)s"
+msgstr "Unsupported language: use %(idiomas)s"
+
+#: validacion.py:39
+#, python-format
+msgid "El límite debe ser un entero entre 1 y %(maximo)s"
+msgstr "The limit must be an integer between 1 and %(maximo)s"
+
