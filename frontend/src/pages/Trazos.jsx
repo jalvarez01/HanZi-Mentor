@@ -10,6 +10,17 @@ import './Trazos.css';
 const VIEWBOX = 1024;
 const TRANSFORM = 'scale(1, -1) translate(0, -900)';
 
+// Errores en los que el trazo no se pudo evaluar: no es un trazo mal hecho.
+// DEPENDENCIA_NO_DISPONIBLE viene de evaluacion-flask (catálogo o trazos
+// caídos); los otros tres son del gateway (infra/nginx/nginx.conf) cuando el
+// propio servicio de evaluación no responde.
+const NO_EVALUADO = new Set([
+  'DEPENDENCIA_NO_DISPONIBLE',
+  'SERVICIO_NO_DISPONIBLE',
+  'SERVICIO_SATURADO',
+  'TIEMPO_AGOTADO',
+]);
+
 export default function Trazos() {
   const [params] = useSearchParams();
   const pedido = params.get('caracter');
@@ -164,7 +175,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
   const [tieneDibujo, setTieneDibujo] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [validando, setValidando] = useState(false);
-  // El servicio no pudo evaluar (503): no es un trazo mal hecho.
+  // No se pudo evaluar (servicio caído o sin red): no es un trazo mal hecho.
   const [sinEvaluar, setSinEvaluar] = useState(false);
 
   const trazoActual = trazos[hasta];
@@ -260,7 +271,8 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
         setTimeout(() => onAprobado?.(), 900);
       }
     } catch (e) {
-      if (e.codigo === 'DEPENDENCIA_NO_DISPONIBLE') {
+      // Sin status: no llegó respuesta (sin red o servidor inalcanzable).
+      if (NO_EVALUADO.has(e.codigo) || !e.status) {
         setSinEvaluar(true);
       } else {
         setResultado({ aprobado: false, invertido: false, detalle: e.message });
