@@ -2,6 +2,7 @@
 
 from flask import Blueprint, current_app, jsonify, request
 
+from mensajes import N_
 from servicio import validar_trazo
 from validacion import EntradaInvalida, validar_solicitud
 
@@ -12,7 +13,7 @@ trazos_bp = Blueprint("trazos", __name__)
 def validar():
     cuerpo = request.get_json(force=True, silent=True)
     if cuerpo is None:
-        raise EntradaInvalida("El cuerpo no es un JSON válido")
+        raise EntradaInvalida(N_("El cuerpo no es un JSON válido"))
 
     solicitud = validar_solicitud(cuerpo, current_app.config["MAX_PUNTOS"])
     return jsonify(validar_trazo(solicitud)), 200

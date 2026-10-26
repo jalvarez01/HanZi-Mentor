@@ -6,6 +6,7 @@ Cada error se lanza como ErrorDominio con 400 y código ENTRADA_INVALIDA.
 import uuid
 
 from errores import ErrorDominio
+from mensajes import N_
 
 DURACION_DEFECTO = 10
 
@@ -14,13 +15,13 @@ VERDADEROS = {"t", "T", "y", "Y", "yes", "Yes", "YES", "true", "True", "TRUE", "
 FALSOS = {"f", "F", "n", "N", "no", "No", "NO", "false", "False", "FALSE", "off", "Off", "OFF", "0", 0, 0.0, False}
 
 
-def _invalida(mensaje):
-    return ErrorDominio(mensaje, "ENTRADA_INVALIDA")
+def _invalida(mensaje, **params):
+    return ErrorDominio(mensaje, "ENTRADA_INVALIDA", params=params)
 
 
 def _cuerpo(datos):
     if not isinstance(datos, dict):
-        raise _invalida("El cuerpo debe ser un objeto JSON")
+        raise _invalida(N_("El cuerpo debe ser un objeto JSON"))
     return datos
 
 
@@ -56,11 +57,14 @@ def _entero(valor):
 def _entero_en_rango(datos, campo, minimo, maximo, defecto=None):
     if campo not in datos:
         if defecto is None:
-            raise _invalida(f"El campo '{campo}' es obligatorio")
+            raise _invalida(N_("El campo '%(campo)s' es obligatorio"), campo=campo)
         return defecto
     valor = _entero(datos[campo])
     if valor is None or not minimo <= valor <= maximo:
-        raise _invalida(f"El campo '{campo}' debe ser un entero entre {minimo} y {maximo}")
+        raise _invalida(
+            N_("El campo '%(campo)s' debe ser un entero entre %(minimo)s y %(maximo)s"),
+            campo=campo, minimo=minimo, maximo=maximo,
+        )
     return valor
 
 
@@ -68,10 +72,10 @@ def validar_crear_sesion(datos):
     """Devuelve (usuario_id, nivel_hsk, duracion_min) de POST /api/v2/sesiones/."""
     datos = _cuerpo(datos)
     if "usuario_id" not in datos:
-        raise _invalida("El campo 'usuario_id' es obligatorio")
+        raise _invalida(N_("El campo '%(campo)s' es obligatorio"), campo="usuario_id")
     usuario_id = _uuid(datos["usuario_id"])
     if usuario_id is None:
-        raise _invalida("El campo 'usuario_id' debe ser un UUID válido")
+        raise _invalida(N_("El campo '%(campo)s' debe ser un UUID válido"), campo="usuario_id")
 
     nivel_hsk = _entero_en_rango(datos, "nivel_hsk", 1, 6)
     duracion = _entero_en_rango(datos, "duracion_min", 5, 60, defecto=DURACION_DEFECTO)
@@ -82,7 +86,7 @@ def validar_respuesta(datos):
     """Devuelve `acerto` de POST /api/v2/ejercicios/<id>/responder/."""
     datos = _cuerpo(datos)
     if "acerto" not in datos:
-        raise _invalida("El campo 'acerto' es obligatorio")
+        raise _invalida(N_("El campo '%(campo)s' es obligatorio"), campo="acerto")
     valor = datos["acerto"]
     try:
         if valor in VERDADEROS:
@@ -92,4 +96,4 @@ def validar_respuesta(datos):
     except TypeError:
         # Listas o dicts no se pueden buscar en un set.
         pass
-    raise _invalida("El campo 'acerto' debe ser true o false")
+    raise _invalida(N_("El campo 'acerto' debe ser true o false"))

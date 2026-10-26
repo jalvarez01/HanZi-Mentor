@@ -4,6 +4,8 @@ tests/test_contrato.py lo comprueba."""
 
 from datetime import timezone
 
+from i18n import traducir
+
 
 def _fecha(valor):
     """Como DateTimeField de DRF con TIME_ZONE='UTC': ISO 8601 con Z."""
@@ -50,5 +52,5 @@ def resultado_respuesta(r):
         "tasa_acierto": r["tasa_acierto"],
     }
     if "aviso" in r:
-        datos["aviso"] = r["aviso"]
+        datos["aviso"] = traducir(r["aviso"])
     return datos

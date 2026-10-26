@@ -1,0 +1,52 @@
+# Mensajes de ejemplos-flask en es.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ejemplos-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-25 21:54-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: es\n"
+"Language-Team: Español\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:44
+msgid "Solicitud incorrecta"
+msgstr ""
+
+#: errores.py:48
+msgid "Recurso no encontrado"
+msgstr ""
+
+#: errores.py:52
+msgid "Método no permitido"
+msgstr ""
+
+#: errores.py:56 errores.py:66
+msgid "Error interno"
+msgstr ""
+
+#: servicio.py:16
+msgid "El proveedor de ejemplos no está disponible"
+msgstr ""
+
+#: validacion.py:22
+#, python-format
+msgid "Se espera de 1 a %(maximo)s caracteres chinos"
+msgstr ""
+
+#: validacion.py:30
+#, python-format
+msgid "Idioma no soportado: use %(idiomas)s"
+msgstr ""
+
+#: validacion.py:39
+#, python-format
+msgid "El límite debe ser un entero entre 1 y %(maximo)s"
+msgstr ""
+

@@ -7,6 +7,7 @@ en vez de persistir una sesión a medias.
 """
 
 from django.db import transaction
+from django.utils.translation import gettext
 
 from ..models import Ejercicio, SesionEstudio
 from .exceptions import NivelNoPermitidoError, SesionInvalidaError
@@ -75,28 +76,32 @@ class SesionEstudioBuilder:
 
     def _validar(self):
         if not self._usuario_id:
-            raise SesionInvalidaError("La sesión requiere un usuario.")
+            raise SesionInvalidaError(gettext("La sesión requiere un usuario."))
 
         if self._nivel_hsk not in NIVELES_VALIDOS:
-            raise SesionInvalidaError(f"Nivel HSK inválido: {self._nivel_hsk}.")
+            raise SesionInvalidaError(
+                gettext("Nivel HSK inválido: %(nivel)s.") % {"nivel": self._nivel_hsk}
+            )
 
         if self._nivel_hsk > self._nivel_max_desbloqueado:
             raise NivelNoPermitidoError(
-                f"HSK{self._nivel_hsk} aún no está desbloqueado "
-                f"(máximo actual: HSK{self._nivel_max_desbloqueado})."
+                gettext("HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s).")
+                % {"nivel": self._nivel_hsk, "maximo": self._nivel_max_desbloqueado}
             )
 
         if self._dificultad is None:
-            raise SesionInvalidaError("La sesión requiere una dificultad.")
+            raise SesionInvalidaError(gettext("La sesión requiere una dificultad."))
 
         if len(self._ejercicios) < MIN_EJERCICIOS:
             raise SesionInvalidaError(
-                f"Una sesión necesita al menos {MIN_EJERCICIOS} ejercicios."
+                gettext("Una sesión necesita al menos %(minimo)s ejercicios.")
+                % {"minimo": MIN_EJERCICIOS}
             )
 
         if len(self._ejercicios) > MAX_EJERCICIOS:
             raise SesionInvalidaError(
-                f"Una sesión no puede exceder {MAX_EJERCICIOS} ejercicios."
+                gettext("Una sesión no puede exceder %(maximo)s ejercicios.")
+                % {"maximo": MAX_EJERCICIOS}
             )
 
     # ---------- construcción final ----------

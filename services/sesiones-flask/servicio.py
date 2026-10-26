@@ -15,13 +15,15 @@ from dominio.excepciones import (
     SesionNoEncontradaError,
 )
 from dominio.repaso import calcular_proximo_repaso, racha_previa
+from mensajes import N_
 from modelos import ahora
 from repositorio import SesionesRepositorio
 
 CANTIDAD_REFUERZOS = 3
 CANTIDAD_NUEVOS = 4
 
-AVISO_PROGRESO = (
+# En español; serializacion.py lo traduce al idioma de la petición.
+AVISO_PROGRESO = N_(
     "La respuesta quedó guardada en la sesión, pero no se pudo actualizar "
     "el progreso: el servicio de progreso no respondió."
 )
@@ -74,10 +76,10 @@ class ResponderEjercicioService:
         repo = SesionesRepositorio(sesion_db)
         ejercicio = repo.obtener_ejercicio_para_responder(ejercicio_id)
         if ejercicio is None:
-            raise EjercicioNoEncontradoError("Ejercicio no encontrado.")
+            raise EjercicioNoEncontradoError(N_("Ejercicio no encontrado."))
         if ejercicio.respondido:
             raise EjercicioYaRespondidoError(
-                f"El ejercicio {ejercicio_id} ya fue respondido."
+                N_("El ejercicio %(id)s ya fue respondido."), id=ejercicio_id
             )
 
         momento = self._reloj()
@@ -123,5 +125,5 @@ class ResponderEjercicioService:
 def obtener_sesion(sesion_db, sesion_id):
     sesion = SesionesRepositorio(sesion_db).obtener_sesion(sesion_id)
     if sesion is None:
-        raise SesionNoEncontradaError("Sesión no encontrada.")
+        raise SesionNoEncontradaError(N_("Sesión no encontrada."))
     return sesion

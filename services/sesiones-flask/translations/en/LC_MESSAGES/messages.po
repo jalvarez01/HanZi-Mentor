@@ -1,0 +1,105 @@
+# Mensajes de sesiones-flask en en.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sesiones-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-25 21:53-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:51
+msgid "Solicitud incorrecta"
+msgstr "Bad request"
+
+#: errores.py:55
+msgid "Recurso no encontrado"
+msgstr "Resource not found"
+
+#: errores.py:59
+msgid "Método no permitido"
+msgstr "Method not allowed"
+
+#: errores.py:63 errores.py:73
+msgid "Error interno"
+msgstr "Internal error"
+
+#: servicio.py:27
+msgid ""
+"La respuesta quedó guardada en la sesión, pero no se pudo actualizar el "
+"progreso: el servicio de progreso no respondió."
+msgstr ""
+"The answer was saved in the session, but the progress could not be updated: "
+"the progress service did not respond."
+
+#: servicio.py:79
+msgid "Ejercicio no encontrado."
+msgstr "Exercise not found."
+
+#: servicio.py:82
+#, python-format
+msgid "El ejercicio %(id)s ya fue respondido."
+msgstr "Exercise %(id)s has already been answered."
+
+#: servicio.py:128
+msgid "Sesión no encontrada."
+msgstr "Session not found."
+
+#: validacion.py:24
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr "The body must be a JSON object"
+
+#: validacion.py:60 validacion.py:75 validacion.py:89
+#, python-format
+msgid "El campo '%(campo)s' es obligatorio"
+msgstr "The field '%(campo)s' is required"
+
+#: validacion.py:65
+#, python-format
+msgid "El campo '%(campo)s' debe ser un entero entre %(minimo)s y %(maximo)s"
+msgstr "The field '%(campo)s' must be an integer between %(minimo)s and %(maximo)s"
+
+#: validacion.py:78
+#, python-format
+msgid "El campo '%(campo)s' debe ser un UUID válido"
+msgstr "The field '%(campo)s' must be a valid UUID"
+
+#: validacion.py:99
+msgid "El campo 'acerto' debe ser true o false"
+msgstr "The field 'acerto' must be true or false"
+
+#: dominio/builder.py:83
+msgid "La sesión requiere un usuario."
+msgstr "The session requires a user."
+
+#: dominio/builder.py:86
+#, python-format
+msgid "Nivel HSK inválido: %(nivel)s."
+msgstr "Invalid HSK level: %(nivel)s."
+
+#: dominio/builder.py:90
+#, python-format
+msgid "HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s)."
+msgstr "HSK%(nivel)s is not unlocked yet (current maximum: HSK%(maximo)s)."
+
+#: dominio/builder.py:96
+msgid "La sesión requiere una dificultad."
+msgstr "The session requires a difficulty."
+
+#: dominio/builder.py:100
+#, python-format
+msgid "Una sesión necesita al menos %(minimo)s ejercicios."
+msgstr "A session needs at least %(minimo)s exercises."
+
+#: dominio/builder.py:105
+#, python-format
+msgid "Una sesión no puede exceder %(maximo)s ejercicios."
+msgstr "A session cannot exceed %(maximo)s exercises."
+

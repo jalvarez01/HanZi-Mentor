@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from dominio.lecciones import LeccionBuilder
 from errores import ErrorDominio
+from mensajes import N_
 from modelos import ORDEN_CARACTERES, Caracter, Ejercicio, Leccion
 
 
@@ -28,7 +29,7 @@ def obtener_caracter(sesion, hanzi):
         .options(selectinload(Caracter.trazos))
     ).first()
     if caracter is None:
-        raise ErrorDominio("Carácter no encontrado.", "NO_ENCONTRADO", estado=404)
+        raise ErrorDominio(N_("Carácter no encontrado."), "NO_ENCONTRADO", estado=404)
     return caracter
 
 
@@ -82,5 +83,5 @@ def obtener_leccion(sesion, leccion_id):
         .options(selectinload(Leccion.ejercicios).selectinload(Ejercicio.caracter))
     ).first()
     if leccion is None:
-        raise ErrorDominio("Lección no encontrada.", "NO_ENCONTRADO", estado=404)
+        raise ErrorDominio(N_("Lección no encontrada."), "NO_ENCONTRADO", estado=404)
     return leccion

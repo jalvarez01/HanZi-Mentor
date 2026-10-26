@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from .models import Caracter, Trazo
@@ -9,19 +10,19 @@ class PuntoField(serializers.Field):
     def to_internal_value(self, data):
         if isinstance(data, dict):
             if "x" not in data or "y" not in data:
-                raise serializers.ValidationError("El punto debe tener 'x' e 'y'.")
+                raise serializers.ValidationError(_("El punto debe tener 'x' e 'y'."))
             x, y = data["x"], data["y"]
         elif isinstance(data, (list, tuple)):
             if len(data) != 2:
-                raise serializers.ValidationError("El punto debe ser [x, y].")
+                raise serializers.ValidationError(_("El punto debe ser [x, y]."))
             x, y = data
         else:
-            raise serializers.ValidationError("El punto debe ser [x, y] o {'x': x, 'y': y}.")
+            raise serializers.ValidationError(_("El punto debe ser [x, y] o {'x': x, 'y': y}."))
 
         try:
             return [float(x), float(y)]
         except (TypeError, ValueError):
-            raise serializers.ValidationError("Las coordenadas del punto deben ser numéricas.")
+            raise serializers.ValidationError(_("Las coordenadas del punto deben ser numéricas."))
 
     def to_representation(self, value):
         return value
@@ -32,7 +33,7 @@ class ValidacionTrazoSerializer(serializers.Serializer):
 
     puntos = serializers.ListField(
         child=PuntoField(), min_length=2,
-        error_messages={"min_length": "Se necesitan al menos 2 puntos para un trazo."},
+        error_messages={"min_length": _("Se necesitan al menos 2 puntos para un trazo.")},
     )
     ancho = serializers.IntegerField(min_value=1)
     alto = serializers.IntegerField(min_value=1)

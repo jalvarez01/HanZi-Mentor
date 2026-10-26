@@ -1,3 +1,4 @@
+from django.utils.translation import gettext
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -47,7 +48,7 @@ class ResponderEjercicioView(APIView):
         try:
             resultado = self.service.responder(ejercicio_id, **entrada.validated_data)
         except Ejercicio.DoesNotExist:
-            return Response({"error": "Ejercicio no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": gettext("Ejercicio no encontrado.")}, status=status.HTTP_404_NOT_FOUND)
         except EjercicioYaRespondidoError as error:
             # El recurso existe y el request es válido, pero su estado actual
             # (ya respondido) impide la operación: 409, no 400.
@@ -70,6 +71,6 @@ class DetalleSesionView(APIView):
         )
 
         if sesion is None:
-            return Response({"error": "Sesión no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": gettext("Sesión no encontrada.")}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(SesionEstudioSerializer(sesion).data, status=status.HTTP_200_OK)

@@ -3,6 +3,7 @@
 import pytest
 
 from app import create_app
+from i18n import compilar_traducciones
 from modelos import Caracter, Trazo
 
 MEDIANA = [[458, 800], [435, 764], [400, 700], [350, 620], [300, 540]]
@@ -42,3 +43,9 @@ def crear_caracter(sesion):
         return caracter
 
     return crear
+
+
+def pytest_configure(config):
+    # Las pruebas de idioma necesitan los .mo. No se suben al repo: en Docker
+    # los genera `pybabel compile` y acá se compilan antes de empezar.
+    compilar_traducciones()

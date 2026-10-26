@@ -45,6 +45,12 @@ Un servicio cumple el estándar cuando se puede marcar todo esto:
       `FLASK_DEBUG`, `DATABASE_URL` y las propias del servicio se leen en
       `config.py`. Nada de puertos, URLs ni claves en el código. Hay un
       `.env.example` con todas.
+- [ ] **i18n con Flask-Babel**: los textos para el usuario (`error`,
+      `detalle`, `aviso`) salen en español o en inglés según
+      `Accept-Language`, en español por defecto. Están marcados con `N_` o
+      `gettext`, tienen su `.po` en `translations/es` y `translations/en`, y
+      el `Dockerfile` los compila con `pybabel compile`. Las claves, el
+      `codigo` y el estado nunca se traducen.
 - [ ] **Versiones fijadas** en `requirements.txt`.
 - [ ] **README.md** con cómo correrlo, probarlo y un `curl` de ejemplo.
 
@@ -54,6 +60,10 @@ Un servicio cumple el estándar cuando se puede marcar todo esto:
 services/<nombre>-flask/
   app.py            create_app(config_extra): config, db, errores, blueprints, /health
   config.py         desde_entorno(): lee las variables de entorno
+  i18n.py           Flask-Babel: idioma según Accept-Language y traducir()
+  mensajes.py       N_(): marca textos traducibles sin importar Flask
+  babel.cfg         qué archivos revisa pybabel extract
+  translations/     es/ y en/ con su messages.po (los .mo no se suben)
   db.py             Base, iniciar_db, obtener_sesion, db_disponible (si usa DB)
   errores.py        manejadores JSON y ErrorDominio
   rutas.py          blueprint: valida la forma de la entrada, llama al servicio, responde
@@ -87,6 +97,47 @@ usa `dominio` y `modelos`. El controlador no tiene lógica de negocio.
 5. Mantener `tests/test_base.py` y agregar las pruebas propias.
 6. Exponer las rutas bajo `/api/v2/<modulo>/` para que Nginx las enrute sin
    chocar con `/api/v1/` (Django).
+
+## Mensajes en español e inglés
+
+El idioma lo elige la cabecera `Accept-Language` (`es` o `en`; sin cabecera,
+o con otro idioma, `es`). Es la misma regla que usan los servicios Django
+con `LocaleMiddleware`. Solo se traduce el texto: las claves del JSON, el
+`codigo` y el estado son los mismos en los dos idiomas, así el cliente no
+depende del idioma para decidir qué hacer.
+
+El texto se escribe en español en el código y se traduce al responder:
+
+- En el **dominio**, que no importa Flask, se marca con `N_()` de
+  `mensajes.py` (no traduce, solo lo marca para pybabel). Si lleva datos,
+  van como marcadores con nombre y aparte, no con f-strings, para que cada
+  idioma pueda ordenar la frase:
+  ```python
+  raise NivelNoPermitidoError(
+      N_("HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s)."),
+      nivel=3, maximo=1,
+  )
+  raise ErrorDominio(N_("El límite debe ser como máximo %(maximo)s"),
+                     "ENTRADA_INVALIDA", params={"maximo": 50})
+  ```
+- En el **borde HTTP** (`errores.py`, la serialización), `i18n.traducir()`
+  lo pasa al idioma de la petición. `str(error)` sigue dando el texto en
+  español, así las pruebas y los logs no cambian.
+
+Para agregar un mensaje nuevo:
+
+1. Escribirlo en español con `N_()` (o `gettext()` si ya se está en una
+   ruta) y marcadores `%(nombre)s` para los datos.
+2. Actualizar los catálogos desde la carpeta del servicio:
+   ```bash
+   .venv/bin/pybabel extract -F babel.cfg --ignore-dirs='.* ._ tests' -o messages.pot .
+   .venv/bin/pybabel update -i messages.pot -d translations
+   ```
+3. Completar el `msgstr` en `translations/en/LC_MESSAGES/messages.po` (en
+   `es` queda vacío, porque el `msgid` ya está en español).
+4. Agregar una prueba con `headers={"Accept-Language": "en"}`. Las pruebas
+   compilan los `.mo` solas (`tests/conftest.py`); para correr el servicio
+   en local, `.venv/bin/pybabel compile -d translations`.
 
 ## Comunicación entre servicios
 

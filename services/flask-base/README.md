@@ -13,6 +13,9 @@ copia para crear cada servicio nuevo (`catalogo-flask`, `progreso-flask`,
 | `config.py`     | Configuración desde variables de entorno                         |
 | `db.py`         | SQLAlchemy 2.x: `Base`, sesión por petición, chequeo de conexión |
 | `errores.py`    | Errores en JSON (400, 404, 405, 500) y `ErrorDominio`            |
+| `i18n.py`       | Flask-Babel: idioma según Accept-Language y `traducir()`         |
+| `mensajes.py`   | `N_()`, la marca de textos traducibles para el código sin Flask  |
+| `babel.cfg`, `translations/` | Configuración de pybabel y catálogos `es` y `en`    |
 | `Dockerfile`    | `python:3.11-slim`, usuario sin privilegios, gunicorn, healthcheck |
 | `tests/`        | Pruebas del estándar con pytest                                  |
 
@@ -38,6 +41,10 @@ Después:
    cierra sola al terminar (con rollback si hubo error). Hacer `commit()`
    explícito al escribir.
 6. Mantener `tests/test_base.py` y agregar las pruebas propias.
+7. Los textos para el usuario se escriben en español y se marcan con
+   `N_("...")`; si llevan datos, con marcadores con nombre y `params`:
+   `ErrorDominio(N_("Máximo %(n)s"), "CODIGO", params={"n": 50})`. Después
+   se actualizan los catálogos (ver "Traducciones").
 
 ## Ejecutar
 
@@ -55,6 +62,23 @@ docker run --rm -p 5000:5000 flask-base
 curl -s http://localhost:5000/health
 # {"estado":"ok","servicio":"flask-base"}
 ```
+
+## Traducciones
+
+Los mensajes de error salen en español o en inglés según la cabecera
+`Accept-Language` (español si no viene o pide otro idioma). Solo cambia el
+texto: las claves, el `codigo` y el estado son los mismos.
+
+```bash
+.venv/bin/pybabel extract -F babel.cfg --ignore-dirs='.* ._ tests' -o messages.pot .
+.venv/bin/pybabel update -i messages.pot -d translations   # init -l <idioma> la primera vez
+# completar los msgstr de translations/en/LC_MESSAGES/messages.po
+.venv/bin/pybabel compile -d translations
+```
+
+Los `.mo` no se suben: los compila el `Dockerfile` y, en las pruebas,
+`tests/conftest.py`. Para correr el servicio en local hay que hacer
+`pybabel compile` una vez.
 
 ## Variables de entorno
 

@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Compila las traducciones (.po a .mo): los .mo no se suben al repo, así la
+# imagen siempre tiene los mensajes al día.
+RUN pybabel compile -d translations
+
 RUN useradd --create-home appuser
 USER appuser
 
