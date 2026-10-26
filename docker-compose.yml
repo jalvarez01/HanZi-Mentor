@@ -8,6 +8,7 @@
 #   /api/v2/ejemplos/* -> flask_ejemplos (Flask, API de terceros)
 #   /api/v2/progreso/* -> flask_progreso (Flask, progreso y repaso)
 #   /api/v2/sesiones/*, /api/v2/ejercicios/* -> flask_sesiones (Flask)
+#   /api/v2/evaluacion/* -> flask_evaluacion (Flask, sin base)
 #   /*                -> frontend      (PWA estática)
 #
 # Bases de datos: un solo PostgreSQL (`db`) con una base por servicio:
@@ -162,6 +163,30 @@ services:
       retries: 5
     restart: unless-stopped
 
+  flask_evaluacion:
+    build: ./services/evaluacion-flask
+    environment:
+      # Sin base: no guarda estado. Fijos a propósito: nombres de la red de
+      # Docker, URL base sin /api/v2.
+      CATALOGO_URL: http://flask_catalogo:5000
+      TRAZOS_URL: http://flask_trazos:5000
+      HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
+      GUNICORN_WORKERS: ${EVALUACION_WORKERS:-2}
+    expose:
+      - "5000"
+    depends_on:
+      flask_catalogo:
+        condition: service_healthy
+      flask_trazos:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+
   agente_tutor:
     build: ./services/agente-tutor
     environment:
@@ -231,6 +256,8 @@ services:
       flask_progreso:
         condition: service_started
       flask_sesiones:
+        condition: service_started
+      flask_evaluacion:
         condition: service_started
       agente_tutor:
         condition: service_started
