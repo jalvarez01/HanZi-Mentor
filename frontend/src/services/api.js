@@ -7,7 +7,9 @@
  *   - /api/v2/progreso/*   -> progreso-flask: progreso y repaso
  *   - /api/v2/caracteres/* -> catalogo-flask: caracteres y sus trazos
  *   - /api/v2/lecciones/*  -> catalogo-flask: lecciones
- *   - /api/v2/trazos/*     -> trazos-flask: validación de trazos
+ *   - /api/v2/evaluacion/* -> evaluacion-flask: decide si una respuesta es
+ *                             correcta (el trazo lo compara trazos-flask, que
+ *                             queda como servicio interno)
  *
  * v2 responde los mismos campos que v1 (contenido y agente-tutor);
  * /api/v1/ sigue en el gateway solo como respaldo. La única diferencia es
@@ -25,12 +27,12 @@ import i18n from '../i18n';
 const CATALOGO_URL = import.meta.env.VITE_CATALOGO_URL || '';
 const SESIONES_URL = import.meta.env.VITE_SESIONES_URL || '';
 const PROGRESO_URL = import.meta.env.VITE_PROGRESO_URL || '';
-const TRAZOS_URL = import.meta.env.VITE_TRAZOS_URL || '';
+const EVALUACION_URL = import.meta.env.VITE_EVALUACION_URL || '';
 
 const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
 const SESIONES_API = `${SESIONES_URL}/api/v2`;
 const PROGRESO_API = `${PROGRESO_URL}/api/v2`;
-const TRAZOS_API = `${TRAZOS_URL}/api/v2/trazos`;
+const EVALUACION_API = `${EVALUACION_URL}/api/v2`;
 
 class ErrorApi extends Error {
   constructor(mensaje, status, cuerpo) {
@@ -132,13 +134,19 @@ export function obtenerCaracter(hanzi) {
   return pedir(`${CATALOGO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
 }
 
-// ------------------------------------------------------------------ trazos
+// -------------------------------------------------------------- evaluación
 
-export async function validarTrazo({ mediana, puntos, ancho, alto }) {
+/**
+ * Decide si una respuesta es correcta. Para un trazo, `respuesta` es
+ * { secuencia, puntos, ancho, alto }: la mediana la busca el servicio en el
+ * catálogo. Un 503 DEPENDENCIA_NO_DISPONIBLE quiere decir que no se pudo
+ * evaluar, no que la respuesta esté mal. `dificultad` es opcional (1 a 5).
+ */
+export async function evaluar({ tipo, caracter, respuesta, dificultad }) {
   try {
-    return await pedir(`${TRAZOS_API}/validar/`, {
+    return await pedir(`${EVALUACION_API}/evaluacion/`, {
       method: 'POST',
-      body: JSON.stringify({ mediana, puntos, ancho, alto }),
+      body: JSON.stringify({ tipo, caracter, respuesta, dificultad }),
     });
   } catch (e) {
     // 400 ENTRADA_INVALIDA / 500 ERROR_INTERNO: se muestra el código junto al mensaje.
