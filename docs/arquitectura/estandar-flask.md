@@ -11,7 +11,7 @@ Servicios que deben cumplirlo:
 |--------------------|-------|----------------------|---------------|
 | `trazos-flask`     | Taller 02 | No (sin estado)      | Cumple        |
 | `catalogo-flask`   | T13   | Sí                   | Cumple        |
-| `evaluacion-flask` | T10   | Según diseño         | Por crear     |
+| `evaluacion-flask` | T10   | No (sin estado)      | Cumple        |
 | `progreso-flask`   | T11   | Sí                   | Cumple        |
 | `sesiones-flask`   | T12   | Sí                   | Cumple        |
 
@@ -158,6 +158,10 @@ La implementación de referencia es `services/sesiones-flask/clientes.py`
   devuelve un valor de respaldo (una lista local, valores por defecto) o
   la ruta agrega un campo `aviso`, en vez de responder 500. Nunca se
   reenvía al cliente una página HTML de error.
+- **Sin adivinar**: si el dato que falta es justamente el resultado (por
+  ejemplo, si una respuesta es correcta), no hay respaldo posible. En ese
+  caso se responde `503` con `DEPENDENCIA_NO_DISPONIBLE`, como hace
+  `services/evaluacion-flask`.
 
 ## Integración con Docker y Nginx
 
