@@ -1,0 +1,103 @@
+# Mensajes de sesiones-flask en es.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sesiones-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-25 21:53-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: es\n"
+"Language-Team: Español\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:51
+msgid "Solicitud incorrecta"
+msgstr ""
+
+#: errores.py:55
+msgid "Recurso no encontrado"
+msgstr ""
+
+#: errores.py:59
+msgid "Método no permitido"
+msgstr ""
+
+#: errores.py:63 errores.py:73
+msgid "Error interno"
+msgstr ""
+
+#: servicio.py:27
+msgid ""
+"La respuesta quedó guardada en la sesión, pero no se pudo actualizar el "
+"progreso: el servicio de progreso no respondió."
+msgstr ""
+
+#: servicio.py:79
+msgid "Ejercicio no encontrado."
+msgstr ""
+
+#: servicio.py:82
+#, python-format
+msgid "El ejercicio %(id)s ya fue respondido."
+msgstr ""
+
+#: servicio.py:128
+msgid "Sesión no encontrada."
+msgstr ""
+
+#: validacion.py:24
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr ""
+
+#: validacion.py:60 validacion.py:75 validacion.py:89
+#, python-format
+msgid "El campo '%(campo)s' es obligatorio"
+msgstr ""
+
+#: validacion.py:65
+#, python-format
+msgid "El campo '%(campo)s' debe ser un entero entre %(minimo)s y %(maximo)s"
+msgstr ""
+
+#: validacion.py:78
+#, python-format
+msgid "El campo '%(campo)s' debe ser un UUID válido"
+msgstr ""
+
+#: validacion.py:99
+msgid "El campo 'acerto' debe ser true o false"
+msgstr ""
+
+#: dominio/builder.py:83
+msgid "La sesión requiere un usuario."
+msgstr ""
+
+#: dominio/builder.py:86
+#, python-format
+msgid "Nivel HSK inválido: %(nivel)s."
+msgstr ""
+
+#: dominio/builder.py:90
+#, python-format
+msgid "HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s)."
+msgstr ""
+
+#: dominio/builder.py:96
+msgid "La sesión requiere una dificultad."
+msgstr ""
+
+#: dominio/builder.py:100
+#, python-format
+msgid "Una sesión necesita al menos %(minimo)s ejercicios."
+msgstr ""
+
+#: dominio/builder.py:105
+#, python-format
+msgid "Una sesión no puede exceder %(maximo)s ejercicios."
+msgstr ""
+

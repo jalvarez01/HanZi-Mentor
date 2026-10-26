@@ -5,10 +5,20 @@ Cada clase trae el estado HTTP y el código con que la responde errores.py.
 
 
 class DominioError(Exception):
-    """Error de reglas de negocio. La capa HTTP lo traduce a 400."""
+    """Error de reglas de negocio. La capa HTTP lo traduce a 400.
+
+    El mensaje va en español, marcado con N_, y `params` completa sus
+    marcadores (`%(nivel)s`). errores.py lo traduce al idioma de la petición;
+    str(error) da el texto en español, como antes.
+    """
 
     estado = 400
     codigo = "ERROR_DOMINIO"
+
+    def __init__(self, mensaje="", **params):
+        self.plantilla = mensaje
+        self.params = params
+        super().__init__(mensaje % params if params else mensaje)
 
 
 class SesionInvalidaError(DominioError):
