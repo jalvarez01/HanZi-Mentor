@@ -5,6 +5,7 @@ from flask import Flask, current_app, jsonify
 import config
 from errores import registrar_manejadores
 from fabricas import crear_dependencias
+from i18n import iniciar_i18n
 from rutas import evaluacion_bp
 
 
@@ -16,6 +17,8 @@ def create_app(config_extra=None, dependencias=None):
     if config_extra:
         app.config.update(config_extra)
 
+    # Idioma de los mensajes según Accept-Language (es por defecto).
+    iniciar_i18n(app)
     registrar_manejadores(app)
     # Hanzi como UTF-8 legible y claves en el orden en que se arman, como v1.
     app.json.ensure_ascii = False

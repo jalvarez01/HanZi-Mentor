@@ -39,7 +39,8 @@ eso no tiene `db.py`, `modelos.py` ni `crear_base.py`, no usa
 | `dominio/evaluacion.py`  | Reglas de pinyin y significado (port de `evaluacion_logic.py`) |
 | `dominio/excepciones.py` | Errores de negocio con su estado HTTP y su código              |
 | `clientes.py`            | Cliente HTTP resiliente y clientes de catálogo y trazos        |
-| `fabricas.py`            | Arma los clientes según la configuración                       |
+| `fabricas.py`            | Arma los clientes y les pasa el Accept-Language del usuario    |
+| `i18n.py`, `mensajes.py`, `babel.cfg`, `translations/` | Mensajes en español e inglés (Flask-Babel) |
 | `servicio.py`            | `EvaluacionService`: el caso de uso                            |
 | `validacion.py`, `serializacion.py`, `rutas.py` | Entrada, JSON de salida y el endpoint   |
 
@@ -111,6 +112,28 @@ CATALOGO_URL=http://127.0.0.1:5081 TRAZOS_URL=http://127.0.0.1:5082 \
 | `HTTP_TIMEOUT`     | `3`                     | Segundos por petición a otro servicio |
 | `HTTP_REINTENTOS`  | `2`                     | Reintentos de los GET                 |
 | `GUNICORN_WORKERS` | `2`                     | Procesos de gunicorn (Docker)         |
+
+## Idioma de los mensajes
+
+Los textos de `error` salen en español o en inglés según la cabecera
+`Accept-Language`; sin cabecera, o con otro idioma, en español. Las claves,
+el `codigo` y el estado no cambian. Usa Flask-Babel igual que
+`services/sesiones-flask`: el código marca los textos con `N_` y
+`errores.py` los traduce al responder.
+
+Además, el Accept-Language del usuario se reenvía a catalogo-flask y a
+trazos-flask (`fabricas.idioma_del_usuario`). Así, cuando trazos rechaza los
+puntos con un 400, su mensaje ya vuelve en el idioma del usuario y se
+devuelve tal cual.
+
+```bash
+curl -s -X POST http://127.0.0.1:5087/api/v2/evaluacion/ -H "Accept-Language: en" \
+  -H "Content-Type: application/json" -d '{"tipo": "audio", "caracter": "人", "respuesta": "x"}'
+# {"error": "'tipo' must be one of: pinyin, significado, trazo", "codigo": "ENTRADA_INVALIDA"}
+```
+
+El `Dockerfile` compila los `.mo`; para correrlo en local,
+`.venv/bin/pybabel compile -d translations`.
 
 ## Contrato
 

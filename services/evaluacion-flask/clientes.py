@@ -12,6 +12,10 @@ Mismo cliente que services/sesiones-flask/clientes.py (base de T16):
      error, porque acá un 404 del catálogo significa "ese carácter no
      existe" y un 400 de trazos significa "los puntos están mal".
 
+Cada petición reenvía las cabeceras que da `cabeceras` (en la app, el
+Accept-Language del usuario, ver fabricas.py). Así un 400 de trazos-flask
+vuelve en el idioma del usuario y se devuelve tal cual.
+
 A diferencia de sesiones-flask, evaluar no tiene respuesta degradada: si
 falta una dependencia, el servicio responde 503 en vez de adivinar si la
 respuesta del usuario era correcta.
@@ -47,9 +51,9 @@ class RespuestaRechazada(Exception):
         self.datos = datos if isinstance(datos, dict) else {}
 
 
-def transporte_urllib(metodo, url, cuerpo, timeout):
+def transporte_urllib(metodo, url, cuerpo, timeout, extra=None):
     """Hace la petición y devuelve (estado, texto). Un 4xx o 5xx no es excepción."""
-    cabeceras = {"Accept": "application/json"}
+    cabeceras = {"Accept": "application/json", **(extra or {})}
     if cuerpo is not None:
         cabeceras["Content-Type"] = "application/json"
     peticion = urllib.request.Request(url, data=cuerpo, headers=cabeceras, method=metodo)
@@ -71,8 +75,10 @@ class ClienteHttp:
     """Cliente JSON con timeout, reintentos en GET y errores tipados."""
 
     def __init__(self, base_url, timeout=3.0, reintentos=2, espera=0.2,
-                 transporte=transporte_urllib, dormir=time.sleep):
+                 transporte=transporte_urllib, dormir=time.sleep, cabeceras=None):
         self.base_url = base_url.rstrip("/")
+        # Función sin argumentos que devuelve las cabeceras extra de cada petición.
+        self._cabeceras = cabeceras or dict
         self.timeout = timeout
         self.reintentos = reintentos
         self.espera = espera
@@ -87,7 +93,7 @@ class ClienteHttp:
 
     def _una_vez(self, metodo, url, cuerpo):
         try:
-            estado, texto = self._transporte(metodo, url, cuerpo, self.timeout)
+            estado, texto = self._transporte(metodo, url, cuerpo, self.timeout, self._cabeceras())
         except (OSError, HTTPException) as error:
             # Conexión rechazada, DNS, timeout (TimeoutError es OSError).
             raise ServicioNoDisponible(f"{metodo} {url}: {error}") from None

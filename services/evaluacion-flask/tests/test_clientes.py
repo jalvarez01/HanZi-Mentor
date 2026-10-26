@@ -22,9 +22,11 @@ class TransporteFalso:
     def __init__(self, *respuestas):
         self.respuestas = list(respuestas)
         self.llamadas = []
+        self.cabeceras = []
 
-    def __call__(self, metodo, url, cuerpo, timeout):
+    def __call__(self, metodo, url, cuerpo, timeout, extra=None):
         self.llamadas.append((metodo, url, cuerpo, timeout))
+        self.cabeceras.append(extra)
         respuesta = self.respuestas.pop(0)
         if isinstance(respuesta, Exception):
             raise respuesta
@@ -181,3 +183,25 @@ def test_puerto_cerrado_es_servicio_no_disponible():
 
     with pytest.raises(ServicioNoDisponible):
         c.post("/api/v2/trazos/validar/", {})
+
+
+# ---------- reenvío de Accept-Language ----------
+
+
+def test_las_cabeceras_extra_van_en_get_y_post():
+    transporte = TransporteFalso((200, {}), (200, {}))
+    c = ClienteHttp("http://servicio:5000", transporte=transporte,
+                    cabeceras=lambda: {"Accept-Language": "en-US,en;q=0.9"})
+
+    c.get("/x")
+    c.post("/y", {})
+
+    assert transporte.cabeceras == [{"Accept-Language": "en-US,en;q=0.9"}] * 2
+
+
+def test_sin_cabeceras_extra_no_manda_nada_de_mas():
+    transporte = TransporteFalso((200, {}))
+
+    ClienteHttp("http://servicio:5000", transporte=transporte).get("/x")
+
+    assert transporte.cabeceras == [{}]

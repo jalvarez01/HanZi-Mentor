@@ -12,6 +12,10 @@ Diferencias con v1:
 - si catálogo o trazos no responden, lanza DependenciaNoDisponibleError
   (503). v1 devolvía False o {"aprobado": False, "motivo": "error_servicio"},
   que el usuario no puede distinguir de un error suyo.
+
+Los mensajes van en español con N_ y los traduce errores.py. El 400 de
+trazos-flask ya llega en el idioma del usuario, porque clientes.py le
+reenvía su Accept-Language.
 """
 
 import logging
@@ -25,8 +29,12 @@ from dominio.excepciones import (
     TrazoNoEncontradoError,
 )
 from errores import ErrorDominio
+from mensajes import N_
 
 logger = logging.getLogger(__name__)
+
+CAIDA_CATALOGO = N_("El servicio de catálogo no respondió. Probá de nuevo en unos segundos.")
+CAIDA_TRAZOS = N_("El servicio de trazos no respondió. Probá de nuevo en unos segundos.")
 
 
 @dataclass
@@ -60,12 +68,14 @@ class EvaluacionService:
             return self._catalogo.obtener_detalle(hanzi)
         except RespuestaRechazada as error:
             if error.estado == 404:
-                raise CaracterNoEncontradoError(f"No existe el carácter '{hanzi}'.") from None
+                raise CaracterNoEncontradoError(
+                    N_("No existe el carácter '%(hanzi)s'."), hanzi=hanzi
+                ) from None
             logger.warning("El catálogo rechazó la consulta de '%s': %s", hanzi, error)
-            raise self._caida("catálogo") from None
+            raise DependenciaNoDisponibleError(CAIDA_CATALOGO) from None
         except ServicioNoDisponible as error:
             logger.warning("Catálogo no disponible: %s", error)
-            raise self._caida("catálogo") from None
+            raise DependenciaNoDisponibleError(CAIDA_CATALOGO) from None
 
     def _evaluar_trazo(self, solicitud, detalle):
         respuesta = solicitud.respuesta
@@ -78,13 +88,14 @@ class EvaluacionService:
         except RespuestaRechazada as error:
             if error.estado == 400:
                 # Los puntos del usuario no cumplen el contrato de trazos-flask.
-                mensaje = error.datos.get("error", "Los puntos del trazo no son válidos")
+                # Su mensaje ya viene traducido y se devuelve tal cual.
+                mensaje = error.datos.get("error") or N_("Los puntos del trazo no son válidos")
                 raise ErrorDominio(mensaje, "ENTRADA_INVALIDA") from None
             logger.warning("trazos-flask rechazó la validación: %s", error)
-            raise self._caida("trazos") from None
+            raise DependenciaNoDisponibleError(CAIDA_TRAZOS) from None
         except ServicioNoDisponible as error:
             logger.warning("trazos-flask no disponible: %s", error)
-            raise self._caida("trazos") from None
+            raise DependenciaNoDisponibleError(CAIDA_TRAZOS) from None
 
         return ResultadoEvaluacion(
             solicitud.tipo,
@@ -104,11 +115,7 @@ class EvaluacionService:
                 break
         # Mismo mensaje que contenido v1.
         raise TrazoNoEncontradoError(
-            f"El carácter '{hanzi}' no tiene un trazo con secuencia {secuencia}."
-        )
-
-    @staticmethod
-    def _caida(nombre):
-        return DependenciaNoDisponibleError(
-            f"El servicio de {nombre} no respondió. Probá de nuevo en unos segundos."
+            N_("El carácter '%(hanzi)s' no tiene un trazo con secuencia %(secuencia)s."),
+            hanzi=hanzi,
+            secuencia=secuencia,
         )

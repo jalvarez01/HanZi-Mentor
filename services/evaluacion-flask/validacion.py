@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from dominio.evaluacion import UMBRALES_SIGNIFICADO
 from errores import ErrorDominio
+from mensajes import N_
 
 TIPOS = ("pinyin", "significado", "trazo")
 
@@ -35,8 +36,8 @@ class RespuestaTrazo:
     alto: int
 
 
-def _invalida(mensaje):
-    return ErrorDominio(mensaje, "ENTRADA_INVALIDA")
+def _invalida(mensaje, **params):
+    return ErrorDominio(mensaje, "ENTRADA_INVALIDA", params=params)
 
 
 def _entero_positivo(valor):
@@ -45,52 +46,52 @@ def _entero_positivo(valor):
 
 def _respuesta_texto(valor):
     if not isinstance(valor, str):
-        raise _invalida("'respuesta' debe ser un texto para pinyin y significado")
+        raise _invalida(N_("'respuesta' debe ser un texto para pinyin y significado"))
     if len(valor) > MAX_RESPUESTA:
-        raise _invalida(f"'respuesta' supera los {MAX_RESPUESTA} caracteres")
+        raise _invalida(N_("'respuesta' supera los %(maximo)s caracteres"), maximo=MAX_RESPUESTA)
     return valor
 
 
 def _respuesta_trazo(valor):
     if not isinstance(valor, dict):
-        raise _invalida("'respuesta' debe ser un objeto con secuencia, puntos, ancho y alto")
+        raise _invalida(N_("'respuesta' debe ser un objeto con secuencia, puntos, ancho y alto"))
 
     faltantes = [c for c in ("secuencia", "puntos", "ancho", "alto") if c not in valor]
     if faltantes:
-        raise _invalida(f"Faltan campos en 'respuesta': {', '.join(faltantes)}")
+        raise _invalida(N_("Faltan campos en 'respuesta': %(campos)s"), campos=", ".join(faltantes))
     if not _entero_positivo(valor["secuencia"]):
-        raise _invalida("'secuencia' debe ser un entero mayor o igual a 1")
+        raise _invalida(N_("'secuencia' debe ser un entero mayor o igual a 1"))
     if not isinstance(valor["puntos"], list):
-        raise _invalida("'puntos' debe ser una lista de puntos")
+        raise _invalida(N_("'%(campo)s' debe ser una lista de puntos"), campo="puntos")
     for campo in ("ancho", "alto"):
         if not _entero_positivo(valor[campo]):
-            raise _invalida(f"'{campo}' debe ser un entero positivo")
+            raise _invalida(N_("'%(campo)s' debe ser un entero positivo"), campo=campo)
 
     return RespuestaTrazo(valor["secuencia"], valor["puntos"], valor["ancho"], valor["alto"])
 
 
 def validar_evaluacion(datos):
     if not isinstance(datos, dict):
-        raise _invalida("El cuerpo debe ser un objeto JSON")
+        raise _invalida(N_("El cuerpo debe ser un objeto JSON"))
 
     faltantes = [c for c in ("tipo", "caracter", "respuesta") if c not in datos]
     if faltantes:
-        raise _invalida(f"Faltan campos: {', '.join(faltantes)}")
+        raise _invalida(N_("Faltan campos: %(campos)s"), campos=", ".join(faltantes))
 
     tipo = datos["tipo"]
     if tipo not in TIPOS:
-        raise _invalida(f"'tipo' debe ser uno de: {', '.join(TIPOS)}")
+        raise _invalida(N_("'tipo' debe ser uno de: %(tipos)s"), tipos=", ".join(TIPOS))
 
     caracter = datos["caracter"]
     if not isinstance(caracter, str) or not caracter.strip():
-        raise _invalida("'caracter' debe ser un texto no vacío")
+        raise _invalida(N_("'caracter' debe ser un texto no vacío"))
     caracter = caracter.strip()
     if len(caracter) > MAX_CARACTER:
-        raise _invalida(f"'caracter' supera los {MAX_CARACTER} caracteres")
+        raise _invalida(N_("'caracter' supera los %(maximo)s caracteres"), maximo=MAX_CARACTER)
 
     dificultad = datos.get("dificultad", DIFICULTAD_DEFECTO)
     if isinstance(dificultad, bool) or dificultad not in UMBRALES_SIGNIFICADO:
-        raise _invalida("'dificultad' debe ser un entero entre 1 y 5")
+        raise _invalida(N_("'dificultad' debe ser un entero entre 1 y 5"))
 
     if tipo == "trazo":
         respuesta = _respuesta_trazo(datos["respuesta"])
