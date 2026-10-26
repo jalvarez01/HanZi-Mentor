@@ -2,13 +2,24 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import TopBar from '../components/TopBar';
-import { listarCaracteres, obtenerCaracter, validarTrazo } from '../services/api';
+import { evaluar, listarCaracteres, obtenerCaracter } from '../services/api';
 import './Trazos.css';
 
 // Make Me a Hanzi usa un lienzo de 1024x1024 con el eje Y invertido:
 // la esquina superior izquierda está en (0, 900).
 const VIEWBOX = 1024;
 const TRANSFORM = 'scale(1, -1) translate(0, -900)';
+
+// Errores en los que el trazo no se pudo evaluar: no es un trazo mal hecho.
+// DEPENDENCIA_NO_DISPONIBLE viene de evaluacion-flask (catálogo o trazos
+// caídos); los otros tres son del gateway (infra/nginx/nginx.conf) cuando el
+// propio servicio de evaluación no responde.
+const NO_EVALUADO = new Set([
+  'DEPENDENCIA_NO_DISPONIBLE',
+  'SERVICIO_NO_DISPONIBLE',
+  'SERVICIO_SATURADO',
+  'TIEMPO_AGOTADO',
+]);
 
 export default function Trazos() {
   const [params] = useSearchParams();
@@ -153,7 +164,7 @@ export default function Trazos() {
  * Muestra los trazos hasta el índice indicado y deja dibujar encima.
  *
  * El SVG de fondo pinta el trazo correcto; el canvas de arriba captura el
- * dedo o el mouse. Al soltar, el trazo capturado se manda a validar
+ * dedo o el mouse. Al soltar, el trazo capturado se manda a evaluar
  * (RF-APR-01) y, si se aprueba, se avanza solo al trazo siguiente.
  */
 function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
@@ -164,6 +175,8 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
   const [tieneDibujo, setTieneDibujo] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [validando, setValidando] = useState(false);
+  // No se pudo evaluar (servicio caído o sin red): no es un trazo mal hecho.
+  const [sinEvaluar, setSinEvaluar] = useState(false);
 
   const trazoActual = trazos[hasta];
 
@@ -191,6 +204,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
     puntosRef.current = [];
     setTieneDibujo(false);
     setResultado(null);
+    setSinEvaluar(false);
   }, [hasta]);
 
   function posicion(evento) {
@@ -207,6 +221,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
     dibujando.current = true;
     setTieneDibujo(true);
     setResultado(null);
+    setSinEvaluar(false);
 
     const { x, y } = posicion(evento);
     puntosRef.current = [{ x, y }];
@@ -239,11 +254,16 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
 
     setValidando(true);
     try {
-      const veredicto = await validarTrazo({
-        mediana: trazoActual.mediana,
-        puntos,
-        ancho: Math.round(rect.width),
-        alto: Math.round(rect.height),
+      // evaluacion-flask busca la mediana en el catálogo y compara con trazos-flask.
+      const veredicto = await evaluar({
+        tipo: 'trazo',
+        caracter: hanzi,
+        respuesta: {
+          secuencia: trazoActual.secuencia,
+          puntos,
+          ancho: Math.round(rect.width),
+          alto: Math.round(rect.height),
+        },
       });
       setResultado(veredicto);
 
@@ -251,7 +271,12 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
         setTimeout(() => onAprobado?.(), 900);
       }
     } catch (e) {
-      setResultado({ aprobado: false, invertido: false, detalle: e.message });
+      // Sin status: no llegó respuesta (sin red o servidor inalcanzable).
+      if (NO_EVALUADO.has(e.codigo) || !e.status) {
+        setSinEvaluar(true);
+      } else {
+        setResultado({ aprobado: false, invertido: false, detalle: e.message });
+      }
     } finally {
       setValidando(false);
     }
@@ -264,6 +289,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
     puntosRef.current = [];
     setTieneDibujo(false);
     setResultado(null);
+    setSinEvaluar(false);
   }
 
   return (
@@ -305,6 +331,10 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
       </div>
 
       {validando && <p className="validando" role="status">{t('strokes.checking')}</p>}
+
+      {sinEvaluar && (
+        <p className="hm-status hm-status--empty" role="status">{t('strokes.unavailable')}</p>
+      )}
 
       {resultado && (
         <div

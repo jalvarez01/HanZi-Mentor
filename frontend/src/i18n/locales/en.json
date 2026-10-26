@@ -91,7 +91,8 @@
     "canvasLabel": "Canvas to draw the stroke with your finger or mouse",
     "clear": "Clear",
     "checking": "Checking…",
-    "reversed": "reversed direction"
+    "reversed": "reversed direction",
+    "unavailable": "The stroke couldn't be checked right now. Try again in a few seconds."
   },
   "practice": {
     "title": "Practice",

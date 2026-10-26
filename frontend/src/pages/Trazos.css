@@ -27,7 +27,7 @@
 /*
  * Lienzo: el canvas ocupa exactamente la caja interior de .lienzo-wrap
  * (inset: 0). Trazos.jsx mide el canvas con getBoundingClientRect para
- * su resolución y para el ancho/alto que envía a validarTrazo, así que
+ * su resolución y para el ancho/alto que envía a evaluar, así que
  * borde y sombra van en el contenedor y no alteran esas medidas.
  * Sin backdrop-filter sobre el canvas.
  */
