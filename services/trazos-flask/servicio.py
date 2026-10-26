@@ -1,6 +1,7 @@
 """Caso de uso: validar un trazo dibujado contra la mediana esperada."""
 
 from comparador import comparar_trazo
+from i18n import traducir
 
 
 def validar_trazo(solicitud):
@@ -12,7 +13,8 @@ def validar_trazo(solicitud):
         "aprobado": resultado.aprobado,
         "puntaje": resultado.puntaje,
         "motivo": resultado.motivo,
-        "detalle": resultado.detalle,
+        # El comparador deja el detalle en español; sale en el idioma pedido.
+        "detalle": traducir(resultado.detalle),
         "invertido": resultado.invertido,
         "puntos_lejanos": resultado.puntos_lejanos,
     }

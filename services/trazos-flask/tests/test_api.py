@@ -148,3 +148,40 @@ def test_error_inesperado_no_filtra_detalles(client, monkeypatch):
     assert resp.status_code == 500
     assert resp.get_json() == {"error": "Error interno", "codigo": "ERROR_INTERNO"}
     assert "secreto" not in resp.get_data(as_text=True)
+
+
+# ---------- idioma de los mensajes (T22) ----------
+
+
+def test_validacion_en_espanol_y_en_ingles(client):
+    sin_alto = {k: v for k, v in cuerpo().items() if k != "alto"}
+
+    es = client.post(URL, json=sin_alto, headers={"Accept-Language": "es"})
+    en = client.post(URL, json=sin_alto, headers={"Accept-Language": "en-US,en;q=0.9"})
+
+    assert (es.status_code, en.status_code) == (400, 400)
+    assert es.get_json() == {"error": "Faltan campos: alto", "codigo": "ENTRADA_INVALIDA"}
+    assert en.get_json() == {"error": "Missing fields: alto", "codigo": "ENTRADA_INVALIDA"}
+
+
+def test_el_detalle_del_veredicto_se_traduce(client):
+    es = client.post(URL, json=cuerpo()).get_json()
+    en = client.post(URL, json=cuerpo(), headers={"Accept-Language": "en"}).get_json()
+
+    # Mismas claves y mismo veredicto; solo cambia el texto del detalle.
+    assert list(es) == list(en)
+    assert {k: v for k, v in es.items() if k != "detalle"} == {k: v for k, v in en.items() if k != "detalle"}
+    assert es["detalle"] == "Trazo correcto."
+    assert en["detalle"] == "Correct stroke."
+
+
+def test_punto_invalido_con_indice_en_ingles(client):
+    resp = client.post(URL, json=cuerpo(puntos=[[0, 0], ["a", 1]]), headers={"Accept-Language": "en"})
+
+    assert resp.get_json()["error"] == "'puntos[1]' has non-numeric coordinates"
+
+
+def test_404_en_ingles(client):
+    resp = client.get("/no/existe", headers={"Accept-Language": "en"})
+
+    assert resp.get_json() == {"error": "Resource not found", "codigo": "NO_ENCONTRADO"}

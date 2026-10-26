@@ -1,0 +1,115 @@
+# Mensajes de trazos-flask en es.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: trazos-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-25 21:50-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: es\n"
+"Language-Team: Español\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: comparador.py:244
+msgid "El carácter no tiene datos de trazo para comparar."
+msgstr ""
+
+#: comparador.py:251
+msgid "No se registró ningún trazo."
+msgstr ""
+
+#: comparador.py:294
+msgid ""
+"La forma es correcta, pero lo trazaste en sentido contrario. Revisá por "
+"dónde empieza el trazo."
+msgstr ""
+
+#: comparador.py:304
+msgid "El trazo quedó corto. Recorré el trazo completo."
+msgstr ""
+
+#: comparador.py:312
+msgid "El trazo se pasó de largo respecto del esperado."
+msgstr ""
+
+#: comparador.py:320
+msgid "Trazo correcto."
+msgstr ""
+
+#: comparador.py:327
+msgid "Trazo aceptable. Con más precisión quedaría perfecto."
+msgstr ""
+
+#: comparador.py:334
+msgid "El trazo se alejó bastante del recorrido esperado."
+msgstr ""
+
+#: errores.py:29
+msgid "Solicitud incorrecta"
+msgstr ""
+
+#: errores.py:33
+msgid "Recurso no encontrado"
+msgstr ""
+
+#: errores.py:37
+msgid "Método no permitido"
+msgstr ""
+
+#: errores.py:41 errores.py:51
+msgid "Error interno"
+msgstr ""
+
+#: rutas.py:16
+msgid "El cuerpo no es un JSON válido"
+msgstr ""
+
+#: validacion.py:32
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr ""
+
+#: validacion.py:36
+#, python-format
+msgid "Faltan campos: %(campos)s"
+msgstr ""
+
+#: validacion.py:48
+#, python-format
+msgid "'%(campo)s' debe ser una lista de puntos"
+msgstr ""
+
+#: validacion.py:50
+#, python-format
+msgid "'%(campo)s' necesita al menos 2 puntos"
+msgstr ""
+
+#: validacion.py:53
+#, python-format
+msgid "'%(campo)s' supera el máximo de %(maximo)s puntos"
+msgstr ""
+
+#: validacion.py:64
+#, python-format
+msgid "'%(campo)s[%(indice)s]' debe tener 'x' e 'y'"
+msgstr ""
+
+#: validacion.py:72
+#, python-brace-format, python-format
+msgid "'%(campo)s[%(indice)s]' debe ser [x, y] o {\"x\", \"y\"}"
+msgstr ""
+
+#: validacion.py:78
+#, python-format
+msgid "'%(campo)s[%(indice)s]' tiene coordenadas no numéricas"
+msgstr ""
+
+#: validacion.py:94
+#, python-format
+msgid "'%(campo)s' debe ser un entero positivo"
+msgstr ""
+

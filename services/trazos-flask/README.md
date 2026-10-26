@@ -50,6 +50,21 @@ como no guarda estado, no usa `DATABASE_URL`.
 pytest -v
 ```
 
+## Idioma de los mensajes
+
+Los textos para el usuario (`error`, `detalle`, `aviso`) salen en español o
+en inglés según la cabecera `Accept-Language`; sin cabecera, o con otro
+idioma, en español. Las claves, el `codigo` y el estado no cambian. Usa
+Flask-Babel como `services/flask-base` (`i18n.py`, `mensajes.py`,
+`babel.cfg` y `translations/`). Para agregar o cambiar un texto, ver
+"Traducciones" en el README de flask-base. El `Dockerfile` compila los
+`.mo`; para correrlo en local, `.venv/bin/pybabel compile -d translations`.
+
+```bash
+curl -s http://localhost:5000/no/existe -H "Accept-Language: en"
+# {"error":"Resource not found","codigo":"NO_ENCONTRADO"}
+```
+
 ## Contrato
 
 ### `POST /api/v2/trazos/validar/`
