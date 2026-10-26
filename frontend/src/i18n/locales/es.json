@@ -91,7 +91,8 @@
     "canvasLabel": "Lienzo para dibujar el trazo con el dedo o el mouse",
     "clear": "Borrar",
     "checking": "Comprobando…",
-    "reversed": "sentido invertido"
+    "reversed": "sentido invertido",
+    "unavailable": "No se pudo comprobar el trazo en este momento. Probá de nuevo en unos segundos."
   },
   "practice": {
     "title": "Practicar",
