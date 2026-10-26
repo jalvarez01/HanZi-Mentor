@@ -22,6 +22,7 @@ serializers de v1.
 | Progreso | `GET /api/v1/tutor/progreso/<uuid>/` (agente_tutor) | `GET /api/v2/progreso/<uuid>/` (flask_progreso) | Frontend y flask_sesiones (v2) | Migrado. v1 de respaldo |
 | Sesiones | `POST /api/v1/tutor/sesiones/`, `GET /api/v1/tutor/sesiones/<id>/` (agente_tutor) | `POST /api/v2/sesiones/`, `GET /api/v2/sesiones/<id>/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
 | Ejercicios | `POST /api/v1/tutor/ejercicios/<id>/responder/` (agente_tutor) | `POST /api/v2/ejercicios/<id>/responder/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
+| Evaluación | Sin ruta pública (`EvaluarEjercicioService` dentro de agente_tutor) | `POST /api/v2/evaluacion/` (flask_evaluacion) | Todavía ningún cliente | Migrado. v1 sin endpoint |
 | Ejemplos | No existe | `GET /api/v2/ejemplos/<hanzi>/` (flask_ejemplos, Tatoeba) | Todavía ningún cliente | Nuevo en v2 |
 
 Lo que sigue en Django:
