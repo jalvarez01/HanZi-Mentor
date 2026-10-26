@@ -45,13 +45,13 @@ class ErrorApi extends Error {
 /**
  * Mensaje de error en el idioma activo.
  *
- * Los servicios responden sus errores de negocio en español (p. ej. un nivel
- * no permitido). En español se muestra ese texto tal cual, como antes; en otro
- * idioma se usa un mensaje traducido según el status. El texto del servidor
- * queda siempre disponible en `error.cuerpo`.
+ * Cada petición manda el idioma del selector en Accept-Language y los
+ * servicios responden `error` ya traducido (es o en), así que se muestra tal
+ * cual. Si la respuesta no trae `error` (un proxy caído, por ejemplo), se usa
+ * un mensaje propio según el status. El cuerpo queda en `error.cuerpo`.
  */
 function mensajeDeError(status, cuerpo) {
-  if (cuerpo?.error && i18n.resolvedLanguage === 'es') return cuerpo.error;
+  if (cuerpo?.error) return cuerpo.error;
   if (status === 404) return i18n.t('api.notFound');
   if (status === 400 || status === 409) return i18n.t('api.rejected');
   if (status >= 500) return i18n.t('api.server', { status });
@@ -63,7 +63,8 @@ async function pedir(url, opciones = {}) {
 
   try {
     respuesta = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
+      // El backend elige el idioma de sus mensajes con esta cabecera.
+      headers: { 'Content-Type': 'application/json', 'Accept-Language': i18n.resolvedLanguage },
       ...opciones,
     });
   } catch {
