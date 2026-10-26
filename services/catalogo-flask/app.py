@@ -6,6 +6,7 @@ import config
 import modelos  # noqa: F401  (registra las tablas antes de iniciar_db)
 from db import db_disponible, iniciar_db, usa_db
 from errores import registrar_manejadores
+from i18n import iniciar_i18n
 from rutas import catalogo_bp
 
 
@@ -17,6 +18,8 @@ def create_app(config_extra=None):
 
     # `modelos` ya está importado arriba: iniciar_db crea sus tablas.
     iniciar_db(app)
+    # Idioma de los mensajes según Accept-Language (es por defecto).
+    iniciar_i18n(app)
     registrar_manejadores(app)
     # Igual que DRF en v1: hanzi como UTF-8 legible y claves en el orden
     # de los campos, no en orden alfabético.
