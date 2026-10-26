@@ -96,3 +96,14 @@ class LeccionGenerarContenidoTests(TestCase):
         respuesta = self.client.get(f"/api/lecciones/{leccion.id}/")
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.data["id"], leccion.id)
+
+class IdiomaDeLosMensajesTest(TestCase):
+    """T21: el 404 de una lección en español y en inglés."""
+
+    def test_leccion_inexistente(self):
+        es = self.client.get("/api/lecciones/9999/", HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.get("/api/lecciones/9999/", HTTP_ACCEPT_LANGUAGE="en")
+
+        self.assertEqual((es.status_code, en.status_code), (404, 404))
+        self.assertEqual(es.json(), {"error": "Lección no encontrada."})
+        self.assertEqual(en.json(), {"error": "Lesson not found."})

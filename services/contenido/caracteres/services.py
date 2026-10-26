@@ -6,6 +6,8 @@ llama a este servicio. El servicio busca los datos y delega la lógica
 de comparación al dominio (domain/comparador.py, vía el modelo Trazo).
 """
 
+from django.utils.translation import gettext
+
 from .domain.exceptions import CaracterNoEncontradoError, TrazoNoEncontradoError
 from .models import Caracter, Trazo
 
@@ -17,13 +19,14 @@ class ValidacionTrazoService:
         caracter = Caracter.objects.filter(hanzi=hanzi).first()
         if caracter is None:
             raise CaracterNoEncontradoError(
-                f"No existe el carácter '{hanzi}'."
+                gettext("No existe el carácter '%(hanzi)s'.") % {"hanzi": hanzi}
             )
 
         trazo = Trazo.objects.filter(caracter=caracter, secuencia=secuencia).first()
         if trazo is None:
             raise TrazoNoEncontradoError(
-                f"El carácter '{hanzi}' no tiene un trazo con secuencia {secuencia}."
+                gettext("El carácter '%(hanzi)s' no tiene un trazo con secuencia %(secuencia)s.")
+                % {"hanzi": hanzi, "secuencia": secuencia}
             )
 
         return trazo.comparar_con_trazo_usuario(puntos, ancho, alto)

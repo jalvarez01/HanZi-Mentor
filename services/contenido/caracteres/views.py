@@ -1,3 +1,4 @@
+from django.utils.translation import gettext
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -38,7 +39,7 @@ class DetalleCaracterView(APIView):
         caracter = Caracter.objects.filter(hanzi=hanzi).prefetch_related("trazos").first()
 
         if caracter is None:
-            return Response({"error": "Carácter no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": gettext("Carácter no encontrado.")}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(CaracterSerializer(caracter).data, status=status.HTTP_200_OK)
 
@@ -59,4 +60,8 @@ class ValidarTrazoView(APIView):
         except (CaracterNoEncontradoError, TrazoNoEncontradoError) as error:
             return Response({"error": str(error)}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(ResultadoComparacionSerializer(resultado).data, status=status.HTTP_200_OK)
+        datos = ResultadoComparacionSerializer(resultado).data
+        # El comparador es dominio puro y no importa Django: deja el detalle
+        # en español (marcado para makemessages) y se traduce acá.
+        datos["detalle"] = gettext(datos["detalle"]) if datos["detalle"] else datos["detalle"]
+        return Response(datos, status=status.HTTP_200_OK)

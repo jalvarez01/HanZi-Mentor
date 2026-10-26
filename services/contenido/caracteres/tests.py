@@ -65,3 +65,58 @@ class ValidarTrazoAPITest(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 400)
+
+
+class IdiomaDeLosMensajesTest(TestCase):
+    """T21: Accept-Language elige el idioma del mensaje; las claves, el status
+    y el resto del JSON no cambian. Sin cabecera, en español."""
+
+    def setUp(self):
+        self.client = APIClient()
+        caracter = Caracter.objects.create(hanzi="人", pinyin="rén")
+        Trazo.objects.create(caracter=caracter, secuencia=1, path_svg="", mediana=MEDIANA)
+
+    def _validar(self, idioma, secuencia=1, puntos=None):
+        puntos = puntos if puntos is not None else trazo_usuario(MEDIANA, semilla=7)
+        return self.client.post(
+            f"/api/caracteres/人/trazos/{secuencia}/validar/",
+            {"puntos": puntos, "ancho": ANCHO, "alto": ALTO},
+            format="json", HTTP_ACCEPT_LANGUAGE=idioma,
+        )
+
+    def test_caracter_inexistente_en_espanol_y_en_ingles(self):
+        es = self.client.get("/api/caracteres/龘/", HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.get("/api/caracteres/龘/", HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9")
+
+        self.assertEqual((es.status_code, en.status_code), (404, 404))
+        self.assertEqual(es.json(), {"error": "Carácter no encontrado."})
+        self.assertEqual(en.json(), {"error": "Character not found."})
+
+    def test_sin_cabecera_o_con_otro_idioma_responde_en_espanol(self):
+        sin = self.client.get("/api/caracteres/龘/")
+        frances = self.client.get("/api/caracteres/龘/", HTTP_ACCEPT_LANGUAGE="fr")
+
+        self.assertEqual(sin.json()["error"], "Carácter no encontrado.")
+        self.assertEqual(frances.json()["error"], "Carácter no encontrado.")
+
+    def test_trazo_inexistente_con_parametros(self):
+        es = self._validar("es", secuencia=9)
+        en = self._validar("en", secuencia=9)
+
+        self.assertEqual(es.json()["error"], "El carácter '人' no tiene un trazo con secuencia 9.")
+        self.assertEqual(en.json()["error"], "The character '人' has no stroke with sequence 9.")
+
+    def test_el_detalle_del_veredicto_se_traduce(self):
+        es = self._validar("es").json()
+        en = self._validar("en").json()
+
+        self.assertEqual(list(es), list(en))
+        self.assertEqual(es["motivo"], en["motivo"])
+        self.assertIn(es["detalle"], ("Trazo correcto.", "Trazo aceptable. Con más precisión quedaría perfecto."))
+        self.assertIn(en["detalle"], ("Correct stroke.", "Acceptable stroke. With more precision it would be perfect."))
+
+    def test_validacion_del_serializer_en_ingles(self):
+        respuesta = self._validar("en", puntos=[[0, 0], "x"])
+
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertIn("The point must be [x, y] or {'x': x, 'y': y}.", str(respuesta.json()))
