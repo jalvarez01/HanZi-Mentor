@@ -2,13 +2,17 @@
  * Cliente HTTP de HanZi Mentor.
  *
  * Todo pasa por el gateway (Nginx), que enruta según el prefijo:
- *   - /api/v1/tutor/*      -> agente-tutor: sesiones, respuestas, progreso
+ *   - /api/v2/sesiones/*   -> sesiones-flask: sesiones adaptativas
+ *   - /api/v2/ejercicios/* -> sesiones-flask: respuestas
+ *   - /api/v2/progreso/*   -> progreso-flask: progreso y repaso
  *   - /api/v2/caracteres/* -> catalogo-flask: caracteres y sus trazos
  *   - /api/v2/lecciones/*  -> catalogo-flask: lecciones
  *   - /api/v2/trazos/*     -> trazos-flask: validación de trazos
  *
- * v2 de caracteres y lecciones responde los mismos campos que v1
- * (contenido); /api/v1/ sigue en el gateway solo como respaldo.
+ * v2 responde los mismos campos que v1 (contenido y agente-tutor);
+ * /api/v1/ sigue en el gateway solo como respaldo. La única diferencia es
+ * que responder un ejercicio puede traer `aviso`, con `tasa_acierto` y
+ * `proximo_repaso` en null, si el servicio de progreso no respondió.
  *
  * Cada base sale de una variable VITE_* y por defecto es vacía (mismo
  * origen): en desarrollo lo resuelve el proxy de Vite hacia Nginx y en
@@ -19,11 +23,13 @@
 import i18n from '../i18n';
 
 const CATALOGO_URL = import.meta.env.VITE_CATALOGO_URL || '';
-const TUTOR_URL = import.meta.env.VITE_TUTOR_URL || '';
+const SESIONES_URL = import.meta.env.VITE_SESIONES_URL || '';
+const PROGRESO_URL = import.meta.env.VITE_PROGRESO_URL || '';
 const TRAZOS_URL = import.meta.env.VITE_TRAZOS_URL || '';
 
 const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
-const TUTOR_API = `${TUTOR_URL}/api/v1/tutor`;
+const SESIONES_API = `${SESIONES_URL}/api/v2`;
+const PROGRESO_API = `${PROGRESO_URL}/api/v2`;
 const TRAZOS_API = `${TRAZOS_URL}/api/v2/trazos`;
 
 class ErrorApi extends Error {
@@ -83,7 +89,7 @@ async function pedir(url, opciones = {}) {
 // ---------------------------------------------------------------- sesiones
 
 export function crearSesion({ usuarioId, nivelHsk, duracionMin = 10 }) {
-  return pedir(`${TUTOR_API}/sesiones/`, {
+  return pedir(`${SESIONES_API}/sesiones/`, {
     method: 'POST',
     body: JSON.stringify({
       usuario_id: usuarioId,
@@ -94,11 +100,11 @@ export function crearSesion({ usuarioId, nivelHsk, duracionMin = 10 }) {
 }
 
 export function obtenerSesion(sesionId) {
-  return pedir(`${TUTOR_API}/sesiones/${sesionId}/`);
+  return pedir(`${SESIONES_API}/sesiones/${sesionId}/`);
 }
 
 export function responderEjercicio(ejercicioId, acerto) {
-  return pedir(`${TUTOR_API}/ejercicios/${ejercicioId}/responder/`, {
+  return pedir(`${SESIONES_API}/ejercicios/${ejercicioId}/responder/`, {
     method: 'POST',
     body: JSON.stringify({ acerto }),
   });
@@ -107,7 +113,7 @@ export function responderEjercicio(ejercicioId, acerto) {
 // ---------------------------------------------------------------- progreso
 
 export function obtenerProgreso(usuarioId) {
-  return pedir(`${TUTOR_API}/progreso/${usuarioId}/`);
+  return pedir(`${PROGRESO_API}/progreso/${usuarioId}/`);
 }
 
 // --------------------------------------------------------------- contenido
