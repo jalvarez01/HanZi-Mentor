@@ -94,6 +94,15 @@
     "reversed": "reversed direction",
     "unavailable": "The stroke couldn't be checked right now. Try again in a few seconds."
   },
+  "examples": {
+    "kicker": "Examples",
+    "title": "Sentences with",
+    "loading": "Looking for sentences…",
+    "empty": "There are no example sentences with this character yet.",
+    "unavailable": "The sentences could not be loaded right now.",
+    "retry": "Try again",
+    "noTranslation": "no translation"
+  },
   "practice": {
     "title": "Practice",
     "modeLabel": "Practice mode",
