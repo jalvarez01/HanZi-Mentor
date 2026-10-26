@@ -129,3 +129,46 @@ def test_config_desde_entorno(monkeypatch):
     assert app.config["PORT"] == 5099
     assert app.config["FLASK_DEBUG"] is True
     assert app.config["DATABASE_URL"] is None
+
+
+# ---------- idioma de los mensajes (T22) ----------
+
+
+@pytest.mark.parametrize("cabecera, mensaje", [
+    (None, "Recurso no encontrado"),
+    ("es", "Recurso no encontrado"),
+    ("es-CO,es;q=0.9", "Recurso no encontrado"),
+    ("en", "Resource not found"),
+    ("en-US,en;q=0.9", "Resource not found"),
+    ("fr", "Recurso no encontrado"),
+])
+def test_404_en_el_idioma_de_accept_language(client, cabecera, mensaje):
+    cabeceras = {"Accept-Language": cabecera} if cabecera else {}
+
+    resp = client.get("/no/existe", headers=cabeceras)
+
+    # Solo cambia el texto: el estado y el código son los mismos.
+    assert resp.status_code == 404
+    assert resp.get_json() == {"error": mensaje, "codigo": "NO_ENCONTRADO"}
+
+
+def test_405_y_500_en_ingles(client):
+    en = {"Accept-Language": "en"}
+
+    assert client.post("/health", headers=en).get_json()["error"] == "Method not allowed"
+    assert client.get("/falla", headers=en).get_json()["error"] == "Internal error"
+
+
+def test_error_dominio_con_parametros():
+    app = crear()
+
+    @app.get("/limite")
+    def limite():
+        raise ErrorDominio("El límite debe ser como máximo %(maximo)s", "LIMITE_INVALIDO",
+                           params={"maximo": 50})
+
+    resp = app.test_client().get("/limite", headers={"Accept-Language": "en"})
+
+    # Un texto que no está en el catálogo sale en español, con sus datos.
+    assert resp.get_json() == {"error": "El límite debe ser como máximo 50", "codigo": "LIMITE_INVALIDO"}
+    assert str(ErrorDominio("Hasta %(n)s", params={"n": 3})) == "Hasta 3"

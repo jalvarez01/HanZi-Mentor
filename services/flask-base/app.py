@@ -5,6 +5,7 @@ from flask import Flask, current_app, jsonify
 import config
 from db import db_disponible, iniciar_db, usa_db
 from errores import registrar_manejadores
+from i18n import iniciar_i18n
 
 
 def create_app(config_extra=None):
@@ -16,6 +17,8 @@ def create_app(config_extra=None):
     # Los modelos deben estar importados antes de iniciar_db para que se
     # creen sus tablas. Ejemplo en un servicio nuevo: `import modelos`.
     iniciar_db(app)
+    # Idioma de los mensajes según Accept-Language (es por defecto).
+    iniciar_i18n(app)
     registrar_manejadores(app)
 
     # Las rutas del servicio se registran acá como blueprints:
