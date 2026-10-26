@@ -53,11 +53,19 @@ SIN_TRANSCRIPCIONES = {
 }
 
 
-class TatoebaFalsa:
-    """Reemplaza la llamada HTTP: guarda las URL pedidas y devuelve lo indicado."""
+VACIA = {"data": [], "paging": {"total": 0}}
 
-    def __init__(self, respuesta=None, error=None):
-        self.respuesta = respuesta if respuesta is not None else {"data": [], "paging": {}}
+
+class TatoebaFalsa:
+    """Reemplaza la llamada HTTP: guarda las URL pedidas y devuelve lo indicado.
+
+    `respuesta` se devuelve en todas las llamadas; `respuestas`, una por
+    llamada y en orden (la primera búsqueda pide solo traducciones directas).
+    """
+
+    def __init__(self, respuesta=None, error=None, respuestas=None):
+        self.respuestas = list(respuestas or [])
+        self.respuesta = respuesta if respuesta is not None else VACIA
         self.error = error
         self.urls = []
 
@@ -65,7 +73,7 @@ class TatoebaFalsa:
         self.urls.append((url, timeout))
         if self.error:
             raise self.error
-        return self.respuesta
+        return self.respuestas.pop(0) if self.respuestas else self.respuesta
 
 
 def adaptador(**kwargs):
@@ -79,8 +87,8 @@ def parametros(url):
 
 # --- Petición a Tatoeba ---
 
-def test_pide_oraciones_en_chino_con_traduccion_al_idioma():
-    tatoeba, falsa = adaptador()
+def test_pide_oraciones_en_chino_con_traduccion_directa_al_idioma():
+    tatoeba, falsa = adaptador(respuesta={"data": [SIMPLIFICADA]})
 
     tatoeba.obtener("学", "es", 3)
 
@@ -90,12 +98,40 @@ def test_pide_oraciones_en_chino_con_traduccion_al_idioma():
         "lang": "cmn",
         "q": '"学"',
         "trans:lang": "spa",
+        "trans:is_direct": "yes",
         "sort": "relevance",
         # El doble del límite, para compensar las frases repetidas.
         "limit": "6",
         "include": "transcriptions",
     }
     assert timeout == 2.5
+
+
+def test_con_traducciones_directas_no_hace_una_segunda_busqueda():
+    tatoeba, falsa = adaptador(respuesta={"data": [SIMPLIFICADA]})
+
+    tatoeba.obtener("学", "es", 3)
+
+    assert len(falsa.urls) == 1
+
+
+def test_sin_traducciones_directas_acepta_indirectas():
+    tatoeba, falsa = adaptador(respuestas=[VACIA, {"data": [TRADICIONAL]}])
+
+    ejemplos = tatoeba.obtener("学", "es", 3)
+
+    assert [e.texto for e in ejemplos] == ["微笑！学习！"]
+    assert len(falsa.urls) == 2
+    assert "trans:is_direct" not in parametros(falsa.urls[1][0])
+
+
+def test_si_la_primera_busqueda_falla_no_reintenta():
+    tatoeba, falsa = adaptador(error=ProveedorNoDisponible("timeout"))
+
+    with pytest.raises(ProveedorNoDisponible):
+        tatoeba.obtener("学", "es", 3)
+
+    assert len(falsa.urls) == 1
 
 
 def test_ingles_se_pide_como_eng():

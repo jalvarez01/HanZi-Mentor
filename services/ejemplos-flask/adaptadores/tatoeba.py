@@ -15,6 +15,7 @@ import urllib.request
 
 from dominio.ejemplo import Ejemplo
 from dominio.puertos import ProveedorEjemplos, ProveedorNoDisponible
+from mensajes import N_
 
 # Idioma del dominio -> código ISO 639-3 que usa Tatoeba.
 _IDIOMAS = {"es": "spa", "en": "eng"}
@@ -38,7 +39,8 @@ def obtener_json(url, timeout):
 
 class AdaptadorTatoeba(ProveedorEjemplos):
     nombre = "tatoeba"
-    atribucion = "Oraciones de Tatoeba.org (CC BY 2.0 FR)"
+    # Texto para personas: se traduce al responder (ver rutas.py).
+    atribucion = N_("Oraciones de Tatoeba.org (CC BY 2.0 FR)")
 
     def __init__(self, url_base, timeout, obtener=obtener_json):
         self._url_base = url_base.rstrip("/")
@@ -47,9 +49,20 @@ class AdaptadorTatoeba(ProveedorEjemplos):
         self._obtener = obtener
 
     def obtener(self, hanzi, idioma, limite):
+        # Primero solo oraciones con traducción directa. Las indirectas pasan
+        # por un tercer idioma y pierden sentido en cada salto (等一下, "espera
+        # un momento", llegaba como "Err..."). Si no hay ninguna directa, se
+        # aceptan indirectas para que el carácter no se quede sin ejemplos.
+        ejemplos = self._buscar(hanzi, idioma, limite, solo_directas=True)
+        if not ejemplos:
+            ejemplos = self._buscar(hanzi, idioma, limite, solo_directas=False)
+        return ejemplos
+
+    def _buscar(self, hanzi, idioma, limite, solo_directas):
         # Se pide el doble porque Tatoeba repite frases (la misma en
         # tradicional y en simplificado) y las repetidas se descartan.
-        datos = self._obtener(self._url(hanzi, idioma, limite * 2), self._timeout)
+        url = self._url(hanzi, idioma, limite * 2, solo_directas)
+        datos = self._obtener(url, self._timeout)
         try:
             ejemplos = [self._a_ejemplo(oracion, _IDIOMAS[idioma]) for oracion in datos["data"]]
         except (KeyError, TypeError, AttributeError) as error:
@@ -60,7 +73,7 @@ class AdaptadorTatoeba(ProveedorEjemplos):
             unicos.setdefault(ejemplo.texto, ejemplo)
         return list(unicos.values())[:limite]
 
-    def _url(self, hanzi, idioma, limite):
+    def _url(self, hanzi, idioma, limite, solo_directas=True):
         parametros = {
             "lang": "cmn",
             # Entre comillas: frase exacta en la sintaxis de búsqueda de Tatoeba.
@@ -71,6 +84,8 @@ class AdaptadorTatoeba(ProveedorEjemplos):
             "limit": limite,
             "include": "transcriptions",
         }
+        if solo_directas:
+            parametros["trans:is_direct"] = "yes"
         return f"{self._url_base}/v1/sentences?{urllib.parse.urlencode(parametros)}"
 
     @staticmethod
