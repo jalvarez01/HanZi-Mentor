@@ -10,6 +10,8 @@
  *   - /api/v2/evaluacion/* -> evaluacion-flask: decide si una respuesta es
  *                             correcta (el trazo lo compara trazos-flask, que
  *                             queda como servicio interno)
+ *   - /api/v2/ejemplos/*   -> ejemplos-flask: oraciones de ejemplo de Tatoeba
+ *                             (API de terceros detrás de un Adapter)
  *
  * v2 responde los mismos campos que v1 (contenido y agente-tutor);
  * /api/v1/ sigue en el gateway solo como respaldo. La única diferencia es
@@ -28,11 +30,13 @@ const CATALOGO_URL = import.meta.env.VITE_CATALOGO_URL || '';
 const SESIONES_URL = import.meta.env.VITE_SESIONES_URL || '';
 const PROGRESO_URL = import.meta.env.VITE_PROGRESO_URL || '';
 const EVALUACION_URL = import.meta.env.VITE_EVALUACION_URL || '';
+const EJEMPLOS_URL = import.meta.env.VITE_EJEMPLOS_URL || '';
 
 const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
 const SESIONES_API = `${SESIONES_URL}/api/v2`;
 const PROGRESO_API = `${PROGRESO_URL}/api/v2`;
 const EVALUACION_API = `${EVALUACION_URL}/api/v2`;
+const EJEMPLOS_API = `${EJEMPLOS_URL}/api/v2`;
 
 class ErrorApi extends Error {
   constructor(mensaje, status, cuerpo) {
@@ -155,6 +159,19 @@ export async function evaluar({ tipo, caracter, respuesta, dificultad }) {
     }
     throw e;
   }
+}
+
+// ---------------------------------------------------------------- ejemplos
+
+/**
+ * Oraciones de ejemplo que usan `hanzi`, con pinyin y traducción al idioma
+ * activo. Vienen de Tatoeba a través de ejemplos-flask; `atribucion` es el
+ * crédito que pide su licencia. Un 503 PROVEEDOR_NO_DISPONIBLE quiere decir
+ * que Tatoeba no respondió, no que el carácter no tenga ejemplos.
+ */
+export function obtenerEjemplos(hanzi, { limite = 3 } = {}) {
+  const params = new URLSearchParams({ lang: i18n.resolvedLanguage || 'es', limite });
+  return pedir(`${EJEMPLOS_API}/ejemplos/${encodeURIComponent(hanzi)}/?${params}`);
 }
 
 // ---------------------------------------------------------------- lecciones
