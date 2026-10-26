@@ -1,0 +1,59 @@
+# Mensajes de progreso-flask en es.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: progreso-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-25 21:52-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: es\n"
+"Language-Team: Español\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:44
+msgid "Solicitud incorrecta"
+msgstr ""
+
+#: errores.py:48
+msgid "Recurso no encontrado"
+msgstr ""
+
+#: errores.py:52
+msgid "Método no permitido"
+msgstr ""
+
+#: errores.py:56 errores.py:66
+msgid "Error interno"
+msgstr ""
+
+#: validacion.py:28
+msgid "El usuario_id debe ser un UUID válido"
+msgstr ""
+
+#: validacion.py:35
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr ""
+
+#: validacion.py:39
+msgid "El campo 'caracter' es obligatorio y debe ser texto"
+msgstr ""
+
+#: validacion.py:43
+#, python-format
+msgid "El campo 'caracter' admite hasta %(maximo)s caracteres"
+msgstr ""
+
+#: validacion.py:48
+msgid "El campo 'acerto' es obligatorio y debe ser true o false"
+msgstr ""
+
+#: validacion.py:60
+#, python-format
+msgid "El límite debe ser un entero entre 1 y %(maximo)s"
+msgstr ""
+

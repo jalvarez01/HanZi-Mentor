@@ -3,6 +3,7 @@
 import pytest
 
 from app import create_app
+from i18n import compilar_traducciones
 
 USUARIO = "12345678-1234-5678-1234-567812345678"
 
@@ -37,3 +38,9 @@ def responder(client):
         return resp.get_json()
 
     return enviar
+
+
+def pytest_configure(config):
+    # Las pruebas de idioma necesitan los .mo. No se suben al repo: en Docker
+    # los genera `pybabel compile` y acá se compilan antes de empezar.
+    compilar_traducciones()
