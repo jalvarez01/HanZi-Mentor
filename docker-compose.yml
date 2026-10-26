@@ -6,10 +6,13 @@
 #   /api/v2/trazos/*  -> flask_trazos  (Flask, funcionalidad estrangulada)
 #   /api/v2/caracteres/*, /api/v2/lecciones/* -> flask_catalogo (Flask)
 #   /api/v2/ejemplos/* -> flask_ejemplos (Flask, API de terceros)
+#   /api/v2/progreso/* -> flask_progreso (Flask, progreso y repaso)
+#   /api/v2/sesiones/*, /api/v2/ejercicios/* -> flask_sesiones (Flask)
 #   /*                -> frontend      (PWA estática)
 #
 # Bases de datos: un solo PostgreSQL (`db`) con una base por servicio:
-# `contenido` (Django) y `db_catalogo` (flask_catalogo, la crea su arranque).
+# `contenido` (Django), `db_catalogo`, `db_progreso` y `db_sesiones` (las
+# bases de los servicios Flask, que crea el arranque de cada uno).
 #
 # Uso, desde la raíz del repo:
 #   docker compose up -d --build
@@ -106,6 +109,59 @@ services:
       retries: 5
     restart: unless-stopped
 
+  flask_progreso:
+    build: ./services/progreso-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_progreso
+      GUNICORN_WORKERS: ${PROGRESO_WORKERS:-2}
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      # No carga datos al arrancar: solo crea la base y las tablas.
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  flask_sesiones:
+    build: ./services/sesiones-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_sesiones
+      GUNICORN_WORKERS: ${SESIONES_WORKERS:-2}
+      # Fijos a propósito: nombres de la red de Docker, URL base sin /api/v2.
+      CATALOGO_URL: http://flask_catalogo:5000
+      PROGRESO_URL: http://flask_progreso:5000
+      HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
+      TUTOR_ENGINE: MOCK
+    expose:
+      - "5000"
+    # Solo ordenan el arranque: si catálogo o progreso se caen después,
+    # sesiones sigue en modo degradado (lista local, progreso inicial y
+    # `aviso` en las respuestas).
+    depends_on:
+      db:
+        condition: service_healthy
+      flask_catalogo:
+        condition: service_healthy
+      flask_progreso:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
   agente_tutor:
     build: ./services/agente-tutor
     environment:
@@ -171,6 +227,10 @@ services:
       flask_catalogo:
         condition: service_started
       flask_ejemplos:
+        condition: service_started
+      flask_progreso:
+        condition: service_started
+      flask_sesiones:
         condition: service_started
       agente_tutor:
         condition: service_started
