@@ -15,6 +15,9 @@ Servicios que deben cumplirlo:
 | `progreso-flask`   | T11   | Sí                   | Cumple        |
 | `sesiones-flask`   | T12   | Sí                   | Cumple        |
 
+Qué módulos ya están en v2, quién los consume y cómo volver a v1 está en
+[`strangler-v1-v2.md`](strangler-v1-v2.md).
+
 ## Checklist
 
 Un servicio cumple el estándar cuando se puede marcar todo esto:
@@ -169,6 +172,16 @@ En `docker-compose.yml`, cada servicio:
   `condition: service_healthy`;
 - tiene `restart: unless-stopped`.
 
-En `infra/nginx/nginx.conf`, cada servicio tiene su `upstream` y un
-`location /api/v2/<modulo>/` con `proxy_pass` sin URI, para que Flask reciba
-la ruta completa.
+En `infra/nginx/nginx.conf`, cada servicio tiene un
+`location /api/v2/<modulo>/` que guarda el destino en una variable y hace
+`proxy_pass` sin URI, para que Flask reciba la ruta completa y Nginx
+resuelva el nombre en cada petición:
+
+```nginx
+        location /api/v2/<modulo>/ {
+            set $destino http://flask_<modulo>:5000;
+            proxy_pass $destino;
+        }
+```
+
+En el `depends_on` de `nginx` el servicio va con `condition: service_started`.

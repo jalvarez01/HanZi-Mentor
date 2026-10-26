@@ -132,7 +132,9 @@
     "nextReview": "Próximo repaso:",
     "accuracy": "Tasa de acierto:",
     "progressLabel": "Avance del ejercicio",
-    "counter": "{{actual}} de {{total}}"
+    "counter": "{{actual}} de {{total}}",
+    "progressNotSaved": "Tu respuesta quedó guardada, pero no se pudo actualizar tu progreso en este momento.",
+    "notAvailable": "no disponible"
   },
   "progress": {
     "title": "Progreso",

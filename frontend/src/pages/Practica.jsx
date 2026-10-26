@@ -15,7 +15,7 @@ export default function Practica() {
   const { t } = useTranslation();
   const formato = useFormato();
 
-  const [modo, setModo] = useState('sesion'); // 'sesion' (agente-tutor) | 'leccion' (contenido)
+  const [modo, setModo] = useState('sesion'); // 'sesion' (sesiones-flask) | 'leccion' (catalogo-flask)
 
   const [sesion, setSesion] = useState(null);
   const [indice, setIndice] = useState(0);
@@ -84,6 +84,9 @@ export default function Practica() {
     setUltimoResultado(null);
     setIndice((i) => i + 1);
   }
+
+  // Sin progreso (respuesta con `aviso`) la tasa llega en null: no se pinta como 0 %.
+  const tasaAcierto = (tasa) => (tasa == null ? t('practice.notAvailable') : formato.porcentaje(tasa));
 
   const tipoEjercicio = (tipo) =>
     tipo === 'trazo' ? t('practice.typeStrokes') : t('practice.typeMeaning');
@@ -232,10 +235,14 @@ export default function Practica() {
             {t('practice.sessionDoneText', { count: correctas, nivel: sesion.nivel_hsk })}
           </p>
 
+          {ultimoResultado?.aviso && (
+            <p className="hm-status hm-status--empty" role="status">{t('practice.progressNotSaved')}</p>
+          )}
+
           {ultimoResultado && (
             <p className="practica-dato">
               {t('practice.currentAccuracy')}{' '}
-              <strong>{formato.porcentaje(ultimoResultado.tasa_acierto)}</strong>
+              <strong>{tasaAcierto(ultimoResultado.tasa_acierto)}</strong>
             </p>
           )}
 
@@ -302,13 +309,16 @@ export default function Practica() {
             <p className={ultimoResultado.acerto ? 'practica-ok' : 'practica-fallo'}>
               {ultimoResultado.acerto ? t('practice.feedbackCorrect') : t('practice.feedbackFailed')}
             </p>
+            {ultimoResultado.aviso && (
+              <p className="hm-status hm-status--empty">{t('practice.progressNotSaved')}</p>
+            )}
             <p className="practica-dato">
               {t('practice.nextReview')}{' '}
-              <strong>{formato.relativo(ultimoResultado.proximo_repaso) ?? '—'}</strong>
+              <strong>{formato.relativo(ultimoResultado.proximo_repaso) ?? t('practice.notAvailable')}</strong>
             </p>
             <p className="practica-dato">
               {t('practice.accuracy')}{' '}
-              <strong>{formato.porcentaje(ultimoResultado.tasa_acierto)}</strong>
+              <strong>{tasaAcierto(ultimoResultado.tasa_acierto)}</strong>
             </p>
 
             <button type="button" className="hm-btn hm-btn--block practica-siguiente" onClick={siguiente}>

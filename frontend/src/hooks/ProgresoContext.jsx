@@ -8,7 +8,7 @@ import { useUsuario } from './useUsuario';
 const INICIAL = { datos: null, cargando: true, error: null };
 
 /**
- * Estado de progreso compartido (agente-tutor).
+ * Estado de progreso compartido (progreso-flask).
  *
  * - Una sola petición por navegación, que comparten el TopBar y la página.
  * - Al cambiar de ruta se refresca en segundo plano: los datos anteriores se
