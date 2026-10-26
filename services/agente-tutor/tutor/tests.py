@@ -593,3 +593,67 @@ class EvaluarEjercicioServiceTest(TestCase):
 
         self.assertEqual(catalogo._base_url, CATALOGO)
         self.assertEqual(catalogo._contenido_url, CONTENIDO)
+
+
+# ---------------------------------------------------------------------------
+# Idioma de los mensajes (T21)
+# ---------------------------------------------------------------------------
+
+
+class IdiomaDeLosMensajesTest(APITestCase):
+    """Accept-Language elige el idioma del mensaje; las claves y el status no
+    cambian. Sin cabecera, o con un idioma que no está, en español."""
+
+    def setUp(self):
+        sesion = SesionEstudio.objects.create(
+            usuario_id=uuid.uuid4(), nivel_hsk=2, dificultad=3, estado="activa"
+        )
+        self.ejercicio = Ejercicio.objects.create(
+            sesion=sesion, caracter="学", tipo="trazo", dificultad=3
+        )
+        self.url = reverse("responder-ejercicio", kwargs={"ejercicio_id": self.ejercicio.pk})
+
+    def test_sesion_inexistente_en_espanol_y_en_ingles(self):
+        url = reverse("detalle-sesion", kwargs={"sesion_id": 9999})
+
+        es = self.client.get(url, HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.get(url, HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9")
+        fr = self.client.get(url, HTTP_ACCEPT_LANGUAGE="fr")
+
+        self.assertEqual({es.status_code, en.status_code, fr.status_code}, {404})
+        self.assertEqual(es.json(), {"error": "Sesión no encontrada."})
+        self.assertEqual(en.json(), {"error": "Session not found."})
+        self.assertEqual(fr.json(), {"error": "Sesión no encontrada."})
+
+    def test_ejercicio_ya_respondido_con_parametro(self):
+        self.client.post(self.url, {"acerto": True}, format="json")
+
+        es = self.client.post(self.url, {"acerto": True}, format="json", HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.post(self.url, {"acerto": True}, format="json", HTTP_ACCEPT_LANGUAGE="en")
+
+        self.assertEqual((es.status_code, en.status_code), (409, 409))
+        self.assertEqual(es.json()["error"], f"El ejercicio {self.ejercicio.pk} ya fue respondido.")
+        self.assertEqual(en.json()["error"], f"Exercise {self.ejercicio.pk} has already been answered.")
+
+    def test_mensajes_de_drf_tambien_siguen_el_idioma(self):
+        es = self.client.post(self.url, {}, format="json", HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.post(self.url, {}, format="json", HTTP_ACCEPT_LANGUAGE="en")
+
+        self.assertEqual(list(es.json()), ["acerto"])
+        self.assertEqual(list(en.json()), ["acerto"])
+        self.assertEqual(en.json()["acerto"], ["This field is required."])
+        self.assertNotEqual(es.json()["acerto"], en.json()["acerto"])
+
+    def test_reglas_del_builder_en_ingles(self):
+        from django.utils import translation
+
+        builder = (
+            SesionEstudioBuilder()
+            .para_usuario(uuid.uuid4(), nivel_max_desbloqueado=1)
+            .en_nivel(3)
+        )
+        with translation.override("en"):
+            with self.assertRaises(NivelNoPermitidoError) as error:
+                builder.con_dificultad(2).build()
+
+        self.assertEqual(str(error.exception), "HSK3 is not unlocked yet (current maximum: HSK1).")
