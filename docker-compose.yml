@@ -15,6 +15,9 @@
 # `contenido` (Django), `db_catalogo`, `db_progreso` y `db_sesiones` (las
 # bases de los servicios Flask, que crea el arranque de cada uno).
 #
+# Tareas asíncronas (T18): `redis` es el broker de Celery y guarda los
+# resultados; `worker` las ejecuta con la misma imagen que flask_reportes.
+#
 # Uso, desde la raíz del repo:
 #   docker compose up -d --build
 #   docker compose ps
@@ -185,6 +188,71 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # Sin persistencia: la cola y los resultados se pueden perder al
+    # reiniciar. Con volatile-lru solo se expulsan claves con caducidad
+    # (resultados y notificaciones); la cola no caduca y nunca se expulsa.
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - volatile-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  flask_reportes:
+    build: ./services/reportes-flask
+    # Nombre fijo: worker reutiliza esta imagen.
+    image: hanzi-mentor-reportes:local
+    environment:
+      # Fijo a propósito: nombre de la red de Docker.
+      REDIS_URL: redis://redis:6379/0
+      GUNICORN_WORKERS: ${REPORTES_WORKERS:-2}
+    expose:
+      - "5000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # /health responde 503 si Redis no contesta.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    build: ./services/reportes-flask
+    image: hanzi-mentor-reportes:local
+    # Un solo proceso hijo: alcanza para estas tareas y cuida la RAM de la
+    # t3.medium.
+    command: ["celery", "-A", "tareas", "worker", "--loglevel=info", "--concurrency=1"]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Reemplaza el de la imagen (/health no existe en el worker). Pregunta
+      # solo a su propio nodo: celery@<hostname del contenedor>.
+      test: ["CMD-SHELL", "celery -A tareas inspect ping -d celery@$$HOSTNAME --timeout 5"]
+      interval: 30s
+      timeout: 15s
+      start_period: 20s
+      retries: 3
     restart: unless-stopped
 
   agente_tutor:
