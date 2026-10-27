@@ -109,8 +109,9 @@ servicio tiene su README con el contrato completo de sus endpoints.
 - El puerto 80 libre. **Solo nginx publica un puerto en el host**; los demás
   servicios y la base quedan dentro de la red de Docker.
 
-Para correr los tests sin Docker hace falta además Python 3.12 (Django 4.2
-no soporta versiones más nuevas). Para desarrollar el frontend fuera de
+Para correr los tests sin Docker hace falta además Python. Los comandos de
+abajo usan 3.12, la versión más nueva que Django 4.2 soporta oficialmente
+(las imágenes usan 3.11). Para desarrollar el frontend fuera de
 Docker, Node.js 22, la misma versión de la imagen del frontend.
 
 ---
