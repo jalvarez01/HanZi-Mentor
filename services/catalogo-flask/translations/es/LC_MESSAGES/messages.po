@@ -67,3 +67,7 @@ msgstr ""
 msgid "El campo '%(campo)s' debe ser un UUID válido"
 msgstr ""
 
+#: validacion.py:69
+#, python-format
+msgid "Idioma no soportado: use %(idiomas)s"
+msgstr ""

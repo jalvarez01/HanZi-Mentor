@@ -5,6 +5,7 @@
 #   /api/v1/*         -> contenido     (Django, rutas antiguas)
 #   /api/v2/trazos/*  -> flask_trazos  (Flask, funcionalidad estrangulada)
 #   /api/v2/caracteres/*, /api/v2/lecciones/* -> flask_catalogo (Flask)
+#   /api/v2/publico/* -> flask_catalogo (resumen para el equipo aliado)
 #   /api/v2/ejemplos/* -> flask_ejemplos (Flask, API de terceros)
 #   /api/v2/progreso/* -> flask_progreso (Flask, progreso y repaso)
 #   /api/v2/sesiones/*, /api/v2/ejercicios/* -> flask_sesiones (Flask)
