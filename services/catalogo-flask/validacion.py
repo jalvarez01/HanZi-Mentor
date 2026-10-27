@@ -55,6 +55,23 @@ def validar_consulta_caracteres(argumentos):
     return nivel, excluir, limite
 
 
+def validar_consulta_resumen(argumentos):
+    """Devuelve el `nivel` (1 a 6, o None) de GET /api/v2/publico/resumen/."""
+    texto_nivel = argumentos.get("nivel", "")
+    if not texto_nivel:
+        return None
+
+    nivel = _entero_de_texto(texto_nivel)
+    if nivel is None or not NIVEL_MINIMO <= nivel <= NIVEL_MAXIMO:
+        raise _invalida(
+            N_("El campo '%(campo)s' debe ser un entero entre %(minimo)s y %(maximo)s"),
+            campo="nivel",
+            minimo=NIVEL_MINIMO,
+            maximo=NIVEL_MAXIMO,
+        )
+    return nivel
+
+
 def _entero_de_json(valor):
     """Como IntegerField de DRF: acepta 3 y "3", no True ni 3.5."""
     if isinstance(valor, bool):

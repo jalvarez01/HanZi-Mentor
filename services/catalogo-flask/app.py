@@ -8,6 +8,7 @@ from db import db_disponible, iniciar_db, usa_db
 from errores import registrar_manejadores
 from i18n import iniciar_i18n
 from rutas import catalogo_bp
+from rutas_publico import publico_bp
 
 
 def create_app(config_extra=None):
@@ -27,6 +28,8 @@ def create_app(config_extra=None):
     app.json.sort_keys = False
 
     app.register_blueprint(catalogo_bp)
+    # Resumen para el equipo aliado (T14), con CORS abierto.
+    app.register_blueprint(publico_bp)
 
     app.add_url_rule("/health", view_func=health, methods=["GET"])
     return app
