@@ -207,13 +207,19 @@ no clasificados. El tipo de cada ejercicio es aleatorio.
 
 Misma forma que la respuesta de `generar`.
 
-### `GET /api/v2/publico/resumen/?nivel=`
+### `GET /api/v2/publico/resumen/?lang=&nivel=`
 
 Servicio para el equipo aliado (T14): totales del catálogo y un carácter del
 día. Va en un blueprint aparte (`rutas_publico.py`) y responde con
-`Access-Control-Allow-Origin: *`, también en los errores, para que el aliado
-pueda consumirlo desde un navegador. Es de solo lectura y no usa credenciales.
+`Access-Control-Allow-Origin: *`, también en sus errores (incluidos 404 y 405
+bajo `/api/v2/publico/`), para que el aliado pueda consumirlo desde un
+navegador. Es de solo lectura y no usa credenciales.
 
+- `lang`: `es` o `en`, opcional. Elige el idioma de los errores, aunque la
+  petición no traiga `Accept-Language` (lo normal si el aliado llama desde su
+  backend); si vienen los dos, manda `lang`. Sin `lang` se usa
+  `Accept-Language`, como en el resto del servicio. No cambia la respuesta
+  exitosa: no tiene textos para traducir.
 - `nivel`: entero de 1 a 6, opcional. Elige el carácter del día entre los de
   ese nivel; los totales siempre son de todo el catálogo.
 - `caracter_del_dia`: el mismo durante todo el día (UTC). Sale de la fecha,
@@ -224,7 +230,7 @@ pueda consumirlo desde un navegador. Es de solo lectura y no usa credenciales.
 - Las definiciones vienen en inglés, como en el dataset de Make Me a Hanzi.
 
 ```bash
-curl -s "http://localhost/api/v2/publico/resumen/"
+curl -s "http://localhost/api/v2/publico/resumen/?lang=es"
 ```
 
 ```json
@@ -234,7 +240,17 @@ curl -s "http://localhost/api/v2/publico/resumen/"
  "generado_en": "2026-10-26T21:11:29Z"}
 ```
 
-`nivel` fuera de 1 a 6 responde 400 `ENTRADA_INVALIDA`.
+`lang` distinto de `es` o `en`, o `nivel` fuera de 1 a 6, responde 400
+`ENTRADA_INVALIDA`:
+
+```bash
+curl -s "http://localhost/api/v2/publico/resumen/?lang=en&nivel=9"
+# {"error":"The field 'nivel' must be an integer between 1 and 6","codigo":"ENTRADA_INVALIDA"}
+```
+
+Si `flask_catalogo` está caído, el 502 lo arma Nginx (`infra/nginx/nginx.conf`)
+y no lleva CORS: desde un navegador el aliado no puede leer ese error, solo ve
+que la petición falló. Desde un backend sí lo recibe completo.
 
 ### `GET /health`
 
