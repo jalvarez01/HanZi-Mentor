@@ -147,14 +147,22 @@ services:
       PROGRESO_URL: http://flask_progreso:5000
       HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
       TUTOR_ENGINE: MOCK
+      # Fijo a propósito, sin leer NOTIFICADOR del .env: ese valor es el de
+      # agente_tutor (CONSOLE | EMAIL). `cola` publica notificar_sesion_lista
+      # en Redis para el worker; si Redis no responde, la sesión se crea igual.
+      NOTIFICADOR: cola
+      REDIS_URL: redis://redis:6379/0
     expose:
       - "5000"
     # Solo ordenan el arranque: si catálogo o progreso se caen después,
     # sesiones sigue en modo degradado (lista local, progreso inicial y
-    # `aviso` en las respuestas).
+    # `aviso` en las respuestas). Redis tampoco es obligatorio: sin él solo
+    # se pierde la notificación.
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
       flask_catalogo:
         condition: service_healthy
       flask_progreso:

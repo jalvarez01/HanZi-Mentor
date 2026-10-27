@@ -1,11 +1,11 @@
-"""Fábricas: solo MOCK y CONSOLE; una opción inexistente falla al arrancar."""
+"""Fábricas: motor MOCK y notificador consola o cola; una opción inexistente falla al arrancar."""
 
 import pytest
 
 from app import create_app
 from clientes import CatalogoRemoto, ProgresoRemoto
 from motores import MotorTutorMock
-from notificadores import NotificadorConsola
+from notificadores import NotificadorCola, NotificadorConsola
 
 
 def test_arma_las_dependencias_por_defecto():
@@ -29,6 +29,31 @@ def test_urls_y_timeout_desde_el_entorno(monkeypatch):
     assert cliente_catalogo.base_url == "http://flask_catalogo:5000"
     assert (cliente_catalogo.timeout, cliente_catalogo.reintentos) == (1.5, 4)
     assert deps.progreso._cliente.base_url == "http://flask_progreso:5000"
+
+
+@pytest.mark.parametrize("valor", ["consola", "console", "CONSOLE", " Consola "])
+def test_notificador_consola_y_su_alias(valor):
+    deps = create_app({"DATABASE_URL": "sqlite://", "NOTIFICADOR": valor}).extensions["dependencias"]
+
+    assert isinstance(deps.notificador, NotificadorConsola)
+
+
+def test_notificador_cola_desde_el_entorno(monkeypatch):
+    monkeypatch.setenv("NOTIFICADOR", "cola")
+    monkeypatch.setenv("REDIS_URL", "redis://redis:6379/0")
+
+    deps = create_app({"DATABASE_URL": "sqlite://"}).extensions["dependencias"]
+
+    assert isinstance(deps.notificador, NotificadorCola)
+    publicador = deps.notificador._publicador
+    assert publicador.conf.broker_url == "redis://redis:6379/0"
+    # Sin backend de resultados ni reintentos, con timeouts de 1 s.
+    assert publicador.conf.result_backend is None
+    assert publicador.conf.task_publish_retry is False
+    assert publicador.conf.broker_connection_timeout == 1.0
+    assert publicador.conf.broker_transport_options == {
+        "socket_connect_timeout": 1.0, "socket_timeout": 1.0,
+    }
 
 
 @pytest.mark.parametrize("clave, valor", [("TUTOR_ENGINE", "REAL"), ("NOTIFICADOR", "EMAIL")])
