@@ -5,6 +5,13 @@ un ecosistema híbrido de microservicios Flask detrás de Nginx, desplegado en
 AWS Academy, con integración con un equipo aliado y una API de terceros,
 tareas asíncronas e internacionalización.
 
+> **Estado de esta página (27/10/2026):** por ahora incluye las correcciones
+> de la Entrega 1 y la justificación del bono de excelencia, que se adelantó
+> para revisarla antes del Parcial 02. Las secciones de arquitectura y
+> diagramas, servicios (aliado y API de terceros), despliegue en AWS, i18n y
+> usabilidad, tareas asíncronas y evidencias se agregan antes de la entrega
+> del 12 de noviembre.
+
 ---
 
 ## 1. Correcciones de la Entrega 1
@@ -29,7 +36,7 @@ con el commit o el Pull Request que la resuelve.
 El enunciado exime del Parcial 02 a los equipos que migren más del 70 % de
 sus servicios y lógica de negocio a microservicios funcionales e
 independientes. HanZi Mentor migró a Flask **todos los endpoints de negocio
-del monolito**: el 100 % de los módulos existentes y el 75 % si se cuentan
+del monolito**: el 100 % de los módulos existentes y el 83 % si se cuentan
 también los módulos nuevos de esta entrega.
 
 ### Cómo se mide
@@ -59,8 +66,8 @@ todo esto:
 | Evaluación de ejercicios | `agente-tutor` | `evaluacion-flask` | `POST /api/v2/evaluacion/` | 1 | Migrado | PR #32 (`6ac6664`), consumo en PR #35 (`728db41`) | Frontend |
 | Agente tutor (LangGraph) | `agente-tutor` | — | — | 0 | Permanece en Django | — | — |
 | Usuarios | `usuarios` | — | — | 0 | Permanece en Django | — | — |
-| Ejemplos de oraciones (API de terceros) | Nuevo | `ejemplos-flask` | `GET /api/v2/ejemplos/<hanzi>/` | 1 | En progreso | PR #27 (`f9ebcdc`), integrado en PR #30 (`dd82852`) | Pendiente: frontend (T27) |
-| Servicio para el equipo aliado | Nuevo | `catalogo-flask` | `GET /api/v2/publico/resumen/` | 1 | Pendiente | — | Equipo aliado |
+| Ejemplos de oraciones (API de terceros) | Nuevo | `ejemplos-flask` | `GET /api/v2/ejemplos/<hanzi>/` | 1 | Migrado | PR #27 (`f9ebcdc`), integrado en PR #30 (`dd82852`), consumo en PR #37 (`2d58af2`) | Frontend (pantalla de Trazos) |
+| Servicio para el equipo aliado | Nuevo | `catalogo-flask` | `GET /api/v2/publico/resumen/` | 1 | En progreso | PR #38 | Pendiente: equipo aliado |
 | Reportes y notificaciones | Nuevo | `flask_reportes` + worker de Celery | `/api/v2/reportes/` | 1 | Pendiente | — | Frontend |
 
 Los dos módulos con peso 0 no tienen endpoints de negocio propios:
@@ -76,10 +83,10 @@ Los dos módulos con peso 0 no tienen endpoints de negocio propios:
 | Cálculo | Peso migrado | Peso total | Porcentaje |
 |---------|:------------:|:----------:|:----------:|
 | Solo los módulos que existían en el monolito | 9 | 9 | **100 %** |
-| Todos los módulos, incluidos los nuevos de esta entrega | 9 | 12 | **75 %** |
+| Todos los módulos, incluidos los nuevos de esta entrega | 10 | 12 | **83 %** |
 
-Los dos cálculos superan la meta del 70 %. Cuando el frontend consuma
-`ejemplos-flask` (T27), el segundo sube a 83 %.
+Los dos cálculos superan la meta del 70 %. Cuando el equipo aliado consuma
+el servicio público (T14), el segundo sube a 92 %.
 
 ### Coexistencia con el monolito (Strangler Pattern)
 
@@ -91,7 +98,9 @@ responde. Se retirarán cuando se apaguen esos servicios Django.
 ### Verificación
 
 Verificado el 26/10/2026 sobre `development` (commit `728db41`), en local
-con Docker. Falta repetirlo en la instancia de AWS.
+con Docker. El consumo de `ejemplos-flask` desde la pantalla de Trazos
+(PR #37) se verificó el mismo día en el navegador, en español y en inglés.
+Falta repetirlo en la instancia de AWS.
 
 - `docker compose up -d --build` levanta los 11 contenedores y todos los
   que tienen healthcheck quedan `healthy`.
