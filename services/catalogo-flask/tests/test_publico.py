@@ -119,6 +119,40 @@ def test_solo_acepta_get(client):
     assert resp.get_json()["codigo"] == "METODO_NO_PERMITIDO"
 
 
+# --- lang (contrato de la hoja) ---
+
+@pytest.mark.parametrize("lang", ["es", "en", ""])
+def test_lang_valido_o_vacio_responde_200(client, catalogo, lang):
+    assert client.get(URL, query_string={"lang": lang, "nivel": 1}).status_code == 200
+
+
+def test_lang_no_soportado_responde_400(client, catalogo):
+    resp = client.get(URL, query_string={"lang": "fr"})
+
+    assert resp.status_code == 400
+    assert resp.get_json() == {"error": "Idioma no soportado: use es, en", "codigo": "ENTRADA_INVALIDA"}
+
+
+def test_lang_no_soportado_con_accept_language_en_ingles(client, catalogo):
+    resp = client.get(URL, query_string={"lang": "fr"}, headers=EN)
+
+    assert resp.get_json()["error"] == "Unsupported language: use es, en"
+
+
+def test_lang_elige_el_idioma_del_error_sin_accept_language(client, catalogo):
+    # Lo normal si el aliado llama desde su backend: solo manda lang.
+    resp = client.get(URL, query_string={"lang": "en", "nivel": 9})
+
+    assert resp.status_code == 400
+    assert resp.get_json()["error"] == "The field 'nivel' must be an integer between 1 and 6"
+
+
+def test_lang_tiene_prioridad_sobre_accept_language(client, catalogo):
+    resp = client.get(URL, query_string={"lang": "es", "nivel": 9}, headers=EN)
+
+    assert resp.get_json()["error"] == "El campo 'nivel' debe ser un entero entre 1 y 6"
+
+
 # --- CORS ---
 
 def test_permite_cualquier_origen(client, catalogo):
@@ -128,6 +162,15 @@ def test_permite_cualquier_origen(client, catalogo):
 def test_permite_cualquier_origen_tambien_en_errores(client, catalogo):
     resp = client.get(URL, query_string={"nivel": "abc"})
 
+    assert resp.headers["Access-Control-Allow-Origin"] == "*"
+
+
+@pytest.mark.parametrize("metodo, ruta, estado", [("post", URL, 405), ("get", "/api/v2/publico/otra/", 404)])
+def test_cors_tambien_en_405_y_404_del_prefijo(client, metodo, ruta, estado):
+    # Flask no asocia estas respuestas al blueprint: el CORS no puede depender de él.
+    resp = getattr(client, metodo)(ruta)
+
+    assert resp.status_code == estado
     assert resp.headers["Access-Control-Allow-Origin"] == "*"
 
 
