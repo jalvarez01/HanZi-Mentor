@@ -1,336 +1,391 @@
-# HanZi Mentor 
+# HanZi Mentor
 
-Plataforma de aprendizaje de mandarín con tutor IA adaptativo. Enseña el orden correcto de trazos de los caracteres (hanzi), genera ejercicios personalizados según los errores reales de cada estudiante, y aplica repaso espaciado adaptativo.
+Plataforma para aprender mandarín: enseña el orden correcto de los trazos de
+cada carácter (hanzi), arma sesiones de práctica según los errores de cada
+estudiante y aplica repaso espaciado.
 
-**Proyecto académico** — SI3001 Arquitectura de Software, Universidad EAFIT.
+**Proyecto académico** de SI3001 Arquitectura de Software, Universidad EAFIT.
 
 ---
 
 ## Arquitectura
 
+El proyecto empezó como un monolito Django y se está migrando a
+microservicios Flask con el Strangler Pattern. Las dos versiones conviven
+detrás de Nginx, que decide por el prefijo de la URL quién atiende cada
+petición:
+
+- `/api/v1/...` va a los servicios Django originales (`contenido` y
+  `agente-tutor`), que quedan como respaldo.
+- `/api/v2/...` va a los microservicios Flask, que son los que usa el
+  frontend.
+- Todo lo demás va al frontend (una PWA en React servida por su propio Nginx).
+
+```
+                       navegador / celular
+                               |
+                               v
+                   +-----------------------+
+                   |  nginx  (puerto 80)   |   único puerto publicado
+                   +-----------------------+
+          /api/v1/ |       /api/v2/        |  /
+     +-------------+           |           +-------------+
+     v                         v                         v
+ v1 (Django)            v2 (Flask)                  frontend
+ - contenido            - flask_catalogo            (React + Vite)
+ - agente_tutor         - flask_progreso
+                        - flask_sesiones
+                        - flask_evaluacion
+                        - flask_trazos
+                        - flask_ejemplos ----> Tatoeba (API externa)
+     |                         |
+     v                         v
+ +-----------------------------------------------------+
+ | PostgreSQL `db`: una base por servicio              |
+ |   contenido, db_catalogo, db_progreso, db_sesiones  |
+ +-----------------------------------------------------+
+ agente_tutor usa su propio SQLite (volumen agente_tutor_db).
+ flask_trazos, flask_evaluacion y flask_ejemplos no guardan estado.
+```
+
+Los servicios v2 no comparten código ni leen bases ajenas: lo que necesitan
+de otro servicio lo piden por HTTP (por ejemplo, sesiones le pide caracteres
+a catálogo y registra las respuestas en progreso; evaluación busca la mediana
+del trazo en catálogo y la compara en trazos).
+
 ```
 HanZi-Mentor/
 ├── services/
-│   ├── usuarios/          # Django — cuentas, autenticación, suscripciones
-│   ├── contenido/         # Django — caracteres, trazos, lecciones, vocabulario
-│   ├── agente-tutor/      # Django — agente IA, progreso, curva de olvido
-│   └── trazos-flask/      # Flask — validación de trazos (Strangler Pattern)
-├── gateway/               # API Gateway
-├── frontend/              # React + Vite (PWA mobile-first)
-├── shared/                # Eventos, esquemas y utilidades compartidas
-├── infra/                 # Docker, nginx, scripts
-└── docs/                  # Arquitectura, diagramas, entregas
+│   ├── contenido/          # Django v1: caracteres, trazos y lecciones
+│   ├── agente-tutor/       # Django v1: sesiones, respuestas, progreso y tutor LangGraph
+│   ├── usuarios/           # Django: cuentas (todavía no está en docker-compose.yml)
+│   ├── catalogo-flask/     # v2: caracteres, lecciones y resumen público
+│   ├── progreso-flask/     # v2: progreso y repaso espaciado
+│   ├── sesiones-flask/     # v2: sesiones adaptativas y respuestas
+│   ├── evaluacion-flask/   # v2: decide si una respuesta es correcta
+│   ├── trazos-flask/       # v2: compara un trazo con su mediana
+│   ├── ejemplos-flask/     # v2: oraciones de ejemplo de Tatoeba (patrón Adapter)
+│   └── flask-base/         # plantilla de los servicios Flask
+├── frontend/               # React + Vite (PWA mobile-first)
+├── infra/nginx/nginx.conf  # el gateway
+├── docker-compose.yml
+└── docs/arquitectura/      # estándar Flask y coexistencia v1/v2
 ```
 
-Cada servicio es un proyecto Django independiente con su propia base de datos y su propio entorno virtual.
+El estándar que cumplen los servicios Flask está en
+[`docs/arquitectura/estandar-flask.md`](docs/arquitectura/estandar-flask.md).
 
 ---
 
-## Requisitos previos
+## Servicios y rutas
 
-| Herramienta | Versión mínima | Para qué |
-|---|---|---|
-| Python | 3.10+ | Backend (Django) |
-| Node.js | 18+ | Frontend (React + Vite) |
-| Git | cualquiera | Control de versiones |
+Sacado de `infra/nginx/nginx.conf` y `docker-compose.yml`:
 
-### Instalar los requisitos
+| Servicio (compose)   | Versión | Prefijo en nginx                             | Módulo |
+|----------------------|---------|----------------------------------------------|--------|
+| `contenido`          | v1      | `/api/v1/` (se reescribe a `/api/`)          | `services/contenido` |
+| `agente_tutor`       | v1      | `/api/v1/tutor/` (se reescribe a `/api/`)    | `services/agente-tutor` |
+| `flask_catalogo`     | v2      | `/api/v2/caracteres/`, `/api/v2/lecciones/`, `/api/v2/publico/` | `services/catalogo-flask` |
+| `flask_progreso`     | v2      | `/api/v2/progreso/`                          | `services/progreso-flask` |
+| `flask_sesiones`     | v2      | `/api/v2/sesiones/`, `/api/v2/ejercicios/`   | `services/sesiones-flask` |
+| `flask_evaluacion`   | v2      | `/api/v2/evaluacion/`                        | `services/evaluacion-flask` |
+| `flask_trazos`       | v2      | `/api/v2/trazos/`                            | `services/trazos-flask` |
+| `flask_ejemplos`     | v2      | `/api/v2/ejemplos/`                          | `services/ejemplos-flask` |
+| `frontend`           | -       | `/`                                          | `frontend` |
+| `db`                 | -       | (sin ruta, solo red interna)                 | PostgreSQL 16 |
 
-<details>
-<summary><b>Windows</b></summary>
-
-**Opción recomendada — con winget** (viene incluido en Windows 10/11):
-
-```powershell
-winget install Python.Python.3.12
-winget install OpenJS.NodeJS.LTS
-winget install Git.Git
-```
-
-**Opción manual:** descargar los instaladores de [python.org](https://www.python.org/downloads/), [nodejs.org](https://nodejs.org/) y [git-scm.com](https://git-scm.com/download/win).
-
-> Al instalar Python, marcá la casilla **"Add Python to PATH"** o los comandos no funcionarán en la terminal.
-
-Cerrá y volvé a abrir PowerShell después de instalar.
-
-</details>
-
-<details>
-<summary><b>macOS</b></summary>
-
-**Opción recomendada — con Homebrew:**
-
-```bash
-# Instalar Homebrew si no lo tenés
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-brew install python@3.12 node git
-```
-
-**Opción manual:** descargar los instaladores desde [python.org](https://www.python.org/downloads/macos/) y [nodejs.org](https://nodejs.org/).
-
-</details>
-
-<details>
-<summary><b>Linux (Ubuntu / Debian)</b></summary>
-
-```bash
-sudo apt update
-sudo apt install -y python3 python3-pip python3-venv git curl
-
-# Node.js 20 LTS
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-```
-
-**Fedora / RHEL:**
-
-```bash
-sudo dnf install -y python3 python3-pip git nodejs npm
-```
-
-**Arch:**
-
-```bash
-sudo pacman -S python python-pip git nodejs npm
-```
-
-</details>
-
-### Verificar la instalación
-
-```bash
-python3 --version    # Windows: python --version
-node --version
-npm --version
-git --version
-```
+Cualquier otra ruta bajo `/api/` responde 404 en JSON desde el gateway. Cada
+servicio tiene su README con el contrato completo de sus endpoints.
 
 ---
 
-## Instalación del proyecto
+## Requisitos
 
-### 1. Clonar el repositorio
+- Docker y Docker Compose. Se probó con Docker 29.4 y Docker Compose v5.1
+  (Docker Desktop). Cualquier versión reciente con `docker compose` debería
+  andar.
+- Conexión a internet en el primer arranque: si no está el dataset de
+  caracteres, `contenido` y `flask_catalogo` lo descargan solos (unos 33 MB).
+- El puerto 80 libre. **Solo nginx publica un puerto en el host**; los demás
+  servicios y la base quedan dentro de la red de Docker.
+
+Para correr los tests sin Docker hace falta además Python 3.12 (Django 4.2
+no soporta versiones más nuevas). Para desarrollar el frontend fuera de
+Docker, Node.js 22, la misma versión de la imagen del frontend.
+
+---
+
+## Levantar el proyecto en local
 
 ```bash
+# 1. Clonar
 git clone https://github.com/jalvarez01/HanZi-Mentor.git
 cd HanZi-Mentor
-```
 
-### 2. Levantar los servicios backend
+# 2. Variables de entorno (opcional: sin .env se usan los valores por defecto)
+cp .env.example .env      # Windows: copy .env.example .env
 
-Cada servicio necesita su propio entorno virtual. Repetí estos pasos para `usuarios`, `contenido` y `agente-tutor`.
-
-<details open>
-<summary><b>macOS / Linux</b></summary>
-
-```bash
-cd services/usuarios
-
-python3 -m venv venv
-source venv/bin/activate
-
-pip install -r requirements.txt
-
-python manage.py migrate
-python manage.py runserver 8001
-```
-
-</details>
-
-<details>
-<summary><b>Windows (PowerShell)</b></summary>
-
-```powershell
-cd services\usuarios
-
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-
-pip install -r requirements.txt
-
-python manage.py migrate
-python manage.py runserver 8001
-```
-
-> Si PowerShell bloquea el script de activación, ejecutá una vez:
-> ```powershell
-> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-> ```
-
-**Con CMD** en lugar de PowerShell, la activación es:
-```cmd
-venv\Scripts\activate.bat
-```
-
-</details>
-
-Puertos sugeridos para no chocar entre servicios:
-
-| Servicio | Puerto |
-|---|---|
-| `usuarios` | 8001 |
-| `contenido` | 8002 |
-| `agente-tutor` | 8003 |
-
-Para salir del entorno virtual: `deactivate`.
-
-**API Gateway:** el frontend puede pegarle directo a cada puerto como se
-explicó arriba, o pasar por el gateway Nginx que se levanta con Docker —
-ver [Levantar con Docker](#levantar-con-docker-gateway--microservicio-flask).
-
-### 3. Levantar el frontend
-
-```bash
-cd frontend
-
-npm install
-npm run dev
-```
-
-Abrir <http://localhost:5173>.
-
-**Para probar desde el celular** (misma red WiFi):
-
-```bash
-npm run dev -- --host
-```
-
-Vite muestra una URL de red (tipo `http://192.168.x.x:5173`) que podés abrir desde el navegador del celular.
-
----
-
-## Levantar con Docker (gateway + microservicio Flask)
-
-`docker-compose.yml` levanta la topología del Strangler Pattern: Django
-`contenido`, el microservicio Flask `flask_trazos`, PostgreSQL y Nginx. Solo
-Nginx publica un puerto en el host (80) y reparte el tráfico según la URL:
-
-| Ruta | Destino |
-|---|---|
-| `/api/v1/*` | `contenido` (Django) — Nginx reescribe `/api/v1/` a `/api/` |
-| `/api/v2/trazos/*` | `flask_trazos` (Flask) |
-
-Requiere [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-(o Docker Engine con el plugin compose). Desde la raíz del repo:
-
-```bash
+# 3. Construir y levantar todo
 docker compose up -d --build
+
+# 4. Ver el estado
 docker compose ps
 ```
 
+Todos los servicios que tienen healthcheck tienen que quedar `(healthy)`;
+`contenido` y `nginx` no tienen healthcheck y aparecen solo como `Up`. La
+primera vez puede tardar un poco más, porque se descarga y se carga el
+dataset de caracteres (696 de HSK 1 a 6).
+
+Después abrir el frontend en **<http://localhost>**.
+
+Para seguir las peticiones (cada línea dice a qué servicio fue):
+
 ```bash
-# v1 -> Django
-curl "http://localhost/api/v1/caracteres/?nivel=1&limite=5"
-
-# v2 -> Flask
-curl -X POST http://localhost/api/v2/trazos/validar/ \
-  -H "Content-Type: application/json" \
-  -d '{"mediana": [[458,800],[435,764],[400,700],[350,620],[300,540]],
-       "puntos":  [[134,29],[127,40],[117,59],[103,82],[88,105]],
-       "ancho": 300, "alto": 300}'
-
-# Cada línea del log muestra qué backend atendió la petición
-docker compose logs nginx
+docker compose logs -f nginx
 ```
 
-En el primer arranque `contenido` migra la base y, si encuentra el dataset
-de Make Me a Hanzi en `services/contenido/data_hanzi` (ver
-[Datos de caracteres](#datos-de-caracteres)), carga los caracteres de HSK 1
-a 6. Sin el dataset arranca igual, con la base vacía.
+Para detener todo: `docker compose down` (con `-v` también borra las
+bases). Si el puerto 80 está ocupado, cambiar `GATEWAY_PORT` en `.env`.
 
-Si el puerto 80 está ocupado, definir `GATEWAY_PORT` en el `.env` de la raíz
-(ver `.env.example`). Para detener todo: `docker compose down` (agregar `-v`
-para borrar también la base de datos).
+---
+
+## Probar la API por nginx
+
+Respuestas reales de un stack recién levantado, recortadas.
+
+**1. Una ruta v1 (Django, respaldo del Strangler)**
+
+```bash
+curl "http://localhost/api/v1/caracteres/?nivel=1&limite=3"
+```
+
+```json
+{"caracteres":[{"hanzi":"一","pinyin":"yī","definicion":"one; a, an; alone","nivel_hsk":1},
+ {"hanzi":"七","pinyin":"qī","definicion":"seven","nivel_hsk":1},
+ {"hanzi":"三","pinyin":"sān","definicion":"three","nivel_hsk":1}]}
+```
+
+**2. Crear una sesión de práctica (v2)**
+
+```bash
+curl -X POST http://localhost/api/v2/sesiones/ -H "Content-Type: application/json" \
+  -d '{"usuario_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "nivel_hsk": 1}'
+```
+
+```json
+{"id":1,"usuario_id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","nivel_hsk":1,"dificultad":2,
+ "estado":"activa","duracion_estimada_min":10,"creada_en":"2026-10-27T20:27:14.945736Z",
+ "ejercicios":[{"id":1,"caracter":"一","tipo":"significado","dificultad":2,"es_refuerzo":false}, ...]}
+```
+
+**3. Responder un ejercicio** (el `id` sale de la respuesta anterior)
+
+```bash
+curl -X POST http://localhost/api/v2/ejercicios/1/responder/ \
+  -H "Content-Type: application/json" -d '{"acerto": true}'
+```
+
+```json
+{"ejercicio":{"id":1,"caracter":"一","tipo":"significado","dificultad":2,"es_refuerzo":false},
+ "sesion_completada":false,"pendientes":3,"proximo_repaso":"2026-10-28T20:27:14.977948+00:00","tasa_acierto":0.55}
+```
+
+La respuesta queda registrada en progreso:
+`curl http://localhost/api/v2/progreso/3fa85f64-5717-4562-b3fc-2c963f66afa6/`
+ya devuelve `"tasa_acierto":0.55` y `"aciertos_consecutivos":{"一":1}`.
+
+**4. Evaluar un trazo** (el primer trazo de 人, dibujado en un lienzo de 300 x 300)
+
+```bash
+curl -X POST http://localhost/api/v2/evaluacion/ -H "Content-Type: application/json" \
+  -d '{"tipo": "trazo", "caracter": "人", "respuesta": {"secuencia": 1,
+       "puntos": [[142,48],[149,58],[150,65],[139,102],[120,142],[96,175],[79,192],[42,223],[21,236]],
+       "ancho": 300, "alto": 300}}'
+```
+
+```json
+{"tipo":"trazo","caracter":"人","acerto":true,"secuencia":1,"aprobado":true,"puntaje":100,
+ "motivo":"correcto","invertido":false,"detalle":"Trazo correcto.","puntos_lejanos":[]}
+```
+
+**5. Resumen público para el equipo aliado, en inglés**
+
+```bash
+curl "http://localhost/api/v2/publico/resumen/?lang=en"
+```
+
+```json
+{"sistema":"HanziMentor","caracteres_totales":696,
+ "por_nivel_hsk":{"1":83,"2":71,"3":92,"4":117,"5":183,"6":150},
+ "caracter_del_dia":{"hanzi":"甲","pinyin":"jiǎ","definicion":"armor, shell; fingernails; 1st heavenly stem","nivel_hsk":5},
+ "generado_en":"2026-10-27T20:27:15Z"}
+```
+
+El carácter del día cambia cada día (UTC).
+
+---
+
+## Idioma de los mensajes
+
+Los mensajes de error de todos los servicios, y los que arma el propio
+gateway (502, 503, 504 y el 404 de `/api/`), salen en español o en inglés
+según la cabecera `Accept-Language`. Sin cabecera, o con otro idioma, en
+español. Solo cambia el texto: las claves, el `codigo` y el estado HTTP son
+los mismos en los dos idiomas. El frontend manda el idioma elegido en su
+selector.
+
+```bash
+curl "http://localhost/api/v2/caracteres/?limite=0" -H "Accept-Language: en"
+# {"error":"The limit must be an integer between 1 and 100","codigo":"ENTRADA_INVALIDA"}
+```
+
+El resumen público acepta además `lang=es|en`, que manda sobre
+`Accept-Language` en sus errores, porque el aliado lo llama desde su
+backend:
+
+```bash
+curl "http://localhost/api/v2/publico/resumen/?lang=en&nivel=9"
+# {"error":"The field 'nivel' must be an integer between 1 and 6","codigo":"ENTRADA_INVALIDA"}
+```
+
+---
+
+## Tests
+
+Cada servicio se prueba por separado con su propio entorno virtual, desde su
+carpeta (en Windows, `.venv\Scripts\pytest` y `venv\Scripts\python`).
+
+Servicios Flask (`catalogo-flask`, `progreso-flask`, `sesiones-flask`,
+`evaluacion-flask`, `trazos-flask`, `ejemplos-flask` y `flask-base`):
+
+```bash
+cd services/catalogo-flask
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/pytest -q
+```
+
+Servicios Django (`contenido` y `agente-tutor`):
+
+```bash
+cd services/contenido
+python3.12 -m venv venv
+venv/bin/pip install -r requirements.txt
+venv/bin/python manage.py test
+```
+
+Totales de hoy:
+
+| Servicio | Tests |
+|----------|------:|
+| catalogo-flask | 102 |
+| progreso-flask | 70 |
+| sesiones-flask | 93 |
+| evaluacion-flask | 89 |
+| trazos-flask | 21 |
+| ejemplos-flask | 46 (+1 que se salta: la prueba en vivo contra Tatoeba) |
+| flask-base | 19 |
+| contenido | 39 |
+| agente-tutor | 53 |
+| **Total** | **532** |
+
+La prueba en vivo de ejemplos se activa con `TATOEBA_EN_VIVO=1`. Los tests
+de contrato de los servicios Flask leen los serializers de Django del mismo
+repo, así que hay que correrlos con el repo completo (dentro de una imagen
+Docker se saltan).
+
+---
+
+## Volver a v1 en un módulo
+
+v1 sigue publicado en el gateway como respaldo, así que se puede volver a
+Django sin tocar los servicios: o se revierte el cambio del frontend, o se
+apunta la location v2 de nginx al servicio Django. Los pasos, la tabla de
+cada módulo y sus límites están en
+[`docs/arquitectura/strangler-v1-v2.md`](docs/arquitectura/strangler-v1-v2.md).
+
+---
+
+## Desarrollo del frontend sin Docker
+
+Con el stack levantado, el servidor de Vite reenvía `/api` al gateway
+(`VITE_GATEWAY_URL`, por defecto `http://localhost:80`):
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+npm run dev -- --host  # para abrirlo desde el celular en la misma red
+```
+
+Las variables del frontend están en `frontend/.env.example`; vacías usan el
+mismo origen.
 
 ---
 
 ## Variables de entorno
 
-Copiá la plantilla y completá los valores:
+`.env.example` documenta todas las variables. El archivo `.env` está en
+`.gitignore` y nunca se sube.
 
-```bash
-cp .env.example .env      # Windows: copy .env.example .env
-```
-
-El archivo `.env` está en `.gitignore` — nunca se sube al repositorio.
-
-**`ALLOWED_HOSTS`** merece nota aparte: en local se deja `*` (abierto,
-necesario para probar desde el celular por IP de LAN — ver
-`infra/scripts/levantar_backends.sh`). **En producción hay que ponerle el
-dominio real** (`ALLOWED_HOSTS=hanzimentor.app,www.hanzimentor.app`), nunca
-dejar `*` — Django no valida el header `Host` de la request si esto queda
-abierto, lo que habilita ataques de host header injection.
-
----
-
-## Instalar como app (PWA)
-
-El frontend es una PWA: se instala en el celular sin pasar por App Store ni Play Store.
-
-- **Android (Chrome):** el navegador ofrece automáticamente "Instalar aplicación".
-- **iOS (Safari):** botón Compartir → "Agregar a pantalla de inicio".
-- **Escritorio (Chrome/Edge):** ícono de instalación en la barra de direcciones.
-
----
-
-## Comandos útiles de Django
-
-```bash
-python manage.py makemigrations      # Crear migraciones tras cambiar modelos
-python manage.py migrate             # Aplicar migraciones
-python manage.py createsuperuser     # Crear usuario admin
-python manage.py shell                # Consola interactiva con los modelos
-python manage.py check                # Verificar problemas del proyecto
-```
-
-Panel de administración: <http://localhost:8001/admin>
+**`ALLOWED_HOSTS`** merece nota aparte: en local se deja `*`, pero **en
+producción hay que poner el dominio real** (por ejemplo
+`ALLOWED_HOSTS=hanzimentor.app,www.hanzimentor.app`) y nunca `*`: con el
+valor abierto, Django no valida la cabecera `Host` y queda expuesto a ataques
+de host header injection.
 
 ---
 
 ## Datos de caracteres
 
-Los caracteres del servicio `contenido` (tabla `Caracter`) se arman combinando **dos fuentes externas**, cada una con un rol distinto — no se solapan:
+Los caracteres se arman con dos fuentes externas:
 
 | Fuente | Qué aporta | Repo |
 |---|---|---|
-| **Make Me a Hanzi** | El carácter en sí: pinyin, definición, radical, descomposición, y los **trazos** (orden de escritura, `path_svg`, `mediana`) que usa RF-APR-01 para validar la escritura a mano. Sin esto no hay animación ni comparación de trazos. | [skishore/makemeahanzi](https://github.com/skishore/makemeahanzi) |
-| **Complete HSK Vocabulary** | Solo la clasificación de nivel HSK (1-6) — no trae trazos ni gráficos. Se usa para poblar el campo `nivel_hsk` de los caracteres que ya existen en la base (importados de Make Me a Hanzi). | [drkameleon/complete-hsk-vocabulary](https://github.com/drkameleon/complete-hsk-vocabulary) |
+| **Make Me a Hanzi** | El carácter (pinyin, definición, radical, descomposición) y sus **trazos** (orden, `path_svg` y `mediana`), que son los que se usan para validar la escritura. | [skishore/makemeahanzi](https://github.com/skishore/makemeahanzi) |
+| **Complete HSK Vocabulary** | Solo el nivel HSK (1 a 6), volcado en `hsk.py`. | [drkameleon/complete-hsk-vocabulary](https://github.com/drkameleon/complete-hsk-vocabulary) |
 
-De los ~9500 caracteres importados de Make Me a Hanzi, solo ~700 corresponden al vocabulario oficial HSK 1-6 (`nivel_hsk` asignado); el resto queda con `nivel_hsk = NULL` y sigue siendo válido para practicar — solo no pertenece a ningún nivel oficial (ver `LeccionBuilder.con_caracteres_del_nivel`: los caracteres sin clasificar rellenan una lección cuando el nivel exacto no alcanza, nunca reemplazan a los del nivel correspondiente).
-
-### Importar caracteres (Make Me a Hanzi)
-
-```bash
-cd services/contenido
-
-# Clonar el repo de datos (pesado, no vive dentro de este repo — ver .gitignore)
-git clone https://github.com/skishore/makemeahanzi data_hanzi
-
-python manage.py cargar_hanzi --ruta data_hanzi --todos
-```
-
-`--todos` importa todo el set (~9500 caracteres); sin ese flag, solo importa los niveles pasados en `--nivel` (por defecto 1 y 2), filtrando contra `caracteres/hsk.py`.
-
-### Clasificar nivel HSK (Complete HSK Vocabulary)
-
-Las listas oficiales por nivel ya están volcadas en `caracteres/hsk.py::CARACTERES_POR_NIVEL` (extraídas de `wordlists/exclusive/old/1..6.json` de ese repo, filtrando solo entradas de un carácter). Para aplicar/actualizar la clasificación sobre los caracteres ya importados:
+En Docker no hay que hacer nada: si `services/contenido/data_hanzi` no
+existe, `contenido` y `flask_catalogo` descargan el dataset y cargan los
+caracteres de HSK 1 a 6 cuando su base está vacía. Para no descargarlo en
+cada instancia nueva se puede clonar una vez (la carpeta está en
+`.gitignore`):
 
 ```bash
-python manage.py clasificar_hsk --revisar   # solo informa, no guarda
-python manage.py clasificar_hsk             # aplica los cambios
+git clone --depth 1 https://github.com/skishore/makemeahanzi services/contenido/data_hanzi
 ```
 
-Corré este comando después de cada `cargar_hanzi`, y también si actualizás `caracteres/hsk.py` con más caracteres clasificados.
+Los comandos para cargarlo a mano están en el README de
+[`catalogo-flask`](services/catalogo-flask/README.md) (`cargar.py`) y, para
+v1, `python manage.py cargar_hanzi` y `clasificar_hsk` en `contenido`.
+
+---
+
+## Instalar como app (PWA)
+
+El frontend es una PWA: se instala en el celular sin pasar por las tiendas.
+
+- **Android (Chrome):** el navegador ofrece "Instalar aplicación".
+- **iOS (Safari):** botón Compartir y "Agregar a pantalla de inicio".
+- **Escritorio (Chrome/Edge):** ícono de instalación en la barra de direcciones.
+
+---
+
+## Despliegue en AWS
+
+Se completa con el despliegue en EC2.
 
 ---
 
 ## Stack
 
-**Backend:** Django, Django REST Framework, PostgreSQL, Redis, RabbitMQ
-**Agente IA:** LangGraph
-**Frontend:** React, Vite, React Router, PWA (vite-plugin-pwa)
-**Infraestructura:** Docker, GitHub Actions
+**Backend:** Django 4.2 + Django REST Framework (v1); Flask 3.1, SQLAlchemy 2 y Flask-Babel (v2)
+**Base de datos:** PostgreSQL 16 (una base por servicio)
+**Gateway:** Nginx 1.27
+**Frontend:** React 19, Vite, React Router, PWA (vite-plugin-pwa), i18next
+**Tutor:** LangGraph (motor `REAL` de agente-tutor, solo en v1)
+**Infraestructura:** Docker y Docker Compose
 
 ---
 
@@ -341,5 +396,5 @@ Corré este comando después de cada `cargar_hanzi`, y también si actualizás `
 - Santiago Meneses
 
 Profesor: Nicolás Ramírez Vélez
-Universidad EAFIT — Escuela de Ciencias Aplicadas e Ingeniería
+Universidad EAFIT, Escuela de Ciencias Aplicadas e Ingeniería
 Medellín, Antioquia
