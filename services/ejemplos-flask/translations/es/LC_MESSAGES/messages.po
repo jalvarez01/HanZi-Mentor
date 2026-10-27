@@ -50,3 +50,6 @@ msgstr ""
 msgid "El límite debe ser un entero entre 1 y %(maximo)s"
 msgstr ""
 
+#: adaptadores/tatoeba.py:43
+msgid "Oraciones de Tatoeba.org (CC BY 2.0 FR)"
+msgstr ""

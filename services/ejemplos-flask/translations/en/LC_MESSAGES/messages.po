@@ -50,3 +50,6 @@ msgstr "Unsupported language: use %(idiomas)s"
 msgid "El límite debe ser un entero entre 1 y %(maximo)s"
 msgstr "The limit must be an integer between 1 and %(maximo)s"
 
+#: adaptadores/tatoeba.py:43
+msgid "Oraciones de Tatoeba.org (CC BY 2.0 FR)"
+msgstr "Sentences from Tatoeba.org (CC BY 2.0 FR)"

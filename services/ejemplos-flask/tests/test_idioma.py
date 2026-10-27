@@ -6,6 +6,7 @@ solo cambia los mensajes de error."""
 
 from dominio.puertos import ProveedorNoDisponible
 from test_ejemplos import URL, cliente
+from test_tatoeba import SIMPLIFICADA, adaptador
 
 EN = {"Accept-Language": "en-US,en;q=0.9"}
 
@@ -25,6 +26,17 @@ def test_idioma_no_soportado_en_ingles():
     resp = cliente().get(URL.format("学") + "?lang=fr", headers=EN)
 
     assert resp.get_json()["error"] == "Unsupported language: use es, en"
+
+
+def test_atribucion_de_tatoeba_en_el_idioma_de_la_peticion():
+    tatoeba, _ = adaptador(respuesta={"data": [SIMPLIFICADA]})
+    c = cliente(tatoeba)
+
+    es = c.get(URL.format("学")).get_json()
+    en = c.get(URL.format("学"), headers=EN).get_json()
+
+    assert es["atribucion"] == "Oraciones de Tatoeba.org (CC BY 2.0 FR)"
+    assert en["atribucion"] == "Sentences from Tatoeba.org (CC BY 2.0 FR)"
 
 
 def test_proveedor_caido_en_ingles():

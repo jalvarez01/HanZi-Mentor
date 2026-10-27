@@ -44,7 +44,9 @@ contengan el carácter y tengan traducción al idioma pedido. Después:
 - Si la oración está en chino tradicional, usa la versión simplificada que
   Tatoeba trae como transcripción.
 - Toma el pinyin con tildes (`Xuéxí ba.`), no la versión con números (`Xue2xi2 ba5.`).
-- Prefiere las traducciones directas de la oración a las indirectas.
+- Pide primero solo oraciones con traducción directa al idioma pedido. Las
+  indirectas pasan por un tercer idioma y pierden sentido (等一下, "espera un
+  momento", llegaba como "Err..."); solo se aceptan si no hay ninguna directa.
 - Descarta las frases repetidas (la misma oración en simplificado y en tradicional).
 - Si Tatoeba no responde en `TATOEBA_TIMEOUT` segundos, o responde algo
   inesperado, lanza `ProveedorNoDisponible` y el servicio responde `503`.
