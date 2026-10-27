@@ -5,22 +5,18 @@ from flask import Flask, current_app, jsonify
 
 import config
 from errores import registrar_manejadores, respuesta_error
+from fabricas import crear_publicador, crear_redis
 from i18n import iniciar_i18n, traducir
 from mensajes import N_
+from notificaciones import NotificacionesRedis
+from rutas import reportes_bp
 
 
-def crear_redis(app_config):
-    """Cliente perezoso: no conecta hasta la primera orden."""
-    return redis.Redis.from_url(
-        app_config["REDIS_URL"],
-        socket_connect_timeout=app_config["REDIS_TIMEOUT"],
-        socket_timeout=app_config["REDIS_TIMEOUT"],
-    )
-
-
-def create_app(config_extra=None, redis_cliente=None):
-    """`redis_cliente` permite inyectar un doble en las pruebas; si no se
-    pasa, se crea con REDIS_URL."""
+def create_app(config_extra=None, redis_cliente=None, notificaciones=None, publicador=None):
+    """`redis_cliente`, `notificaciones` y `publicador` permiten inyectar
+    dobles en las pruebas; si no se pasan, se crean con REDIS_URL. Las
+    tareas se encolan con `publicador` y sus resultados se leen con
+    `tareas.celery_app`."""
     app = Flask(__name__)
     app.config.update(config.desde_entorno())
     if config_extra:
@@ -34,6 +30,10 @@ def create_app(config_extra=None, redis_cliente=None):
     app.json.sort_keys = False
 
     app.extensions["redis"] = redis_cliente or crear_redis(app.config)
+    app.extensions["notificaciones"] = notificaciones or NotificacionesRedis(app.extensions["redis"])
+    app.extensions["publicador"] = publicador or crear_publicador(app.config)
+
+    app.register_blueprint(reportes_bp)
 
     app.add_url_rule("/health", view_func=health, methods=["GET"])
     return app

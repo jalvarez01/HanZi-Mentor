@@ -9,6 +9,7 @@
 #   /api/v2/progreso/* -> flask_progreso (Flask, progreso y repaso)
 #   /api/v2/sesiones/*, /api/v2/ejercicios/* -> flask_sesiones (Flask)
 #   /api/v2/evaluacion/* -> flask_evaluacion (Flask, sin base)
+#   /api/v2/reportes/* -> flask_reportes (Flask, encola en Redis; `worker` ejecuta)
 #   /*                -> frontend      (PWA estática)
 #
 # Bases de datos: un solo PostgreSQL (`db`) con una base por servicio:
@@ -242,6 +243,11 @@ services:
     command: ["celery", "-A", "tareas", "worker", "--loglevel=info", "--concurrency=1"]
     environment:
       REDIS_URL: redis://redis:6379/0
+      # El reporte consulta progreso por HTTP. Sin reintentos HTTP: los hace
+      # Celery (3, a los 2, 4 y 8 s). Con HTTP_TIMEOUT=3, un progreso caído
+      # da "error" en menos de 30 s; un timeout mayor alarga ese tiempo.
+      PROGRESO_URL: http://flask_progreso:5000
+      HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
     depends_on:
       redis:
         condition: service_healthy
@@ -326,6 +332,8 @@ services:
       flask_sesiones:
         condition: service_started
       flask_evaluacion:
+        condition: service_started
+      flask_reportes:
         condition: service_started
       agente_tutor:
         condition: service_started

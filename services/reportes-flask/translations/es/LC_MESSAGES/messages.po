@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: reportes-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-26 20:35-0500\n"
+"POT-Creation-Date: 2026-10-26 20:54-0500\n"
 "PO-Revision-Date: 2026-10-26 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: es\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app.py:49
+#: app.py:49 servicio.py:42
 msgid "La cola de tareas no está disponible."
 msgstr ""
 
@@ -33,5 +33,25 @@ msgstr ""
 
 #: errores.py:56 errores.py:66
 msgid "Error interno"
+msgstr ""
+
+#: validacion.py:26
+msgid "El usuario_id debe ser un UUID válido"
+msgstr ""
+
+#: validacion.py:33
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr ""
+
+#: validacion.py:40
+msgid "El task_id debe ser un UUID válido"
+msgstr ""
+
+#: dominio/excepciones.py:31
+msgid "El servicio de progreso no respondió. Probá de nuevo en unos segundos."
+msgstr ""
+
+#: dominio/excepciones.py:38
+msgid "No se pudo generar el reporte."
 msgstr ""
 

@@ -24,6 +24,7 @@ serializers de v1.
 | Ejercicios | `POST /api/v1/tutor/ejercicios/<id>/responder/` (agente_tutor) | `POST /api/v2/ejercicios/<id>/responder/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
 | Evaluación | Sin ruta pública (`EvaluarEjercicioService` dentro de agente_tutor) | `POST /api/v2/evaluacion/` (flask_evaluacion) | Frontend (Trazos, v2) | Migrado. v1 sin endpoint |
 | Ejemplos | No existe | `GET /api/v2/ejemplos/<hanzi>/` (flask_ejemplos, Tatoeba) | Todavía ningún cliente | Nuevo en v2 |
+| Reportes | No existe | `POST /api/v2/reportes/`, `GET /api/v2/reportes/<task_id>/`, `GET /api/v2/reportes/notificaciones/<uuid>/` (flask_reportes + worker) | Todavía ningún cliente (frontend en T20) | Nuevo en v2 |
 
 Lo que sigue en Django:
 
@@ -35,11 +36,28 @@ Lo que sigue en Django:
 - La validación de trazos que usa agente-tutor internamente
   (`CONTENIDO_URL`), que sigue yendo a contenido v1.
 
+## Tareas asíncronas
+
+Los reportes y las notificaciones no existen en v1: son nuevos en v2 y no
+tienen vuelta atrás. `flask_reportes` encola en `redis` y el servicio
+`worker` (Celery, misma imagen) ejecuta:
+
+- `generar_reporte_progreso(usuario_id)`: pide el progreso a flask_progreso
+  por HTTP y guarda el resumen en Redis 24 h.
+- `notificar_sesion_lista(usuario_id, sesion_id)`: la publica
+  flask_sesiones al crear una sesión; queda en el log del worker y en la
+  lista `notificaciones:<usuario_id>` (las últimas 20, 7 días).
+
+Si `redis` o `worker` se caen, nada de v1 ni del resto de v2 deja de
+funcionar: encolar un reporte responde 503 y la sesión se crea igual.
+
 ## Bases de datos
 
 Cada servicio tiene su base dentro del PostgreSQL compartido `db`:
 `contenido` (Django), `db_catalogo`, `db_progreso` y `db_sesiones`.
 agente-tutor sigue con su SQLite en el volumen `agente_tutor_db`.
+`flask_reportes` no tiene base: sus resultados viven en `redis`, sin
+persistencia.
 
 v1 y v2 **no comparten datos**. Las sesiones y el progreso que se registran
 por v2 no se ven en v1, y al revés. Por eso v1 es solo un respaldo para

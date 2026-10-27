@@ -24,4 +24,8 @@ def desde_entorno():
         "REDIS_URL": os.environ.get("REDIS_URL", "redis://localhost:6379/0"),
         # Segundos para conectar con Redis y esperar su respuesta en /health.
         "REDIS_TIMEOUT": float(os.environ.get("REDIS_TIMEOUT", "1")),
+        # progreso-flask, que consulta la tarea de reporte. URL base sin /api/v2.
+        "PROGRESO_URL": os.environ.get("PROGRESO_URL", "http://localhost:5083"),
+        # Segundos por petición a progreso. Sin reintentos HTTP: reintenta Celery.
+        "HTTP_TIMEOUT": float(os.environ.get("HTTP_TIMEOUT", "3")),
     }

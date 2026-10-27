@@ -9,17 +9,93 @@ Sigue el estándar de [`docs/arquitectura/estandar-flask.md`](../../docs/arquite
 ## Sin base de datos
 
 Los resultados de las tareas viven en Redis y caducan a las 24 h
-(`result_expires=86400`). Por eso no tiene `db.py` ni `crear_base.py` y no
-usa `DATABASE_URL`.
+(`result_expires=86400`); las notificaciones, a los 7 días. Por eso no
+tiene `db.py` ni `crear_base.py` y no usa `DATABASE_URL`.
+
+## API
+
+| Método y ruta | Respuesta |
+|---|---|
+| `POST /api/v2/reportes/` con `{"usuario_id": "<uuid>"}` | `202 {"task_id", "estado": "pendiente"}` y `Location: /api/v2/reportes/<task_id>/` |
+| `GET /api/v2/reportes/<task_id>/` | `200 {"task_id", "estado"}`, más `resultado` (listo) o `codigo` y `error` (error) |
+| `GET /api/v2/reportes/notificaciones/<usuario_id>/` | `200 {"usuario_id", "notificaciones": [...]}`, de la más nueva a la más vieja |
+
+Estados:
+
+| Celery | API |
+|---|---|
+| `PENDING`, `RECEIVED` | `pendiente` |
+| `STARTED`, `RETRY` | `en_proceso` |
+| `SUCCESS` | `listo` |
+| `FAILURE`, `REVOKED` | `error` |
+
+**Limitación de Celery:** un `task_id` que nunca existió, o cuyo resultado
+ya caducó, también responde `pendiente`. Celery no guarda la lista de
+tareas encoladas, así que no distingue "no existe" de "todavía en la cola".
+
+Errores:
+
+| Caso | Estado | `codigo` |
+|---|---|---|
+| `usuario_id` o `task_id` no es un UUID, o el cuerpo no es JSON | 400 | `ENTRADA_INVALIDA` |
+| Redis no responde (encolar, consultar o `/health`) | 503 | `COLA_NO_DISPONIBLE` |
+| El reporte terminó en error porque progreso no respondió | 200, `estado: error` | `DEPENDENCIA_NO_DISPONIBLE` |
+| El reporte terminó en error por otra causa | 200, `estado: error` | `ERROR_INTERNO` |
+
+El texto de `error` sale en español o en inglés según `Accept-Language`.
+El traceback de una tarea queda en Redis y nunca se devuelve.
+
+### Reporte
+
+Todos los campos salen de `GET /api/v2/progreso/<id>/` de progreso-flask,
+salvo `generado_en` (ISO 8601 UTC):
+
+```json
+{
+  "usuario_id": "…", "nivel_hsk": 1, "nivel_max_desbloqueado": 1,
+  "tasa_acierto": 0.5, "total_dominados": 0, "total_por_reforzar": 0,
+  "caracteres_dominados": [], "caracteres_debiles": [{"caracter": "学", "fallos": 2}],
+  "proximo_repaso": null, "actualizado_en": null,
+  "generado_en": "2026-10-26T21:00:00Z"
+}
+```
+
+Un usuario sin actividad recibe los valores iniciales de progreso: su
+reporte queda `listo`, no en error.
+
+### Si progreso no responde
+
+El `ClienteHttp` de la tarea va **sin reintentos HTTP** (`reintentos=0`);
+reintenta solo Celery: `autoretry_for=DependenciaNoDisponible`,
+`max_retries=3`, esperas de 2, 4 y 8 s, sin azar (`retry_jitter=False`).
+Mientras espera, el estado es `en_proceso`.
+
+Peor caso con `HTTP_TIMEOUT=3`: 4 intentos x 3 s + 14 s de espera = **26 s**
+hasta `error`. Si progreso está apagado (conexión rechazada), unos 14 s.
+Subir `HTTP_TIMEOUT` alarga ese tiempo. Un 4xx de progreso no se reintenta.
+
+### Notificaciones
+
+La tarea `notificar_sesion_lista(usuario_id, sesion_id)` la publica
+sesiones-flask por nombre. Deja una línea en el log del worker y guarda
+`{"tipo": "sesion_lista", "sesion_id", "creada_en"}` en la lista Redis
+`notificaciones:<usuario_id>` con `LPUSH` + `LTRIM 0 19` + `EXPIRE` de 7
+días, en una transacción. No guarda resultado (`ignore_result`).
 
 ## Estructura
 
 | Archivo                  | Responsabilidad                                                |
 |--------------------------|----------------------------------------------------------------|
-| `app.py`                 | Fábrica `create_app()`: config, errores, Redis y `/health`     |
+| `app.py`                 | Fábrica `create_app()`: config, errores, Redis, rutas y `/health` |
 | `config.py`              | Configuración desde variables de entorno (Flask y worker)      |
-| `tareas.py`              | `celery_app` y las tareas del worker (por ahora `ping`)        |
-| `errores.py`             | Manejadores JSON y `ErrorDominio`                              |
+| `tareas.py`              | `celery_app` y las tareas del worker                           |
+| `fabricas.py`            | Cliente Redis, publicador Celery y dependencias de las tareas  |
+| `clientes.py`            | `ClienteHttp` (igual que sesiones-flask) y `ProgresoRemoto`    |
+| `notificaciones.py`      | Lista de notificaciones en Redis y su doble en memoria         |
+| `dominio/reporte.py`     | Arma el JSON del reporte                                       |
+| `dominio/excepciones.py` | `ErrorReporte(codigo, mensaje)` y `DependenciaNoDisponible`    |
+| `servicio.py`            | Encolar, leer el estado y leer notificaciones                  |
+| `validacion.py`, `rutas.py`, `errores.py` | Entrada, endpoints y errores JSON             |
 | `i18n.py`, `mensajes.py`, `babel.cfg`, `translations/` | Mensajes en español e inglés (Flask-Babel) |
 
 ## Celery
@@ -30,17 +106,24 @@ Broker y backend: `REDIS_URL` (en Docker, `redis://redis:6379/0`).
 |------------------------------|--------|-------------------------------------------------|
 | `task_serializer`, `result_serializer`, `accept_content` | `json` | El worker nunca deserializa pickle |
 | `result_expires`             | 86400  | Los resultados caducan a las 24 h               |
-| `task_track_started`         | True   | Distingue "en proceso" de "pendiente"           |
+| `task_track_started`         | True   | Distingue `en_proceso` de `pendiente`           |
 | `task_soft_time_limit`       | 30     | Ninguna tarea queda colgada                     |
 | `worker_prefetch_multiplier` | 1      | Con `--concurrency=1`, una tarea por vez        |
 
+La app Flask **encola con otra app Celery** (`fabricas.crear_publicador`),
+por nombre de tarea, sin backend de resultados, sin reintentos de
+publicación y con timeouts de 1 s. Con el backend de Redis, cada
+publicación abriría una suscripción pub/sub que la app nunca usa y, con
+Redis caído, tardaría unos 40 s en fallar; así responde 503 en 1 o 2 s. Los
+resultados se leen con `tareas.celery_app.AsyncResult`, que es un GET.
+
 En Redis (`docker-compose.yml`), `--maxmemory 64mb --maxmemory-policy
-volatile-lru`: solo se expulsan claves con caducidad (resultados). La cola
-no caduca y nunca se expulsa.
+volatile-lru`: solo se expulsan claves con caducidad (resultados y
+notificaciones). La cola no caduca y nunca se expulsa.
 
 ## Correrlo en local
 
-Necesita un Redis en `localhost:6379`.
+Necesita un Redis en `localhost:6379` y progreso-flask en `localhost:5083`.
 
 ```bash
 python -m venv .venv
@@ -54,8 +137,10 @@ En Windows, `--pool=solo` en el worker.
 
 ## Pruebas
 
-No necesitan Redis ni worker: el cliente de Redis se inyecta en
-`create_app` y las tareas se llaman directamente o en modo eager.
+No necesitan Redis, worker ni red: Celery corre en modo eager con un
+backend en memoria (`cache+memory://`, que igual pasa los resultados por
+JSON), progreso y las notificaciones son dobles en memoria, y el publicador
+se inyecta en `create_app`.
 
 ```bash
 .venv/bin/python -m pytest -q
@@ -63,11 +148,19 @@ No necesitan Redis ni worker: el cliente de Redis se inyecta en
 
 ## Ejemplo
 
-Dentro de Docker (el servicio no publica puertos):
+Por el gateway:
 
 ```bash
-docker compose exec flask_reportes python -c "from tareas import ping; print(ping.delay().get(timeout=10))"
-# pong
-docker compose exec flask_reportes python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:5000/health').read().decode())"
-# {"estado":"ok","servicio":"reportes-flask"}
+curl -i -X POST http://localhost/api/v2/reportes/ \
+  -H "Content-Type: application/json" \
+  -d '{"usuario_id": "00000000-0000-0000-0000-000000000000"}'
+# HTTP/1.1 202 Accepted
+# Location: /api/v2/reportes/<task_id>/
+# {"task_id":"<task_id>","estado":"pendiente"}
+
+curl http://localhost/api/v2/reportes/<task_id>/
+# {"task_id":"<task_id>","estado":"listo","resultado":{...}}
+
+curl http://localhost/api/v2/reportes/notificaciones/00000000-0000-0000-0000-000000000000/
+# {"usuario_id":"…","notificaciones":[]}
 ```
