@@ -9,6 +9,9 @@ como respaldo mientras conviven las dos (T17).
 Sigue el estándar de [`docs/arquitectura/estandar-flask.md`](../../docs/arquitectura/estandar-flask.md)
 y parte de la plantilla `services/flask-base`.
 
+También expone `GET /api/v2/publico/resumen/` (T14), el servicio que consume
+el equipo aliado: un resumen del catálogo con CORS abierto (ver abajo).
+
 La validación de trazos **no** está acá: vive en `services/trazos-flask`
 (`POST /api/v2/trazos/validar/`). Este servicio entrega la mediana de cada
 trazo en el detalle del carácter, que es lo que trazos-flask necesita.
@@ -203,6 +206,35 @@ no clasificados. El tipo de cada ejercicio es aleatorio.
 ### `GET /api/v2/lecciones/<id>/`
 
 Misma forma que la respuesta de `generar`.
+
+### `GET /api/v2/publico/resumen/?nivel=`
+
+Servicio para el equipo aliado (T14): totales del catálogo y un carácter del
+día. Va en un blueprint aparte (`rutas_publico.py`) y responde con
+`Access-Control-Allow-Origin: *`, también en los errores, para que el aliado
+pueda consumirlo desde un navegador. Es de solo lectura y no usa credenciales.
+
+- `nivel`: entero de 1 a 6, opcional. Elige el carácter del día entre los de
+  ese nivel; los totales siempre son de todo el catálogo.
+- `caracter_del_dia`: el mismo durante todo el día (UTC). Sale de la fecha,
+  no del azar, así que dos peticiones del mismo día devuelven el mismo.
+  `null` si no hay caracteres cargados en ese nivel.
+- `caracteres_totales` incluye los caracteres sin nivel HSK; `por_nivel_hsk`
+  solo cuenta los clasificados.
+- Las definiciones vienen en inglés, como en el dataset de Make Me a Hanzi.
+
+```bash
+curl -s "http://localhost/api/v2/publico/resumen/"
+```
+
+```json
+{"sistema": "HanziMentor", "caracteres_totales": 696,
+ "por_nivel_hsk": {"1": 83, "2": 71, "3": 92, "4": 117, "5": 183, "6": 150},
+ "caracter_del_dia": {"hanzi": "糖", "pinyin": "táng", "definicion": "candy, sugar, sweets", "nivel_hsk": 3},
+ "generado_en": "2026-10-26T21:11:29Z"}
+```
+
+`nivel` fuera de 1 a 6 responde 400 `ENTRADA_INVALIDA`.
 
 ### `GET /health`
 
