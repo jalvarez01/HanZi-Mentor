@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: reportes-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-26 20:54-0500\n"
+"POT-Creation-Date: 2026-10-28 09:41-0500\n"
 "PO-Revision-Date: 2026-10-26 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: es\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app.py:49 servicio.py:42
+#: app.py:49 servicio.py:47
 msgid "La cola de tareas no está disponible."
 msgstr ""
 
@@ -33,6 +33,10 @@ msgstr ""
 
 #: errores.py:56 errores.py:66
 msgid "Error interno"
+msgstr ""
+
+#: servicio.py:55
+msgid "No existe un reporte con ese task_id."
 msgstr ""
 
 #: validacion.py:26

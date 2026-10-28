@@ -17,7 +17,7 @@ tiene `db.py` ni `crear_base.py` y no usa `DATABASE_URL`.
 | Método y ruta | Respuesta |
 |---|---|
 | `POST /api/v2/reportes/` con `{"usuario_id": "<uuid>"}` | `202 {"task_id", "estado": "pendiente"}` y `Location: /api/v2/reportes/<task_id>/` |
-| `GET /api/v2/reportes/<task_id>/` | `200 {"task_id", "estado"}`, más `resultado` (listo) o `codigo` y `error` (error) |
+| `GET /api/v2/reportes/<task_id>/` | `200 {"task_id", "estado"}`, más `resultado` (listo) o `codigo` y `error` (error); `404` si no existe o caducó |
 | `GET /api/v2/reportes/notificaciones/<usuario_id>/` | `200 {"usuario_id", "notificaciones": [...]}`, de la más nueva a la más vieja |
 
 Estados:
@@ -29,15 +29,28 @@ Estados:
 | `SUCCESS` | `listo` |
 | `FAILURE`, `REVOKED` | `error` |
 
-**Limitación de Celery:** un `task_id` que nunca existió, o cuyo resultado
-ya caducó, también responde `pendiente`. Celery no guarda la lista de
-tareas encoladas, así que no distingue "no existe" de "todavía en la cola".
+**task_id desconocido o caducado → 404.** Celery no guarda la lista de
+tareas encoladas: para él, un id que nunca existió es `PENDING`, igual que
+uno que espera en la cola. Por eso, al encolar, la API guarda la marca
+`reporte:<task_id>` en Redis con la misma caducidad que los resultados
+(24 h) y pasa ese mismo id a Celery (`send_task(..., task_id=...)`).
+
+| Marca | Estado en Celery | Respuesta |
+|---|---|---|
+| No | `PENDING` | `404 NO_ENCONTRADO` |
+| Sí | `PENDING` | `200 pendiente` (espera al worker) |
+| Sí o no | `STARTED`, `RETRY`, `SUCCESS`, `FAILURE` | `200` con su estado |
+
+El resultado se devuelve aunque falte la marca: con `volatile-lru`, Redis
+puede expulsarla antes que el resultado. Si falla guardar la marca o
+publicar la tarea, el POST responde 503 y no queda una marca huérfana.
 
 Errores:
 
 | Caso | Estado | `codigo` |
 |---|---|---|
 | `usuario_id` o `task_id` no es un UUID, o el cuerpo no es JSON | 400 | `ENTRADA_INVALIDA` |
+| El `task_id` no existe o su reporte caducó (24 h) | 404 | `NO_ENCONTRADO` |
 | Redis no responde (encolar, consultar o `/health`) | 503 | `COLA_NO_DISPONIBLE` |
 | El reporte terminó en error porque progreso no respondió | 200, `estado: error` | `DEPENDENCIA_NO_DISPONIBLE` |
 | El reporte terminó en error por otra causa | 200, `estado: error` | `ERROR_INTERNO` |
@@ -109,7 +122,8 @@ Broker y backend: `REDIS_URL` (en Docker, `redis://redis:6379/0`).
 | `task_serializer`, `result_serializer`, `accept_content` | `json` | El worker nunca deserializa pickle |
 | `result_expires`             | 86400  | Los resultados caducan a las 24 h               |
 | `task_track_started`         | True   | Distingue `en_proceso` de `pendiente`           |
-| `task_soft_time_limit`       | 30     | Ninguna tarea queda colgada                     |
+| `task_soft_time_limit`       | 30     | Aviso a la tarea para que termine               |
+| `task_time_limit`            | 40     | Límite duro: el worker corta el proceso hijo    |
 | `worker_prefetch_multiplier` | 1      | Con `--concurrency=1`, una tarea por vez        |
 
 La app Flask **encola con otra app Celery** (`fabricas.crear_publicador`),

@@ -23,7 +23,7 @@ def pedir(client, cuerpo, idioma=None):
 # ---------------------------------------------------------------- POST
 
 
-def test_post_202_con_task_id_y_location(client, publicador):
+def test_post_202_con_task_id_y_location(client, publicador, redis_falso):
     resp = pedir(client, {"usuario_id": USUARIO})
 
     assert resp.status_code == 202
@@ -33,6 +33,41 @@ def test_post_202_con_task_id_y_location(client, publicador):
     assert uuid.UUID(datos["task_id"])
     assert resp.headers["Location"] == f"/api/v2/reportes/{datos['task_id']}/"
     assert publicador.enviadas == [("generar_reporte_progreso", [USUARIO])]
+    # Marca con la misma caducidad que los resultados.
+    clave = f"reporte:{datos['task_id']}"
+    assert redis_falso.datos[clave] == "1"
+    assert redis_falso.caducidad[clave] == 86400
+
+
+class PublicadorQueGuarda:
+    """Encola sin ejecutar: la tarea se queda esperando al worker."""
+
+    def __init__(self):
+        self.opciones = []
+
+    def send_task(self, nombre, args=None, **opciones):
+        self.opciones.append(opciones)
+
+
+def test_task_id_de_la_respuesta_es_el_que_se_encola():
+    publicador = PublicadorQueGuarda()
+    client = create_app({"TESTING": True}, redis_cliente=RedisFalso(),
+                        publicador=publicador).test_client()
+
+    task_id = pedir(client, {"usuario_id": USUARIO}).get_json()["task_id"]
+
+    assert publicador.opciones == [{"task_id": task_id}]
+
+
+def test_recien_encolado_sigue_pendiente():
+    client = create_app({"TESTING": True}, redis_cliente=RedisFalso(),
+                        publicador=PublicadorQueGuarda()).test_client()
+    task_id = pedir(client, {"usuario_id": USUARIO}).get_json()["task_id"]
+
+    resp = client.get(f"/api/v2/reportes/{task_id}/")
+
+    assert resp.status_code == 200
+    assert resp.get_json() == {"task_id": task_id, "estado": "pendiente"}
 
 
 def test_post_y_get_hasta_listo(client):
@@ -89,8 +124,9 @@ class PublicadorCaido:
     (None, "La cola de tareas no está disponible."),
     ("en", "The task queue is not available."),
 ])
-def test_post_503_si_redis_no_responde(idioma, mensaje):
-    client = create_app({"TESTING": True}, redis_cliente=RedisFalso(),
+def test_post_503_si_el_broker_no_responde(idioma, mensaje):
+    redis_cliente = RedisFalso()
+    client = create_app({"TESTING": True}, redis_cliente=redis_cliente,
                         publicador=PublicadorCaido()).test_client()
 
     resp = pedir(client, {"usuario_id": USUARIO}, idioma)
@@ -98,17 +134,66 @@ def test_post_503_si_redis_no_responde(idioma, mensaje):
     assert resp.status_code == 503
     assert resp.get_json() == {"error": mensaje, "codigo": "COLA_NO_DISPONIBLE"}
     assert "6379" not in resp.get_data(as_text=True)
+    # La marca no queda huérfana.
+    assert redis_cliente.datos == {}
+
+
+def test_post_503_si_redis_no_guarda_la_marca():
+    class RedisQueCuenta(RedisFalso):
+        borrados = 0
+
+        def delete(self, clave):
+            RedisQueCuenta.borrados += 1
+            return super().delete(clave)
+
+    publicador = PublicadorQueGuarda()
+    client = create_app({"TESTING": True}, redis_cliente=RedisQueCuenta(caido=True),
+                        publicador=publicador).test_client()
+
+    resp = pedir(client, {"usuario_id": USUARIO}, "en")
+
+    assert resp.status_code == 503
+    assert resp.get_json() == {"error": "The task queue is not available.",
+                               "codigo": "COLA_NO_DISPONIBLE"}
+    assert publicador.opciones == []
+    # No se intenta borrar una marca que nunca se guardó (otra espera de DNS).
+    assert RedisQueCuenta.borrados == 0
 
 
 # ---------------------------------------------------------------- GET
 
 
-def test_get_task_id_desconocido_es_pendiente(client):
-    # Limitación de Celery: no distingue "no existe" de "todavía en la cola".
+@pytest.mark.parametrize("idioma, mensaje", [
+    (None, "No existe un reporte con ese task_id."),
+    ("en", "There is no report with that task_id."),
+])
+def test_get_task_id_desconocido_404(client, idioma, mensaje):
+    cabeceras = {"Accept-Language": idioma} if idioma else {}
+    resp = client.get(f"/api/v2/reportes/{DESCONOCIDO}/", headers=cabeceras)
+
+    assert resp.status_code == 404
+    assert resp.get_json() == {"error": mensaje, "codigo": "NO_ENCONTRADO"}
+
+
+def test_resultado_sin_marca_se_devuelve(client, monkeypatch):
+    # volatile-lru pudo expulsar la marca antes que el resultado.
+    monkeypatch.setattr(servicio, "celery_app", ResultadosFalsos("SUCCESS", {"nivel_hsk": 1}))
+
     resp = client.get(f"/api/v2/reportes/{DESCONOCIDO}/")
 
     assert resp.status_code == 200
-    assert resp.get_json() == {"task_id": DESCONOCIDO, "estado": "pendiente"}
+    assert resp.get_json() == {"task_id": DESCONOCIDO, "estado": "listo",
+                               "resultado": {"nivel_hsk": 1}}
+
+
+def test_pendiente_con_redis_caido_al_leer_la_marca_503(monkeypatch):
+    monkeypatch.setattr(servicio, "celery_app", ResultadosFalsos("PENDING"))
+    client = create_app({"TESTING": True}, redis_cliente=RedisFalso(caido=True)).test_client()
+
+    resp = client.get(f"/api/v2/reportes/{DESCONOCIDO}/")
+
+    assert resp.status_code == 503
+    assert resp.get_json()["codigo"] == "COLA_NO_DISPONIBLE"
 
 
 def test_get_task_id_invalido_400(client):
@@ -185,7 +270,8 @@ class ResultadosFalsos:
     ("FAILURE", "error"),
     ("REVOKED", "error"),
 ])
-def test_estados_de_celery(client, monkeypatch, estado_celery, estado):
+def test_estados_de_celery(client, redis_falso, monkeypatch, estado_celery, estado):
+    redis_falso.set(f"reporte:{DESCONOCIDO}", "1")
     monkeypatch.setattr(servicio, "celery_app", ResultadosFalsos(estado_celery, {}))
 
     datos = client.get(f"/api/v2/reportes/{DESCONOCIDO}/").get_json()

@@ -13,7 +13,9 @@ reportes_bp = Blueprint("reportes", __name__)
 def encolar():
     """Encola el reporte y responde enseguida; el worker lo genera después."""
     usuario_id = validar_pedido_reporte(request.get_json(silent=True))
-    task_id = servicio.encolar_reporte(current_app.extensions["publicador"], usuario_id)
+    task_id = servicio.encolar_reporte(
+        current_app.extensions["publicador"], current_app.extensions["redis"], usuario_id
+    )
     respuesta = jsonify({"task_id": task_id, "estado": "pendiente"})
     respuesta.headers["Location"] = url_for("reportes.consultar", task_id=task_id)
     return respuesta, 202
@@ -31,9 +33,8 @@ def notificaciones(usuario_id):
 
 @reportes_bp.get("/api/v2/reportes/<task_id>/")
 def consultar(task_id):
-    """Estado del reporte. Un task_id desconocido también responde "pendiente"
-    (limitación de Celery, ver servicio.py)."""
-    datos = servicio.consultar_reporte(validar_task_id(task_id))
+    """Estado del reporte. 404 si el task_id no existe o ya caducó (ver servicio.py)."""
+    datos = servicio.consultar_reporte(current_app.extensions["redis"], validar_task_id(task_id))
     if "error" in datos:
         datos["error"] = traducir(datos["error"])
     return jsonify(datos), 200

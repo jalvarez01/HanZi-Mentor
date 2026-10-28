@@ -22,6 +22,9 @@ from fabricas import crear_dependencias, crear_redis
 
 CONFIG = config.desde_entorno()
 
+# Los resultados y la marca reporte:<task_id> (servicio.py) caducan igual.
+RESULTADOS_CADUCAN_EN = 86400
+
 # Progreso caído: 4 intentos (1 + 3 reintentos) separados por 1, 2 y 4 s.
 # Con HTTP_TIMEOUT=3, en el peor caso 4 x 3 s + 7 s = 19 s hasta "error".
 # Con el contenedor de progreso detenido, cada intento tarda unos 4 s (la
@@ -39,10 +42,13 @@ celery_app.conf.update(
     accept_content=["json"],
     # Los resultados caducan a las 24 h. Con caducidad, Redis puede
     # expulsarlos (volatile-lru); la cola no caduca y nunca se expulsa.
-    result_expires=86400,
+    result_expires=RESULTADOS_CADUCAN_EN,
     # Distingue "en_proceso" de "pendiente" en GET /api/v2/reportes/<id>/.
     task_track_started=True,
     task_soft_time_limit=30,
+    # Límite duro: si la tarea ignora el aviso de los 30 s, el worker
+    # termina el proceso hijo a los 40 s y la tarea queda en error.
+    task_time_limit=40,
     # Con --concurrency=1, el worker toma una tarea por vez.
     worker_prefetch_multiplier=1,
     broker_connection_retry_on_startup=True,

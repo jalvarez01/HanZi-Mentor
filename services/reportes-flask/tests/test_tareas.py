@@ -17,6 +17,8 @@ def test_ajustes_de_celery():
     assert conf.result_expires == 86400
     assert conf.task_track_started is True
     assert conf.task_soft_time_limit == 30
+    # Límite duro por encima del aviso.
+    assert conf.task_time_limit == 40
     assert conf.worker_prefetch_multiplier == 1
 
 

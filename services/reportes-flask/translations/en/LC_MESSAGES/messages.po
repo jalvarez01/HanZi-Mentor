@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: reportes-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-26 20:54-0500\n"
+"POT-Creation-Date: 2026-10-28 09:41-0500\n"
 "PO-Revision-Date: 2026-10-26 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app.py:49 servicio.py:42
+#: app.py:49 servicio.py:47
 msgid "La cola de tareas no está disponible."
 msgstr "The task queue is not available."
 
@@ -34,6 +34,10 @@ msgstr "Method not allowed"
 #: errores.py:56 errores.py:66
 msgid "Error interno"
 msgstr "Internal error"
+
+#: servicio.py:55
+msgid "No existe un reporte con ese task_id."
+msgstr "There is no report with that task_id."
 
 #: validacion.py:26
 msgid "El usuario_id debe ser un UUID válido"

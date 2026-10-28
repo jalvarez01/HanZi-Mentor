@@ -43,7 +43,9 @@ tienen vuelta atrás. `flask_reportes` encola en `redis` y el servicio
 `worker` (Celery, misma imagen) ejecuta:
 
 - `generar_reporte_progreso(usuario_id)`: pide el progreso a flask_progreso
-  por HTTP y guarda el resumen en Redis 24 h.
+  por HTTP y guarda el resumen en Redis 24 h. El cliente consulta
+  `GET /api/v2/reportes/<task_id>/` hasta `listo` o `error`; un `task_id`
+  que no existe o ya caducó responde `404 NO_ENCONTRADO`.
 - `notificar_sesion_lista(usuario_id, sesion_id)`: la publica
   flask_sesiones al crear una sesión; queda en el log del worker y en la
   lista `notificaciones:<usuario_id>` (las últimas 20, 7 días).

@@ -37,13 +37,34 @@ PROGRESO = {
 
 
 class RedisFalso:
+    """Las órdenes de Redis que usa la app Flask, en memoria."""
+
     def __init__(self, caido=False):
         self.caido = caido
+        self.datos = {}
+        self.caducidad = {}
 
-    def ping(self):
+    def _verificar(self):
         if self.caido:
             raise redis.ConnectionError("Redis caído")
+
+    def ping(self):
+        self._verificar()
         return True
+
+    def set(self, clave, valor, ex=None):
+        self._verificar()
+        self.datos[clave] = valor
+        self.caducidad[clave] = ex
+        return True
+
+    def exists(self, clave):
+        self._verificar()
+        return int(clave in self.datos)
+
+    def delete(self, clave):
+        self._verificar()
+        return int(self.datos.pop(clave, None) is not None)
 
 
 class ProgresoFalso:
@@ -68,7 +89,7 @@ class PublicadorEager:
 
     def send_task(self, nombre, args=None, **opciones):
         self.enviadas.append((nombre, args))
-        return tareas.celery_app.tasks[nombre].apply_async(args=args)
+        return tareas.celery_app.tasks[nombre].apply_async(args=args, task_id=opciones.get("task_id"))
 
 
 # Se configura al importar, antes de que se registren las tareas: Celery
