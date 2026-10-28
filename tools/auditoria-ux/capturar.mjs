@@ -52,12 +52,15 @@ const CONFIG = {
   despues: { patronCaracteres: '**/api/v2/caracteres/**', i18n: true },
 }[VERSION];
 
+// Capturas solo del área visible: la barra inferior y el fondo son fixed y una
+// captura de página completa los pinta donde el usuario nunca los ve.
+// `fin`: además, una captura del final de la página en 375 (páginas largas).
 const PAGINAS = [
-  { id: 'inicio', ruta: '/' },
+  { id: 'inicio', ruta: '/', fin: true },
   { id: 'trazos', ruta: '/trazos' },
   { id: 'practica', ruta: '/practica' },
   { id: 'progreso', ruta: '/progreso' },
-  { id: 'como-funciona', ruta: '/como-funciona' },
+  { id: 'como-funciona', ruta: '/como-funciona', fin: true },
 ];
 
 const VIEWPORTS = {
@@ -172,13 +175,19 @@ function resumirAxe(resultado) {
 }
 
 async function capturasBase(browser, resumen) {
-  for (const { id, ruta } of PAGINAS) {
+  for (const { id, ruta, fin } of PAGINAS) {
     for (const ancho of Object.keys(VIEWPORTS)) {
       const contexto = await nuevoContexto(browser, ancho);
       const pagina = await contexto.newPage();
       await abrir(pagina, ruta);
 
-      const img = await guardarPng(`${id}-${ancho}`, await pagina.screenshot({ fullPage: true }));
+      const img = await guardarPng(`${id}-${ancho}`, await pagina.screenshot());
+      if (fin && ancho === '375') {
+        await pagina.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        await esperar(300);
+        await guardarPng(`${id}-${ancho}-fin`, await pagina.screenshot());
+        await pagina.evaluate(() => window.scrollTo(0, 0));
+      }
       const axe = await medirAxe(pagina);
       const extra = await chequeos(pagina);
       const tab = ancho === '1280' ? await secuenciaTab(pagina) : undefined;
@@ -202,7 +211,7 @@ async function capturaCarga(browser, resumen) {
   });
   await pagina.goto(`${BASE}/trazos`, { waitUntil: 'domcontentloaded' });
   await esperar(1500);
-  const img = await guardarPng('carga-trazos-375', await pagina.screenshot({ fullPage: true }));
+  const img = await guardarPng('carga-trazos-375', await pagina.screenshot());
   const anuncio = await pagina.evaluate(() =>
     [...document.querySelectorAll('[role="status"], [aria-live], [aria-busy="true"]')].map((el) => el.textContent.trim()),
   );
@@ -241,7 +250,7 @@ async function capturasIdioma(browser, resumen) {
     const contexto = await nuevoContexto(browser, 375, { idioma: 'en' });
     const pagina = await contexto.newPage();
     await abrir(pagina, PAGINAS.find((p) => p.id === id).ruta);
-    const img = await guardarPng(`en-${id}-375`, await pagina.screenshot({ fullPage: true }));
+    const img = await guardarPng(`en-${id}-375`, await pagina.screenshot());
     const axe = await medirAxe(pagina);
     const extra = await chequeos(pagina);
     await guardarJson(`en-${id}-375`, { axe, chequeos: extra });
@@ -255,7 +264,7 @@ async function capturaError(browser, resumen) {
   const pagina = await contexto.newPage();
   await abrir(pagina, '/progreso');
   await esperar(2000);
-  const img = await guardarPng('error-progreso-375', await pagina.screenshot({ fullPage: true }));
+  const img = await guardarPng('error-progreso-375', await pagina.screenshot());
   const axe = await medirAxe(pagina);
   const aviso = await pagina.evaluate(() => ({
     alertas: [...document.querySelectorAll('[role="alert"]')].map((el) => el.textContent.trim()),

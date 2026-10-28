@@ -1,7 +1,7 @@
 {
   "version": "antes",
   "base": "http://localhost:5173",
-  "fecha": "2026-10-28T15:15:12.095Z",
+  "fecha": "2026-10-28T15:50:32.702Z",
   "chrome": "155.0.8059.85",
   "playwright": "1.64.1",
   "axeCore": null,

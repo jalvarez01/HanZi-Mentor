@@ -1,7 +1,7 @@
 {
   "version": "antes",
   "base": "http://localhost:5173",
-  "fecha": "2026-10-28T15:14:25.772Z",
+  "fecha": "2026-10-28T15:48:50.684Z",
   "chrome": "155.0.8059.85",
   "playwright": "1.64.1",
   "axeCore": "4.14.0",
@@ -46,7 +46,7 @@
           }
         ]
       },
-      "bytes": 25855
+      "bytes": 24676
     },
     "inicio-1280": {
       "porImpacto": {
@@ -88,7 +88,7 @@
           }
         ]
       },
-      "bytes": 26924
+      "bytes": 26759
     },
     "trazos-375": {
       "porImpacto": {
@@ -129,7 +129,7 @@
           }
         ]
       },
-      "bytes": 11463
+      "bytes": 10293
     },
     "trazos-1280": {
       "porImpacto": {
@@ -176,7 +176,7 @@
           }
         ]
       },
-      "bytes": 15382
+      "bytes": 10988
     },
     "practica-375": {
       "porImpacto": {
@@ -295,7 +295,7 @@
           }
         ]
       },
-      "bytes": 15312
+      "bytes": 15379
     },
     "progreso-1280": {
       "porImpacto": {
@@ -342,7 +342,7 @@
           }
         ]
       },
-      "bytes": 17706
+      "bytes": 17003
     },
     "como-funciona-375": {
       "porImpacto": {
@@ -384,7 +384,7 @@
           }
         ]
       },
-      "bytes": 33354
+      "bytes": 22428
     },
     "como-funciona-1280": {
       "porImpacto": {
@@ -426,7 +426,7 @@
           }
         ]
       },
-      "bytes": 35201
+      "bytes": 26306
     }
   },
   "estados": {

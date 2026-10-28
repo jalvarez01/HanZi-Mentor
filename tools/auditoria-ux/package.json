@@ -8,7 +8,9 @@
     "antes": "node capturar.mjs --version antes --url http://localhost:5173",
     "antes:error": "node capturar.mjs --version antes --url http://localhost:5173 --solo error",
     "despues": "node capturar.mjs --version despues --url http://localhost",
-    "despues:error": "node capturar.mjs --version despues --url http://localhost --solo error"
+    "despues:error": "node capturar.mjs --version despues --url http://localhost --solo error",
+    "verificar:antes": "node verificar.mjs --version antes --url http://localhost:5173",
+    "verificar:despues": "node verificar.mjs --version despues --url http://localhost"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",

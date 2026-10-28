@@ -14,7 +14,7 @@
       "orientationAngle": 0,
       "orientationType": "landscape-primary"
     },
-    "timestamp": "2026-10-28T15:14:47.477Z",
+    "timestamp": "2026-10-28T15:49:24.483Z",
     "url": "http://localhost:5173/progreso",
     "toolOptions": {
       "runOnly": {
@@ -2623,7 +2623,7 @@
             "all": [],
             "none": [],
             "impact": "serious",
-            "html": "<p class=\"id-usuario\">id: d0d2b8bc-ac40-49e2-a9dc-55c6db0c699f</p>",
+            "html": "<p class=\"id-usuario\">id: ad626fef-4a47-491a-b112-b441867dc7c4</p>",
             "target": [
               ".id-usuario"
             ],
