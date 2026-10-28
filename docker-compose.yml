@@ -252,8 +252,8 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       # El reporte consulta progreso por HTTP. Sin reintentos HTTP: los hace
-      # Celery (3, a los 2, 4 y 8 s). Con HTTP_TIMEOUT=3, un progreso caído
-      # da "error" en menos de 30 s; un timeout mayor alarga ese tiempo.
+      # Celery (3, a los 1, 2 y 4 s). Con HTTP_TIMEOUT=3, un progreso caído
+      # da "error" en unos 23 s (menos de 30); un timeout mayor lo alarga.
       PROGRESO_URL: http://flask_progreso:5000
       HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
     depends_on:

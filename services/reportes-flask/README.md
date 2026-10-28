@@ -67,12 +67,14 @@ reporte queda `listo`, no en error.
 
 El `ClienteHttp` de la tarea va **sin reintentos HTTP** (`reintentos=0`);
 reintenta solo Celery: `autoretry_for=DependenciaNoDisponible`,
-`max_retries=3`, esperas de 2, 4 y 8 s, sin azar (`retry_jitter=False`).
+`max_retries=3`, esperas de 1, 2 y 4 s, sin azar (`retry_jitter=False`).
 Mientras espera, el estado es `en_proceso`.
 
-Peor caso con `HTTP_TIMEOUT=3`: 4 intentos x 3 s + 14 s de espera = **26 s**
-hasta `error`. Si progreso está apagado (conexión rechazada), unos 14 s.
-Subir `HTTP_TIMEOUT` alarga ese tiempo. Un 4xx de progreso no se reintenta.
+Peor caso con `HTTP_TIMEOUT=3`: 4 intentos x 3 s + 7 s de espera = **19 s**
+hasta `error`. Con el contenedor de progreso detenido, cada intento tarda
+unos 4 s porque la resolución DNS del nombre no respeta el timeout: 4 x 4 s
++ 7 s = **23 s** (medido en Docker). Subir `HTTP_TIMEOUT` alarga ese
+tiempo. Un 4xx de progreso no se reintenta.
 
 ### Notificaciones
 

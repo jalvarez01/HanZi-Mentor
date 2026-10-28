@@ -70,7 +70,7 @@ def test_progreso_caido_reintenta_3_veces_y_termina_en_error(dependencias):
     assert len(dependencias.progreso.consultas) == 4
 
 
-def test_backoff_2_4_8_sin_azar(dependencias, monkeypatch):
+def test_backoff_1_2_4_sin_azar(dependencias, monkeypatch):
     dependencias.progreso = ProgresoFalso(caido=True)
     esperas = []
     original = generar_reporte_progreso.retry
@@ -84,7 +84,7 @@ def test_backoff_2_4_8_sin_azar(dependencias, monkeypatch):
     generar_reporte_progreso.apply(args=[USUARIO])
 
     # El cuarto llamado a retry ya supera max_retries y no espera: falla.
-    assert esperas[:3] == [2, 4, 8]
+    assert esperas[:3] == [1, 2, 4]
     assert generar_reporte_progreso.retry_jitter is False
 
 
@@ -94,6 +94,9 @@ def test_peor_caso_hasta_error_menos_de_30_s():
     esperas = sum(tareas.BACKOFF_SEGUNDOS * 2 ** n for n in range(tareas.MAX_REINTENTOS))
 
     assert intentos * timeout + esperas < 30
+    # Medido en Docker con progreso detenido: la resolución DNS suma ~1 s por
+    # intento por encima del timeout.
+    assert intentos * (timeout + 1) + esperas < 30
 
 
 def test_cliente_de_la_tarea_sin_reintentos_http():

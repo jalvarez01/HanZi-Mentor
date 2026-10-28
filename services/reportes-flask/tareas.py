@@ -22,10 +22,12 @@ from fabricas import crear_dependencias, crear_redis
 
 CONFIG = config.desde_entorno()
 
-# Progreso caído: 4 intentos (1 + 3 reintentos) separados por 2, 4 y 8 s.
-# Con HTTP_TIMEOUT=3, en el peor caso 4 x 3 s + 14 s = 26 s hasta "error".
+# Progreso caído: 4 intentos (1 + 3 reintentos) separados por 1, 2 y 4 s.
+# Con HTTP_TIMEOUT=3, en el peor caso 4 x 3 s + 7 s = 19 s hasta "error".
+# Con el contenedor de progreso detenido, cada intento tarda unos 4 s (la
+# resolución DNS no respeta el timeout): 4 x 4 s + 7 s = 23 s.
 MAX_REINTENTOS = 3
-BACKOFF_SEGUNDOS = 2
+BACKOFF_SEGUNDOS = 1
 
 logger = get_task_logger(__name__)
 
@@ -72,7 +74,7 @@ def ping():
     bind=True,
     autoretry_for=(DependenciaNoDisponible,),
     max_retries=MAX_REINTENTOS,
-    # Espera = 2 * 2^reintento: 2, 4 y 8 s, sin azar.
+    # Espera = 1 * 2^reintento: 1, 2 y 4 s, sin azar.
     retry_backoff=BACKOFF_SEGUNDOS,
     retry_backoff_max=BACKOFF_SEGUNDOS * 2 ** (MAX_REINTENTOS - 1),
     retry_jitter=False,
