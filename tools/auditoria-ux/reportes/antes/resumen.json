@@ -1,0 +1,447 @@
+{
+  "version": "antes",
+  "base": "http://localhost:5173",
+  "fecha": "2026-10-28T15:14:25.772Z",
+  "chrome": "155.0.8059.85",
+  "playwright": "1.64.1",
+  "axeCore": "4.14.0",
+  "etiquetas": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa"
+  ],
+  "paginas": {
+    "inicio-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": false,
+        "h1": [
+          "HanZi Mentor"
+        ],
+        "pestanaActiva": "家Inicio",
+        "objetivosPequenos": [
+          {
+            "texto": "Ver cómo funciona",
+            "ancho": 125,
+            "alto": 20
+          }
+        ]
+      },
+      "bytes": 25855
+    },
+    "inicio-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 3,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": false,
+        "h1": [
+          "HanZi Mentor"
+        ],
+        "pestanaActiva": "家Inicio",
+        "objetivosPequenos": [
+          {
+            "texto": "Ver cómo funciona",
+            "ancho": 125,
+            "alto": 20
+          }
+        ]
+      },
+      "bytes": 26924
+    },
+    "trazos-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": false,
+        "h1": [
+          "Trazos"
+        ],
+        "pestanaActiva": "写Trazos",
+        "objetivosPequenos": [
+          {
+            "texto": "Anterior",
+            "ancho": 81,
+            "alto": 38
+          },
+          {
+            "texto": "Siguiente",
+            "ancho": 89,
+            "alto": 38
+          }
+        ]
+      },
+      "bytes": 11463
+    },
+    "trazos-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 2,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": false,
+        "h1": [
+          "Trazos"
+        ],
+        "pestanaActiva": "写Trazos",
+        "objetivosPequenos": [
+          {
+            "texto": "Anterior",
+            "ancho": 81,
+            "alto": 38
+          },
+          {
+            "texto": "Siguiente",
+            "ancho": 89,
+            "alto": 38
+          }
+        ]
+      },
+      "bytes": 15382
+    },
+    "practica-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 5,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": false,
+        "h1": [
+          "Practicar"
+        ],
+        "pestanaActiva": "师Practicar",
+        "objetivosPequenos": []
+      },
+      "bytes": 11150
+    },
+    "practica-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 5,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": false,
+        "h1": [
+          "Practicar"
+        ],
+        "pestanaActiva": "师Practicar",
+        "objetivosPequenos": []
+      },
+      "bytes": 13262
+    },
+    "progreso-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 5,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": false,
+        "h1": [
+          "Progreso"
+        ],
+        "pestanaActiva": "级Progreso",
+        "objetivosPequenos": [
+          {
+            "texto": "Actualizar",
+            "ancho": 335,
+            "alto": 42
+          },
+          {
+            "texto": "Empezar como usuario nuevo",
+            "ancho": 335,
+            "alto": 42
+          }
+        ]
+      },
+      "bytes": 15312
+    },
+    "progreso-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 5,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": false,
+        "h1": [
+          "Progreso"
+        ],
+        "pestanaActiva": "级Progreso",
+        "objetivosPequenos": [
+          {
+            "texto": "Actualizar",
+            "ancho": 440,
+            "alto": 42
+          },
+          {
+            "texto": "Empezar como usuario nuevo",
+            "ancho": 440,
+            "alto": 42
+          }
+        ]
+      },
+      "bytes": 17706
+    },
+    "como-funciona-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 5,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": false,
+        "h1": [
+          "Cómo funciona"
+        ],
+        "pestanaActiva": null,
+        "objetivosPequenos": [
+          {
+            "texto": "‹",
+            "ancho": 8,
+            "alto": 34
+          }
+        ]
+      },
+      "bytes": 33354
+    },
+    "como-funciona-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 7,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanZi Mentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": false,
+        "h1": [
+          "Cómo funciona"
+        ],
+        "pestanaActiva": null,
+        "objetivosPequenos": [
+          {
+            "texto": "‹",
+            "ancho": 8,
+            "alto": 34
+          }
+        ]
+      },
+      "bytes": 35201
+    }
+  },
+  "estados": {
+    "carga": {
+      "pagina": "trazos",
+      "anunciosAccesibles": [],
+      "bytes": 4169
+    },
+    "focoTabbar": {
+      "alcanzado": true,
+      "bytes": 25217
+    },
+    "focoTrazos": {
+      "alcanzado": true,
+      "bytes": 13182
+    }
+  }
+}

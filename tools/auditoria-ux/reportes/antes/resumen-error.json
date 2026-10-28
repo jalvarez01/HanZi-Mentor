@@ -1,0 +1,46 @@
+{
+  "version": "antes",
+  "base": "http://localhost:5173",
+  "fecha": "2026-10-28T15:15:12.095Z",
+  "chrome": "155.0.8059.85",
+  "playwright": "1.64.1",
+  "axeCore": null,
+  "etiquetas": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa"
+  ],
+  "paginas": {},
+  "estados": {
+    "error": {
+      "pagina": "progreso",
+      "alertas": [],
+      "textoError": [
+        "No se pudo conectar con el servidor. ¿Está corriendo el backend?"
+      ],
+      "botones": [],
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 1,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 4,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        },
+        {
+          "id": "meta-viewport",
+          "impacto": "moderate",
+          "nodos": 1,
+          "ayuda": "Zooming and scaling must not be disabled"
+        }
+      ],
+      "bytes": 4195
+    }
+  }
+}
