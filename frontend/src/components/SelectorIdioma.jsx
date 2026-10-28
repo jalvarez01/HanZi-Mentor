@@ -4,7 +4,9 @@ import './SelectorIdioma.css';
 
 /**
  * Par de botones conmutables (es / en). aria-pressed indica el activo y
- * cada botón anuncia el nombre completo del idioma en ese mismo idioma.
+ * cada botón anuncia el código visible seguido del nombre completo del
+ * idioma en ese mismo idioma (el nombre accesible contiene el texto
+ * visible, WCAG 2.5.3).
  */
 export default function SelectorIdioma() {
   const { t, i18n } = useTranslation();
@@ -19,7 +21,10 @@ export default function SelectorIdioma() {
           lang={idioma}
           className="selector-idioma__opcion"
           aria-pressed={actual === idioma}
-          aria-label={t(`language.${idioma}`)}
+          aria-label={t('language.option', {
+            codigo: idioma.toUpperCase(),
+            nombre: t(`language.${idioma}`),
+          })}
           onClick={() => i18n.changeLanguage(idioma)}
         >
           {idioma.toUpperCase()}

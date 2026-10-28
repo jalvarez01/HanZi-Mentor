@@ -55,6 +55,6 @@
 .ejemplos-credito a:hover { color: var(--jade); }
 
 .ejemplos-credito a:focus-visible {
-  outline: 2px solid var(--ochre);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }

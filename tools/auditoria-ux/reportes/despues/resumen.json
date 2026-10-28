@@ -1,7 +1,7 @@
 {
   "version": "despues",
   "base": "http://localhost",
-  "fecha": "2026-10-28T15:45:03.103Z",
+  "fecha": "2026-10-28T16:15:17.958Z",
   "chrome": "155.0.8059.85",
   "playwright": "1.64.1",
   "axeCore": "4.14.0",
@@ -15,31 +15,18 @@
     "inicio-375": {
       "porImpacto": {
         "critical": 0,
-        "serious": 2,
+        "serious": 0,
         "moderate": 0,
         "minor": 0
       },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 6,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 3,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
+      "reglas": [],
       "chequeos": {
         "lang": "es",
         "titulo": "HanziMentor",
         "desbordeHorizontal": false,
         "scrollWidth": 375,
         "innerWidth": 375,
-        "tieneMain": false,
+        "tieneMain": true,
         "h1": [
           "Escribítrazo atrazo."
         ],
@@ -92,412 +79,12 @@
           }
         ]
       },
-      "bytes": 154789
+      "bytes": 156138
     },
     "inicio-1280": {
       "porImpacto": {
         "critical": 0,
-        "serious": 2,
-        "moderate": 0,
-        "minor": 0
-      },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 17,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 3,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
-      "chequeos": {
-        "lang": "es",
-        "titulo": "HanziMentor",
-        "desbordeHorizontal": false,
-        "scrollWidth": 1280,
-        "innerWidth": 1280,
-        "tieneMain": false,
-        "h1": [
-          "Escribítrazo atrazo."
-        ],
-        "pestanaActiva": "Inicio",
-        "objetivosPequenos": [
-          {
-            "texto": "ES",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "EN",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "Ver cómo funciona",
-            "ancho": 146,
-            "alto": 35
-          },
-          {
-            "texto": "Comenzar",
-            "ancho": 101,
-            "alto": 35
-          },
-          {
-            "texto": "Ver tu progreso",
-            "ancho": 32,
-            "alto": 32
-          },
-          {
-            "texto": "Inicio",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Trazos",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Practicar",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Progreso",
-            "ancho": 134,
-            "alto": 37
-          }
-        ]
-      },
-      "bytes": 236719
-    },
-    "trazos-375": {
-      "porImpacto": {
-        "critical": 0,
-        "serious": 2,
-        "moderate": 0,
-        "minor": 0
-      },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 5,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
-      "chequeos": {
-        "lang": "es",
-        "titulo": "HanziMentor",
-        "desbordeHorizontal": false,
-        "scrollWidth": 375,
-        "innerWidth": 375,
-        "tieneMain": false,
-        "h1": [
-          "Trazos"
-        ],
-        "pestanaActiva": "Trazos",
-        "objetivosPequenos": [
-          {
-            "texto": "ES",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "EN",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "Anterior",
-            "ancho": 89,
-            "alto": 34
-          },
-          {
-            "texto": "Siguiente",
-            "ancho": 92,
-            "alto": 34
-          },
-          {
-            "texto": "Oraciones de Tatoeba.org (CC B",
-            "ancho": 188,
-            "alto": 11
-          },
-          {
-            "texto": "Inicio",
-            "ancho": 88,
-            "alto": 37
-          },
-          {
-            "texto": "Trazos",
-            "ancho": 88,
-            "alto": 37
-          },
-          {
-            "texto": "Practicar",
-            "ancho": 88,
-            "alto": 37
-          },
-          {
-            "texto": "Progreso",
-            "ancho": 88,
-            "alto": 37
-          }
-        ]
-      },
-      "bytes": 101938
-    },
-    "trazos-1280": {
-      "porImpacto": {
-        "critical": 0,
-        "serious": 2,
-        "moderate": 0,
-        "minor": 0
-      },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 19,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
-      "chequeos": {
-        "lang": "es",
-        "titulo": "HanziMentor",
-        "desbordeHorizontal": false,
-        "scrollWidth": 1280,
-        "innerWidth": 1280,
-        "tieneMain": false,
-        "h1": [
-          "Trazos"
-        ],
-        "pestanaActiva": "Trazos",
-        "objetivosPequenos": [
-          {
-            "texto": "ES",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "EN",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "Anterior",
-            "ancho": 89,
-            "alto": 34
-          },
-          {
-            "texto": "Siguiente",
-            "ancho": 92,
-            "alto": 34
-          },
-          {
-            "texto": "Oraciones de Tatoeba.org (CC B",
-            "ancho": 188,
-            "alto": 11
-          },
-          {
-            "texto": "Inicio",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Trazos",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Practicar",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Progreso",
-            "ancho": 134,
-            "alto": 37
-          }
-        ]
-      },
-      "bytes": 68700
-    },
-    "practica-375": {
-      "porImpacto": {
-        "critical": 0,
-        "serious": 2,
-        "moderate": 0,
-        "minor": 0
-      },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 5,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
-      "chequeos": {
-        "lang": "es",
-        "titulo": "HanziMentor",
-        "desbordeHorizontal": false,
-        "scrollWidth": 375,
-        "innerWidth": 375,
-        "tieneMain": false,
-        "h1": [
-          "Practicar"
-        ],
-        "pestanaActiva": "Practicar",
-        "objetivosPequenos": [
-          {
-            "texto": "ES",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "EN",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "Sesión adaptativa",
-            "ancho": 170,
-            "alto": 36
-          },
-          {
-            "texto": "Lección por nivel",
-            "ancho": 170,
-            "alto": 36
-          },
-          {
-            "texto": "Inicio",
-            "ancho": 88,
-            "alto": 37
-          },
-          {
-            "texto": "Trazos",
-            "ancho": 88,
-            "alto": 37
-          },
-          {
-            "texto": "Practicar",
-            "ancho": 88,
-            "alto": 37
-          },
-          {
-            "texto": "Progreso",
-            "ancho": 88,
-            "alto": 37
-          }
-        ]
-      },
-      "bytes": 184563
-    },
-    "practica-1280": {
-      "porImpacto": {
-        "critical": 0,
-        "serious": 2,
-        "moderate": 0,
-        "minor": 0
-      },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 10,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
-      "chequeos": {
-        "lang": "es",
-        "titulo": "HanziMentor",
-        "desbordeHorizontal": false,
-        "scrollWidth": 1280,
-        "innerWidth": 1280,
-        "tieneMain": false,
-        "h1": [
-          "Practicar"
-        ],
-        "pestanaActiva": "Practicar",
-        "objetivosPequenos": [
-          {
-            "texto": "ES",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "EN",
-            "ancho": 32,
-            "alto": 30
-          },
-          {
-            "texto": "Sesión adaptativa",
-            "ancho": 257,
-            "alto": 36
-          },
-          {
-            "texto": "Lección por nivel",
-            "ancho": 257,
-            "alto": 36
-          },
-          {
-            "texto": "Inicio",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Trazos",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Practicar",
-            "ancho": 134,
-            "alto": 37
-          },
-          {
-            "texto": "Progreso",
-            "ancho": 134,
-            "alto": 37
-          }
-        ]
-      },
-      "bytes": 236068
-    },
-    "progreso-375": {
-      "porImpacto": {
-        "critical": 0,
-        "serious": 2,
+        "serious": 1,
         "moderate": 0,
         "minor": 0
       },
@@ -507,21 +94,364 @@
           "impacto": "serious",
           "nodos": 9,
           "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
         }
       ],
       "chequeos": {
         "lang": "es",
         "titulo": "HanziMentor",
         "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Escribítrazo atrazo."
+        ],
+        "pestanaActiva": "Inicio",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Ver cómo funciona",
+            "ancho": 146,
+            "alto": 35
+          },
+          {
+            "texto": "Comenzar",
+            "ancho": 101,
+            "alto": 35
+          },
+          {
+            "texto": "Ver tu progreso",
+            "ancho": 32,
+            "alto": 32
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 234038
+    },
+    "trazos-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
         "scrollWidth": 375,
         "innerWidth": 375,
-        "tieneMain": false,
+        "tieneMain": true,
+        "h1": [
+          "Trazos"
+        ],
+        "pestanaActiva": "Trazos",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Anterior",
+            "ancho": 89,
+            "alto": 34
+          },
+          {
+            "texto": "Siguiente",
+            "ancho": 92,
+            "alto": 34
+          },
+          {
+            "texto": "Oraciones de Tatoeba.org (CC B",
+            "ancho": 188,
+            "alto": 11
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 88,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 103692
+    },
+    "trazos-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 12,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Trazos"
+        ],
+        "pestanaActiva": "Trazos",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Anterior",
+            "ancho": 89,
+            "alto": 34
+          },
+          {
+            "texto": "Siguiente",
+            "ancho": 92,
+            "alto": 34
+          },
+          {
+            "texto": "Oraciones de Tatoeba.org (CC B",
+            "ancho": 188,
+            "alto": 11
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 70133
+    },
+    "practica-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": true,
+        "h1": [
+          "Practicar"
+        ],
+        "pestanaActiva": "Practicar",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Sesión adaptativa",
+            "ancho": 170,
+            "alto": 36
+          },
+          {
+            "texto": "Lección por nivel",
+            "ancho": 170,
+            "alto": 36
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 88,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 183670
+    },
+    "practica-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 5,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Practicar"
+        ],
+        "pestanaActiva": "Practicar",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Sesión adaptativa",
+            "ancho": 257,
+            "alto": 36
+          },
+          {
+            "texto": "Lección por nivel",
+            "ancho": 257,
+            "alto": 36
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 238476
+    },
+    "progreso-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": true,
         "h1": [
           "Progreso"
         ],
@@ -564,12 +494,12 @@
           }
         ]
       },
-      "bytes": 171109
+      "bytes": 174520
     },
     "progreso-1280": {
       "porImpacto": {
         "critical": 0,
-        "serious": 2,
+        "serious": 1,
         "moderate": 0,
         "minor": 0
       },
@@ -577,14 +507,8 @@
         {
           "id": "color-contrast",
           "impacto": "serious",
-          "nodos": 25,
+          "nodos": 14,
           "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
         }
       ],
       "chequeos": {
@@ -593,7 +517,7 @@
         "desbordeHorizontal": false,
         "scrollWidth": 1280,
         "innerWidth": 1280,
-        "tieneMain": false,
+        "tieneMain": true,
         "h1": [
           "Progreso"
         ],
@@ -636,36 +560,23 @@
           }
         ]
       },
-      "bytes": 210577
+      "bytes": 211957
     },
     "como-funciona-375": {
       "porImpacto": {
         "critical": 0,
-        "serious": 2,
+        "serious": 0,
         "moderate": 0,
         "minor": 0
       },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 8,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
+      "reglas": [],
       "chequeos": {
         "lang": "es",
         "titulo": "HanziMentor",
         "desbordeHorizontal": false,
         "scrollWidth": 375,
         "innerWidth": 375,
-        "tieneMain": false,
+        "tieneMain": true,
         "h1": [
           "Cómo funciona"
         ],
@@ -708,12 +619,12 @@
           }
         ]
       },
-      "bytes": 158015
+      "bytes": 163448
     },
     "como-funciona-1280": {
       "porImpacto": {
         "critical": 0,
-        "serious": 2,
+        "serious": 1,
         "moderate": 0,
         "minor": 0
       },
@@ -721,14 +632,8 @@
         {
           "id": "color-contrast",
           "impacto": "serious",
-          "nodos": 23,
+          "nodos": 7,
           "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
         }
       ],
       "chequeos": {
@@ -737,7 +642,7 @@
         "desbordeHorizontal": false,
         "scrollWidth": 1280,
         "innerWidth": 1280,
-        "tieneMain": false,
+        "tieneMain": true,
         "h1": [
           "Cómo funciona"
         ],
@@ -780,7 +685,7 @@
           }
         ]
       },
-      "bytes": 185720
+      "bytes": 179186
     }
   },
   "estados": {
@@ -789,64 +694,38 @@
       "anunciosAccesibles": [
         "Cargando…"
       ],
-      "bytes": 29110
+      "bytes": 124526
     },
     "focoTabbar": {
       "alcanzado": true,
-      "bytes": 160597
+      "bytes": 160940
     },
     "focoTrazos": {
       "alcanzado": true,
-      "bytes": 132127
+      "bytes": 136523
     },
     "idioma": {
       "inicio": {
         "lang": "en",
         "porImpacto": {
           "critical": 0,
-          "serious": 2,
+          "serious": 0,
           "moderate": 0,
           "minor": 0
         },
-        "reglas": [
-          {
-            "id": "color-contrast",
-            "impacto": "serious",
-            "nodos": 6,
-            "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-          },
-          {
-            "id": "label-content-name-mismatch",
-            "impacto": "serious",
-            "nodos": 3,
-            "ayuda": "Elements must have their visible text as part of their accessible name"
-          }
-        ],
-        "bytes": 156642
+        "reglas": [],
+        "bytes": 157162
       },
       "progreso": {
         "lang": "en",
         "porImpacto": {
           "critical": 0,
-          "serious": 2,
+          "serious": 0,
           "moderate": 0,
           "minor": 0
         },
-        "reglas": [
-          {
-            "id": "color-contrast",
-            "impacto": "serious",
-            "nodos": 9,
-            "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-          },
-          {
-            "id": "label-content-name-mismatch",
-            "impacto": "serious",
-            "nodos": 2,
-            "ayuda": "Elements must have their visible text as part of their accessible name"
-          }
-        ],
-        "bytes": 172115
+        "reglas": [],
+        "bytes": 168428
       }
     }
   }

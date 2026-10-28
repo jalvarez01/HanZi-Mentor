@@ -14,7 +14,7 @@
       "orientationAngle": 0,
       "orientationType": "landscape-primary"
     },
-    "timestamp": "2026-10-28T15:45:40.056Z",
+    "timestamp": "2026-10-28T16:15:52.576Z",
     "url": "http://localhost/progreso",
     "toolOptions": {
       "runOnly": {
@@ -904,9 +904,9 @@
               }
             ],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -944,7 +944,7 @@
               }
             ],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -1296,9 +1296,9 @@
             ],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -1314,7 +1314,7 @@
             ],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -1912,9 +1912,9 @@
               }
             ],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -1930,7 +1930,7 @@
               }
             ],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -2306,9 +2306,9 @@
             ],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -2338,7 +2338,7 @@
             ],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -2634,9 +2634,9 @@
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -2652,7 +2652,7 @@
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -2826,9 +2826,9 @@
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -2851,7 +2851,7 @@
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -2953,6 +2953,20 @@
                 ],
                 "impact": "serious",
                 "message": "Page has a heading"
+              },
+              {
+                "id": "landmark",
+                "data": null,
+                "relatedNodes": [
+                  {
+                    "html": "<main class=\"hm-page progreso\">",
+                    "target": [
+                      "main"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Page has a landmark region"
               }
             ],
             "all": [],
@@ -3104,9 +3118,34 @@
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#f0e6cf",
+                  "contrastRatio": 6.33,
+                  "fontSize": "7.5pt (10px)",
+                  "fontWeight": "bold",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.33"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
+            "target": [
+              "button[lang=\"en\"]"
             ]
           },
           {
@@ -3139,16 +3178,16 @@
               {
                 "id": "color-contrast",
                 "data": {
-                  "fgColor": "#625b4c",
+                  "fgColor": "#4a4438",
                   "bgColor": "#eee4cd",
-                  "contrastRatio": 5.32,
+                  "contrastRatio": 7.63,
                   "fontSize": "6.8pt (9px)",
                   "fontWeight": "bold",
                   "expectedContrastRatio": "4.5:1"
                 },
                 "relatedNodes": [],
                 "impact": "serious",
-                "message": "Element has sufficient color contrast of 5.32"
+                "message": "Element has sufficient color contrast of 7.63"
               }
             ],
             "all": [],
@@ -3164,16 +3203,16 @@
               {
                 "id": "color-contrast",
                 "data": {
-                  "fgColor": "#625b4c",
+                  "fgColor": "#4a4438",
                   "bgColor": "#eee4cd",
-                  "contrastRatio": 5.32,
+                  "contrastRatio": 7.63,
                   "fontSize": "6.8pt (9px)",
                   "fontWeight": "bold",
                   "expectedContrastRatio": "4.5:1"
                 },
                 "relatedNodes": [],
                 "impact": "serious",
-                "message": "Element has sufficient color contrast of 5.32"
+                "message": "Element has sufficient color contrast of 7.63"
               }
             ],
             "all": [],
@@ -3214,16 +3253,16 @@
               {
                 "id": "color-contrast",
                 "data": {
-                  "fgColor": "#625b4c",
+                  "fgColor": "#4a4438",
                   "bgColor": "#eee4cd",
-                  "contrastRatio": 5.32,
+                  "contrastRatio": 7.63,
                   "fontSize": "6.8pt (9px)",
                   "fontWeight": "bold",
                   "expectedContrastRatio": "4.5:1"
                 },
                 "relatedNodes": [],
                 "impact": "serious",
-                "message": "Element has sufficient color contrast of 5.32"
+                "message": "Element has sufficient color contrast of 7.63"
               }
             ],
             "all": [],
@@ -3314,16 +3353,141 @@
               {
                 "id": "color-contrast",
                 "data": {
-                  "fgColor": "#625b4c",
+                  "fgColor": "#585143",
                   "bgColor": "#eee4cd",
-                  "contrastRatio": 5.32,
+                  "contrastRatio": 6.21,
+                  "fontSize": "6.8pt (9px)",
+                  "fontWeight": "bold",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<li class=\"progreso-nivel  \">HSK2</li>",
+            "target": [
+              "li:nth-child(2)"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 6.21,
+                  "fontSize": "6.8pt (9px)",
+                  "fontWeight": "bold",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<li class=\"progreso-nivel  \">HSK3</li>",
+            "target": [
+              "li:nth-child(3)"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 6.21,
+                  "fontSize": "6.8pt (9px)",
+                  "fontWeight": "bold",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<li class=\"progreso-nivel  \">HSK4</li>",
+            "target": [
+              "li:nth-child(4)"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 6.21,
+                  "fontSize": "6.8pt (9px)",
+                  "fontWeight": "bold",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<li class=\"progreso-nivel  \">HSK5</li>",
+            "target": [
+              "li:nth-child(5)"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 6.21,
+                  "fontSize": "6.8pt (9px)",
+                  "fontWeight": "bold",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<li class=\"progreso-nivel  \">HSK6</li>",
+            "target": [
+              "li:nth-child(6)"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#4a4438",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 7.63,
                   "fontSize": "9.8pt (13px)",
                   "fontWeight": "normal",
                   "expectedContrastRatio": "4.5:1"
                 },
                 "relatedNodes": [],
                 "impact": "serious",
-                "message": "Element has sufficient color contrast of 5.32"
+                "message": "Element has sufficient color contrast of 7.63"
               }
             ],
             "all": [],
@@ -3389,16 +3553,16 @@
               {
                 "id": "color-contrast",
                 "data": {
-                  "fgColor": "#625b4c",
+                  "fgColor": "#4a4438",
                   "bgColor": "#e6d7b9",
-                  "contrastRatio": 4.73,
+                  "contrastRatio": 6.79,
                   "fontSize": "9.8pt (13px)",
                   "fontWeight": "normal",
                   "expectedContrastRatio": "4.5:1"
                 },
                 "relatedNodes": [],
                 "impact": "serious",
-                "message": "Element has sufficient color contrast of 4.73"
+                "message": "Element has sufficient color contrast of 6.79"
               }
             ],
             "all": [],
@@ -3464,16 +3628,16 @@
               {
                 "id": "color-contrast",
                 "data": {
-                  "fgColor": "#625b4c",
+                  "fgColor": "#4a4438",
                   "bgColor": "#e6d7b9",
-                  "contrastRatio": 4.73,
+                  "contrastRatio": 6.79,
                   "fontSize": "9.8pt (13px)",
                   "fontWeight": "normal",
                   "expectedContrastRatio": "4.5:1"
                 },
                 "relatedNodes": [],
                 "impact": "serious",
-                "message": "Element has sufficient color contrast of 4.73"
+                "message": "Element has sufficient color contrast of 6.79"
               }
             ],
             "all": [],
@@ -3589,24 +3753,99 @@
               {
                 "id": "color-contrast",
                 "data": {
-                  "fgColor": "#625b4c",
+                  "fgColor": "#4a4438",
                   "bgColor": "#eee4cd",
-                  "contrastRatio": 5.32,
+                  "contrastRatio": 7.63,
                   "fontSize": "7.5pt (10px)",
                   "fontWeight": "normal",
                   "expectedContrastRatio": "4.5:1"
                 },
                 "relatedNodes": [],
                 "impact": "serious",
-                "message": "Element has sufficient color contrast of 5.32"
+                "message": "Element has sufficient color contrast of 7.63"
               }
             ],
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<p class=\"progreso-id\">id: 44bc3a5f-7ebf-4ff7-ad03-63e449147b28</p>",
+            "html": "<p class=\"progreso-id\">id: c87ba2d3-de21-44cb-9460-5fa84c5efe2a</p>",
             "target": [
               ".progreso-id"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 6.21,
+                  "fontSize": "7.5pt (10px)",
+                  "fontWeight": "normal",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<span class=\"tab-label\">Inicio</span>",
+            "target": [
+              "a[href=\"/\"] > .tab-label"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 6.21,
+                  "fontSize": "7.5pt (10px)",
+                  "fontWeight": "normal",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<span class=\"tab-label\">Trazos</span>",
+            "target": [
+              "a[href$=\"trazos\"] > .tab-label"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#585143",
+                  "bgColor": "#eee4cd",
+                  "contrastRatio": 6.21,
+                  "fontSize": "7.5pt (10px)",
+                  "fontWeight": "normal",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has sufficient color contrast of 6.21"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<span class=\"tab-label\">Practicar</span>",
+            "target": [
+              "a[href$=\"practica\"] > .tab-label"
             ]
           },
           {
@@ -3839,6 +4078,60 @@
             "html": "<html lang=\"es\">",
             "target": [
               "html"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "impact": null,
+        "tags": [
+          "cat.semantics",
+          "wcag21a",
+          "wcag253",
+          "EN-301-549",
+          "EN-9.2.5.3",
+          "RGAAv4",
+          "RGAA-6.1.5"
+        ],
+        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+        "help": "Elements must have their visible text as part of their accessible name",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "label-content-name-mismatch",
+                "data": null,
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element contains visible text as part of its accessible name"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
+            "target": [
+              "button[aria-label=\"ES, Español\"]"
+            ]
+          },
+          {
+            "any": [
+              {
+                "id": "label-content-name-mismatch",
+                "data": null,
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element contains visible text as part of its accessible name"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": null,
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
+            "target": [
+              "button[lang=\"en\"]"
             ]
           }
         ]
@@ -4220,9 +4513,9 @@
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -4238,7 +4531,7 @@
             "all": [],
             "none": [],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -4361,9 +4654,9 @@
               }
             ],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
+            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"ES, Español\">ES</button>",
             "target": [
-              "button[aria-label=\"Español\"]"
+              "button[aria-label=\"ES, Español\"]"
             ]
           },
           {
@@ -4379,7 +4672,7 @@
               }
             ],
             "impact": null,
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
+            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"EN, English\">EN</button>",
             "target": [
               "button[lang=\"en\"]"
             ]
@@ -4488,499 +4781,7 @@
         ]
       }
     ],
-    "violations": [
-      {
-        "id": "color-contrast",
-        "impact": "serious",
-        "tags": [
-          "cat.color",
-          "wcag2aa",
-          "wcag143",
-          "TTv5",
-          "TT13.c",
-          "EN-301-549",
-          "EN-9.1.4.3",
-          "ACT",
-          "RGAAv4",
-          "RGAA-3.2.1"
-        ],
-        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
-        "help": "Elements must meet minimum color contrast ratio thresholds",
-        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
-        "nodes": [
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#f0e6cf",
-                  "contrastRatio": 2.8,
-                  "fontSize": "7.5pt (10px)",
-                  "fontWeight": "bold",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<header class=\"topbar\">",
-                    "target": [
-                      "header"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.8 (foreground color: #95886f, background color: #f0e6cf, font size: 7.5pt (10px), font weight: bold). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
-            "target": [
-              "button[lang=\"en\"]"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.8 (foreground color: #95886f, background color: #f0e6cf, font size: 7.5pt (10px), font weight: bold). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "6.8pt (9px)",
-                  "fontWeight": "bold",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<li class=\"progreso-nivel  \">HSK2</li>",
-                    "target": [
-                      "li:nth-child(2)"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-nivel\">",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-nivel\"]"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<li class=\"progreso-nivel  \">HSK2</li>",
-            "target": [
-              "li:nth-child(2)"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "6.8pt (9px)",
-                  "fontWeight": "bold",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<li class=\"progreso-nivel  \">HSK3</li>",
-                    "target": [
-                      "li:nth-child(3)"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-nivel\">",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-nivel\"]"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<li class=\"progreso-nivel  \">HSK3</li>",
-            "target": [
-              "li:nth-child(3)"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "6.8pt (9px)",
-                  "fontWeight": "bold",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<li class=\"progreso-nivel  \">HSK4</li>",
-                    "target": [
-                      "li:nth-child(4)"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-nivel\">",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-nivel\"]"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<li class=\"progreso-nivel  \">HSK4</li>",
-            "target": [
-              "li:nth-child(4)"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "6.8pt (9px)",
-                  "fontWeight": "bold",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<li class=\"progreso-nivel  \">HSK5</li>",
-                    "target": [
-                      "li:nth-child(5)"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-nivel\">",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-nivel\"]"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<li class=\"progreso-nivel  \">HSK5</li>",
-            "target": [
-              "li:nth-child(5)"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "6.8pt (9px)",
-                  "fontWeight": "bold",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<li class=\"progreso-nivel  \">HSK6</li>",
-                    "target": [
-                      "li:nth-child(6)"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-nivel\">",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-nivel\"]"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<li class=\"progreso-nivel  \">HSK6</li>",
-            "target": [
-              "li:nth-child(6)"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 6.8pt (9px), font weight: bold). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "7.5pt (10px)",
-                  "fontWeight": "normal",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<nav class=\"tabbar\" aria-label=\"Navegación principal\">",
-                    "target": [
-                      "nav"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-repaso\"><div class=\"hm-section-head\"><div><span class=\"hm-kicker\">Repaso espaciado</span><h2 id=\"progreso-repaso\">Próximo repaso</h2></div></div><p class=\"progreso-pie\">Sin repasos agendados.</p></section>",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-repaso\"]"
-                    ]
-                  },
-                  {
-                    "html": "<div class=\"hm-ink-wash hm-ink-wash--cinnabar\" aria-hidden=\"true\"></div>",
-                    "target": [
-                      ".hm-ink-wash--cinnabar"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<span class=\"tab-label\">Inicio</span>",
-            "target": [
-              "a[href=\"/\"] > .tab-label"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "7.5pt (10px)",
-                  "fontWeight": "normal",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<nav class=\"tabbar\" aria-label=\"Navegación principal\">",
-                    "target": [
-                      "nav"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-repaso\"><div class=\"hm-section-head\"><div><span class=\"hm-kicker\">Repaso espaciado</span><h2 id=\"progreso-repaso\">Próximo repaso</h2></div></div><p class=\"progreso-pie\">Sin repasos agendados.</p></section>",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-repaso\"]"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<span class=\"tab-label\">Trazos</span>",
-            "target": [
-              "a[href$=\"trazos\"] > .tab-label"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
-          },
-          {
-            "any": [
-              {
-                "id": "color-contrast",
-                "data": {
-                  "fgColor": "#95886f",
-                  "bgColor": "#eee4cd",
-                  "contrastRatio": 2.75,
-                  "fontSize": "7.5pt (10px)",
-                  "fontWeight": "normal",
-                  "messageKey": null,
-                  "expectedContrastRatio": "4.5:1"
-                },
-                "relatedNodes": [
-                  {
-                    "html": "<nav class=\"tabbar\" aria-label=\"Navegación principal\">",
-                    "target": [
-                      "nav"
-                    ]
-                  },
-                  {
-                    "html": "<section class=\"hm-panel progreso-bloque\" aria-labelledby=\"progreso-repaso\"><div class=\"hm-section-head\"><div><span class=\"hm-kicker\">Repaso espaciado</span><h2 id=\"progreso-repaso\">Próximo repaso</h2></div></div><p class=\"progreso-pie\">Sin repasos agendados.</p></section>",
-                    "target": [
-                      "section[aria-labelledby=\"progreso-repaso\"]"
-                    ]
-                  },
-                  {
-                    "html": "<body>",
-                    "target": [
-                      "body"
-                    ]
-                  }
-                ],
-                "impact": "serious",
-                "message": "Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<span class=\"tab-label\">Practicar</span>",
-            "target": [
-              "a[href$=\"practica\"] > .tab-label"
-            ],
-            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #95886f, background color: #eee4cd, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
-          }
-        ]
-      },
-      {
-        "id": "label-content-name-mismatch",
-        "impact": "serious",
-        "tags": [
-          "cat.semantics",
-          "wcag21a",
-          "wcag253",
-          "EN-301-549",
-          "EN-9.2.5.3",
-          "RGAAv4",
-          "RGAA-6.1.5"
-        ],
-        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
-        "help": "Elements must have their visible text as part of their accessible name",
-        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
-        "nodes": [
-          {
-            "any": [
-              {
-                "id": "label-content-name-mismatch",
-                "data": null,
-                "relatedNodes": [],
-                "impact": "serious",
-                "message": "Text inside the element is not included in the accessible name"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<button type=\"button\" lang=\"es\" class=\"selector-idioma__opcion\" aria-pressed=\"true\" aria-label=\"Español\">ES</button>",
-            "target": [
-              "button[aria-label=\"Español\"]"
-            ],
-            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
-          },
-          {
-            "any": [
-              {
-                "id": "label-content-name-mismatch",
-                "data": null,
-                "relatedNodes": [],
-                "impact": "serious",
-                "message": "Text inside the element is not included in the accessible name"
-              }
-            ],
-            "all": [],
-            "none": [],
-            "impact": "serious",
-            "html": "<button type=\"button\" lang=\"en\" class=\"selector-idioma__opcion\" aria-pressed=\"false\" aria-label=\"English\">EN</button>",
-            "target": [
-              "button[lang=\"en\"]"
-            ],
-            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
-          }
-        ]
-      }
-    ]
+    "violations": []
   },
   "chequeos": {
     "lang": "es",
@@ -4988,7 +4789,7 @@
     "desbordeHorizontal": false,
     "scrollWidth": 375,
     "innerWidth": 375,
-    "tieneMain": false,
+    "tieneMain": true,
     "h1": [
       "Progreso"
     ],

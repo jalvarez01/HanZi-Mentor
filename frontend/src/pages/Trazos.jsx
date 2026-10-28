@@ -75,7 +75,7 @@ export default function Trazos() {
     <>
       <TopBar title={t('strokes.title')} />
 
-      <div className="hm-page trazos">
+      <main className="hm-page trazos">
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
         {caracter && (
@@ -158,7 +158,7 @@ export default function Trazos() {
             <p className="hm-status hm-status--empty">{t('strokes.listEmpty')}</p>
           )}
         </section>
-      </div>
+      </main>
     </>
   );
 }

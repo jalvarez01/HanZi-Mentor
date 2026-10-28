@@ -141,7 +141,7 @@
   text-transform: uppercase;
 }
 
-.progreso-reiniciar:focus-visible { outline: 2px solid var(--ochre); outline-offset: 3px; }
+.progreso-reiniciar:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
 
 .progreso-id {
   width: fit-content;

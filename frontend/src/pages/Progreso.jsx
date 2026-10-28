@@ -14,9 +14,18 @@ export default function Progreso() {
     <>
       <TopBar title={t('progress.title')} />
 
-      <div className="hm-page progreso">
+      <main className="hm-page progreso">
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
         {cargando && <p className="hm-status hm-status--loading" role="status">{t('progress.loading')}</p>}
+
+        {/* Sin datos no se pintan las acciones de abajo: aquí queda cómo reintentar */}
+        {error && !datos && !cargando && (
+          <div className="progreso-acciones">
+            <button type="button" className="hm-btn hm-btn--block" onClick={recargar}>
+              {t('progress.refresh')}
+            </button>
+          </div>
+        )}
 
         {datos && (
           <>
@@ -111,7 +120,7 @@ export default function Progreso() {
             <p className="progreso-id">{t('progress.userId', { id: usuarioId })}</p>
           </>
         )}
-      </div>
+      </main>
     </>
   );
 }

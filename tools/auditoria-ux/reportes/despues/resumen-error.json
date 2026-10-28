@@ -1,7 +1,7 @@
 {
   "version": "despues",
   "base": "http://localhost",
-  "fecha": "2026-10-28T15:47:27.886Z",
+  "fecha": "2026-10-28T16:17:15.352Z",
   "chrome": "155.0.8059.85",
   "playwright": "1.64.1",
   "axeCore": null,
@@ -23,29 +23,17 @@
       ],
       "botones": [
         "ES",
-        "EN"
+        "EN",
+        "Actualizar"
       ],
       "porImpacto": {
         "critical": 0,
-        "serious": 2,
+        "serious": 0,
         "moderate": 0,
         "minor": 0
       },
-      "reglas": [
-        {
-          "id": "color-contrast",
-          "impacto": "serious",
-          "nodos": 4,
-          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
-        },
-        {
-          "id": "label-content-name-mismatch",
-          "impacto": "serious",
-          "nodos": 2,
-          "ayuda": "Elements must have their visible text as part of their accessible name"
-        }
-      ],
-      "bytes": 209688
+      "reglas": [],
+      "bytes": 198440
     }
   }
 }

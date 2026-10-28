@@ -30,13 +30,13 @@ export default function Home() {
     <>
       <TopBar />
 
-      <div className="home">
+      <main className="home">
         <Apertura />
         <FranjaCita />
         <LeccionHoy progreso={progreso} cargando={cargando} error={error} recargar={recargar} />
         <PalabrasDelDia nivel={nivel} />
         <MapaRuta progreso={progreso} cargando={cargando} error={error} recargar={recargar} />
-      </div>
+      </main>
     </>
   );
 }
@@ -201,17 +201,14 @@ function PalabrasDelDia({ nivel }) {
                 <Link
                   to={`/trazos?caracter=${encodeURIComponent(c.hanzi)}`}
                   className={`hm-tile ${COLORES_BALDOSA[i % COLORES_BALDOSA.length]}`}
-                  aria-label={t('home.words.tileLabel', {
-                    hanzi: c.hanzi,
-                    pinyin: c.pinyin || '—',
-                    meaning: c.definicion || '—',
-                  })}
                 >
                   <span className="hm-tile__hanzi" lang="zh-Hans">{c.hanzi}</span>
                   <span className="hm-tile__pinyin">{c.pinyin || '—'}</span>
                   <span className="hm-tile__meaning home-palabras__significado">
                     {c.definicion || '—'}
                   </span>
+                  {/* El nombre accesible sale del texto visible más esta acción (WCAG 2.5.3) */}
+                  <span className="home-sr">{t('home.words.tileAction')}</span>
                 </Link>
               </li>
             ))}

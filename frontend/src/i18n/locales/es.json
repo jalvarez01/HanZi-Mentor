@@ -11,7 +11,8 @@
   "language": {
     "label": "Idioma",
     "es": "Español",
-    "en": "English"
+    "en": "English",
+    "option": "{{codigo}}, {{nombre}}"
   },
   "nav": {
     "label": "Navegación principal",
@@ -57,7 +58,7 @@
       "kicker": "Tres trazos",
       "title": "Palabras del día",
       "note": "Tocá una palabra para practicar sus trazos.",
-      "tileLabel": "{{hanzi}}, {{pinyin}}: {{meaning}}. Practicar sus trazos",
+      "tileAction": "Practicar sus trazos",
       "loading": "Buscando las palabras de hoy…",
       "error": "No pudimos cargar las palabras del día.",
       "empty": "Todavía no hay caracteres cargados para HSK {{nivel}}."

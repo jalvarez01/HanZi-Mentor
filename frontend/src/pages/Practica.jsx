@@ -97,7 +97,7 @@ export default function Practica() {
     return (
       <>
         <TopBar title={t('practice.title')} />
-        <div className="hm-page practica">
+        <main className="hm-page practica">
           <div className="practica-modos" role="group" aria-label={t('practice.modeLabel')}>
             <button
               type="button"
@@ -156,7 +156,7 @@ export default function Practica() {
 
             {modo === 'sesion' && <p className="practica-nota">{t('practice.lockedNote')}</p>}
           </section>
-        </div>
+        </main>
       </>
     );
   }
@@ -168,7 +168,7 @@ export default function Practica() {
       return (
         <>
           <TopBar title={t('practice.lessonDoneBar')} />
-          <div className="hm-page practica practica-resumen">
+          <main className="hm-page practica practica-resumen">
             <span className="hm-seal hm-seal--lg" aria-hidden="true">完</span>
             <h2>{t('practice.lessonDoneTitle')}</h2>
             <p className="practica-intro">
@@ -184,7 +184,7 @@ export default function Practica() {
             >
               {t('practice.anotherLesson')}
             </button>
-          </div>
+          </main>
         </>
       );
     }
@@ -192,7 +192,7 @@ export default function Practica() {
     return (
       <>
         <TopBar title={t('practice.lessonBar', { nivel: leccion.nivel_hsk })} />
-        <div className="hm-page practica">
+        <main className="hm-page practica">
           <Avance actual={indiceLeccion} total={leccion.ejercicios.length} />
 
           <article className="hm-card practica-tarjeta">
@@ -216,7 +216,7 @@ export default function Practica() {
           >
             {t('practice.next')}
           </button>
-        </div>
+        </main>
       </>
     );
   }
@@ -228,7 +228,7 @@ export default function Practica() {
     return (
       <>
         <TopBar title={t('practice.sessionDoneBar')} />
-        <div className="hm-page practica practica-resumen">
+        <main className="hm-page practica practica-resumen">
           <span className="hm-seal hm-seal--lg" aria-hidden="true">完</span>
           <h2>{t('practice.sessionDoneTitle')}</h2>
           <p className="practica-intro">
@@ -250,7 +250,7 @@ export default function Practica() {
             {t('practice.anotherSession')}
           </button>
           <Link to="/progreso" className="practica-enlace">{t('practice.seeProgress')}</Link>
-        </div>
+        </main>
       </>
     );
   }
@@ -263,7 +263,7 @@ export default function Practica() {
         title={t('practice.sessionBar', { nivel: sesion.nivel_hsk, dificultad: sesion.dificultad })}
       />
 
-      <div className="hm-page practica">
+      <main className="hm-page practica">
         <Avance actual={indice} total={sesion.ejercicios.length}>
           {ejercicio?.es_refuerzo && (
             <span className="practica-refuerzo">{t('practice.reinforcement')}</span>
@@ -326,7 +326,7 @@ export default function Practica() {
             </button>
           </div>
         )}
-      </div>
+      </main>
     </>
   );
 }

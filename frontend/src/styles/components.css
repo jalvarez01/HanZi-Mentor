@@ -68,7 +68,7 @@
 .hm-btn:focus-visible,
 .hm-btn-icon:focus-visible,
 .hm-tile:focus-visible {
-  outline: 2px solid var(--ochre);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 4px;
 }
 
@@ -129,7 +129,7 @@
   white-space: nowrap;
 }
 
-.hm-count i { color: var(--ink-subtle); font-style: normal; font-size: var(--fs-sm); }
+.hm-count i { color: var(--ink-muted); font-style: normal; font-size: var(--fs-sm); }
 
 /* ----------------------------------------------------------------- sellos */
 
@@ -182,7 +182,8 @@
   font: var(--fs-hanzi)/1 var(--font-display);
 }
 
-.hm-tile__pinyin { color: var(--cinnabar); font-size: var(--fs-md); font-style: italic; }
+/* Tinta y no cinabrio: sobre las baldosas roja y jade el cinabrio no llega a 4,5:1 */
+.hm-tile__pinyin { color: var(--ink); font-size: var(--fs-md); font-style: italic; }
 
 .hm-tile__meaning {
   margin-top: 3px;

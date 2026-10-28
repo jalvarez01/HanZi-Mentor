@@ -36,6 +36,9 @@
 
 .step-mark span { font-family: var(--font-display), var(--font-ui); }
 
+/* El ocre no llega a 4,5:1 como texto; la línea del paso conserva el acento */
+.step--ochre .step-mark { color: var(--ink-muted); }
+
 .step-mark i { flex: 1; height: 1px; background: var(--acento); opacity: 0.4; }
 
 .step h2 {
@@ -146,4 +149,4 @@
   text-align: center;
 }
 
-.level.active { background: var(--ochre); border-color: var(--ochre); color: var(--paper); }
+.level.active { background: var(--ochre); border-color: var(--ochre); color: var(--ink); }
