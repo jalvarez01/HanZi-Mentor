@@ -38,20 +38,29 @@ petición:
                         - flask_evaluacion
                         - flask_trazos
                         - flask_ejemplos ----> Tatoeba (API externa)
+                        - flask_reportes
      |                         |
      v                         v
  +-----------------------------------------------------+
  | PostgreSQL `db`: una base por servicio              |
  |   contenido, db_catalogo, db_progreso, db_sesiones  |
  +-----------------------------------------------------+
+ +-----------------------------------------------------+
+ | redis: cola de Celery y resultados de los reportes  |
+ |   encolan flask_reportes y flask_sesiones;          |
+ |   `worker` (Celery) ejecuta las tareas              |
+ +-----------------------------------------------------+
  agente_tutor usa su propio SQLite (volumen agente_tutor_db).
- flask_trazos, flask_evaluacion y flask_ejemplos no guardan estado.
+ flask_trazos, flask_evaluacion y flask_ejemplos no guardan estado;
+ flask_reportes guarda sus resultados en redis (caducan a las 24 h).
 ```
 
 Los servicios v2 no comparten código ni leen bases ajenas: lo que necesitan
 de otro servicio lo piden por HTTP (por ejemplo, sesiones le pide caracteres
 a catálogo y registra las respuestas en progreso; evaluación busca la mediana
-del trazo en catálogo y la compara en trazos).
+del trazo en catálogo y la compara en trazos). Lo que no tiene que bloquear
+la respuesta va a una cola: un reporte se encola en redis, lo genera el
+`worker` de Celery y se consulta después por su `task_id`.
 
 ```
 HanZi-Mentor/
@@ -65,6 +74,7 @@ HanZi-Mentor/
 │   ├── evaluacion-flask/   # v2: decide si una respuesta es correcta
 │   ├── trazos-flask/       # v2: compara un trazo con su mediana
 │   ├── ejemplos-flask/     # v2: oraciones de ejemplo de Tatoeba (patrón Adapter)
+│   ├── reportes-flask/     # v2: reportes asíncronos y notificaciones (Redis + Celery)
 │   └── flask-base/         # plantilla de los servicios Flask
 ├── frontend/               # React + Vite (PWA mobile-first)
 ├── infra/nginx/nginx.conf  # el gateway
@@ -91,6 +101,9 @@ Sacado de `infra/nginx/nginx.conf` y `docker-compose.yml`:
 | `flask_evaluacion`   | v2      | `/api/v2/evaluacion/`                        | `services/evaluacion-flask` |
 | `flask_trazos`       | v2      | `/api/v2/trazos/`                            | `services/trazos-flask` |
 | `flask_ejemplos`     | v2      | `/api/v2/ejemplos/`                          | `services/ejemplos-flask` |
+| `flask_reportes`     | v2      | `/api/v2/reportes/`                          | `services/reportes-flask` |
+| `worker`             | v2      | (sin ruta: lee la cola de redis)             | `services/reportes-flask` (misma imagen) |
+| `redis`              | -       | (sin ruta, solo red interna)                 | Redis 7 |
 | `frontend`           | -       | `/`                                          | `frontend` |
 | `db`                 | -       | (sin ruta, solo red interna)                 | PostgreSQL 16 |
 
@@ -225,6 +238,43 @@ curl "http://localhost/api/v2/publico/resumen/?lang=en"
 
 El carácter del día cambia cada día (UTC).
 
+**6. Un reporte asíncrono** (Redis + Celery)
+
+El POST solo encola el reporte y responde enseguida con un `task_id`; el
+`worker` lo genera después. Siguiendo con el usuario de los ejemplos 2 y 3:
+
+```bash
+curl -i -X POST http://localhost/api/v2/reportes/ -H "Content-Type: application/json" \
+  -d '{"usuario_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"}'
+```
+
+```
+HTTP/1.1 202 ACCEPTED
+Location: /api/v2/reportes/c52e5c80-84f5-40d9-aa4a-b936644a0723/
+
+{"task_id":"c52e5c80-84f5-40d9-aa4a-b936644a0723","estado":"pendiente"}
+```
+
+Después se consulta la URL de `Location` hasta que `estado` sea `listo` o
+`error` (antes puede pasar por `pendiente` y `en_proceso`):
+
+```bash
+curl http://localhost/api/v2/reportes/c52e5c80-84f5-40d9-aa4a-b936644a0723/
+```
+
+```json
+{"task_id":"c52e5c80-84f5-40d9-aa4a-b936644a0723","estado":"listo",
+ "resultado":{"usuario_id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","nivel_hsk":1,"nivel_max_desbloqueado":1,
+  "tasa_acierto":0.55,"total_dominados":1,"total_por_reforzar":0,"caracteres_dominados":["一"],
+  "caracteres_debiles":[],"proximo_repaso":"2026-10-29T16:08:04.631085Z", ...,
+  "generado_en":"2026-10-28T16:08:04.665734Z"}}
+```
+
+Un `task_id` que no existe, o cuyo reporte ya caducó (24 h), responde 404
+`NO_ENCONTRADO`. Si redis no responde, el POST da 503 `COLA_NO_DISPONIBLE`.
+Al crear la sesión del ejemplo 2 también quedó una notificación en
+`curl http://localhost/api/v2/reportes/notificaciones/3fa85f64-5717-4562-b3fc-2c963f66afa6/`.
+
 ---
 
 ## Idioma de los mensajes
@@ -258,7 +308,8 @@ Cada servicio se prueba por separado con su propio entorno virtual, desde su
 carpeta (en Windows, `.venv\Scripts\pytest` y `venv\Scripts\python`).
 
 Servicios Flask (`catalogo-flask`, `progreso-flask`, `sesiones-flask`,
-`evaluacion-flask`, `trazos-flask`, `ejemplos-flask` y `flask-base`):
+`evaluacion-flask`, `trazos-flask`, `ejemplos-flask`, `reportes-flask` y
+`flask-base`):
 
 ```bash
 cd services/catalogo-flask
@@ -282,19 +333,21 @@ Totales de hoy:
 |----------|------:|
 | catalogo-flask | 102 |
 | progreso-flask | 70 |
-| sesiones-flask | 93 |
+| sesiones-flask | 109 |
 | evaluacion-flask | 89 |
 | trazos-flask | 21 |
 | ejemplos-flask | 46 (+1 que se salta: la prueba en vivo contra Tatoeba) |
+| reportes-flask | 75 |
 | flask-base | 19 |
 | contenido | 39 |
 | agente-tutor | 53 |
-| **Total** | **532** |
+| **Total** | **623** |
 
 La prueba en vivo de ejemplos se activa con `TATOEBA_EN_VIVO=1`. Los tests
 de contrato de los servicios Flask leen los serializers de Django del mismo
 repo, así que hay que correrlos con el repo completo (dentro de una imagen
-Docker se saltan).
+Docker se saltan). Los de reportes-flask y las notificaciones de
+sesiones-flask no necesitan redis: corren con dobles en memoria.
 
 ---
 
@@ -383,6 +436,7 @@ Se completa con el despliegue en EC2.
 
 **Backend:** Django 4.2 + Django REST Framework (v1); Flask 3.1, SQLAlchemy 2 y Flask-Babel (v2)
 **Base de datos:** PostgreSQL 16 (una base por servicio)
+**Tareas asíncronas:** Redis 7 y Celery 5
 **Gateway:** Nginx 1.27
 **Frontend:** React 19, Vite, React Router, PWA (vite-plugin-pwa), i18next
 **Tutor:** LangGraph (motor `REAL` de agente-tutor, solo en v1)
