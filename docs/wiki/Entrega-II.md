@@ -5,12 +5,12 @@ un ecosistema híbrido de microservicios Flask detrás de Nginx, desplegado en
 AWS Academy, con integración con un equipo aliado y una API de terceros,
 tareas asíncronas e internacionalización.
 
-> **Estado de esta página (27/10/2026):** por ahora incluye las correcciones
-> de la Entrega 1 y la justificación del bono de excelencia, que se adelantó
-> para revisarla antes del Parcial 02. Las secciones de arquitectura y
-> diagramas, servicios (aliado y API de terceros), despliegue en AWS, i18n y
-> usabilidad, tareas asíncronas y evidencias se agregan antes de la entrega
-> del 12 de noviembre.
+> **Estado de esta página (28/10/2026):** por ahora incluye las correcciones
+> de la Entrega 1, la justificación del bono de excelencia, que se adelantó
+> para revisarla antes del Parcial 02, y la auditoría de UX y accesibilidad.
+> Las secciones de arquitectura y diagramas, servicios (aliado y API de
+> terceros), despliegue en AWS, tareas asíncronas y evidencias se agregan
+> antes de la entrega del 12 de noviembre.
 
 ---
 
@@ -118,7 +118,7 @@ Falta repetirlo en la instancia de AWS.
 | `POST /api/v2/trazos/validar/` | 200, con el veredicto del trazo |
 | `GET /api/v2/ejemplos/学/` | 200, oraciones de Tatoeba |
 | `POST /api/v2/sesiones/` y `GET /api/v2/sesiones/<id>/` | 201 y 200, sesión activa con 4 ejercicios |
-| `POST /api/v2/ejercicios/<id>/responder/` | 200; `progreso-flask` actualiza la tasa de acierto (0.5 → 0.55) |
+| `POST /api/v2/ejercicios/<id>/responder/` | 200; `progreso-flask` actualiza la tasa de acierto (de 0.5 a 0.55) |
 | `POST /api/v2/evaluacion/` (pinyin) | 200, `acerto: true` |
 | `GET /api/v2/caracteres/?limite=abc` con `Accept-Language: en` | 400 en JSON, mensaje en inglés |
 | `GET /api/v1/caracteres/` | 200, el respaldo v1 sigue activo |
@@ -133,3 +133,24 @@ curl -X POST http://localhost/api/v2/sesiones/ -H "Content-Type: application/jso
   -d '{"usuario_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "nivel_hsk": 1, "duracion_min": 10}'
 docker compose logs nginx   # cada línea muestra a qué servicio fue la petición
 ```
+
+---
+
+## 3. Resiliencia y UX
+
+### Auditoría de UX y accesibilidad (T24)
+
+El frontend se auditó antes y después del rediseño (PR #26), con
+Playwright, axe-core (WCAG 2.1 AA) y una medición propia del contraste
+sobre píxeles, en las cinco páginas, en 375 y 1280 px, y en los estados de
+carga, vacío, error, foco e idioma. Detalle, capturas lado a lado y cómo
+reproducirlo: **[Auditoría UX](Auditoria-UX.md)**.
+
+| | Antes del #26 | Después del #26 | Con las correcciones |
+|---|:---:|:---:|:---:|
+| Páginas con violaciones axe en 375 px | 5 de 5 | 5 de 5 | **0 de 5** |
+| Textos con contraste insuficiente (medido en píxeles) | 37 | 78 | **5** (solo en 1280) |
+| Focos tapados por la barra inferior | 20 | 17 | **0** |
+
+Se corrigieron 10 hallazgos (H1 a H10) y uno en parte (H11). Quedan
+cuatro pendientes documentados (H11 a H14).
