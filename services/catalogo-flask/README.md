@@ -9,6 +9,9 @@ como respaldo mientras conviven las dos (T17).
 Sigue el estándar de [`docs/arquitectura/estandar-flask.md`](../../docs/arquitectura/estandar-flask.md)
 y parte de la plantilla `services/flask-base`.
 
+También expone `GET /api/v2/publico/resumen/` (T14), el servicio que consume
+el equipo aliado: un resumen del catálogo con CORS abierto (ver abajo).
+
 La validación de trazos **no** está acá: vive en `services/trazos-flask`
 (`POST /api/v2/trazos/validar/`). Este servicio entrega la mediana de cada
 trazo en el detalle del carácter, que es lo que trazos-flask necesita.
@@ -203,6 +206,51 @@ no clasificados. El tipo de cada ejercicio es aleatorio.
 ### `GET /api/v2/lecciones/<id>/`
 
 Misma forma que la respuesta de `generar`.
+
+### `GET /api/v2/publico/resumen/?lang=&nivel=`
+
+Servicio para el equipo aliado (T14): totales del catálogo y un carácter del
+día. Va en un blueprint aparte (`rutas_publico.py`) y responde con
+`Access-Control-Allow-Origin: *`, también en sus errores (incluidos 404 y 405
+bajo `/api/v2/publico/`), para que el aliado pueda consumirlo desde un
+navegador. Es de solo lectura y no usa credenciales.
+
+- `lang`: `es` o `en`, opcional. Elige el idioma de los errores, aunque la
+  petición no traiga `Accept-Language` (lo normal si el aliado llama desde su
+  backend); si vienen los dos, manda `lang`. Sin `lang` se usa
+  `Accept-Language`, como en el resto del servicio. No cambia la respuesta
+  exitosa: no tiene textos para traducir.
+- `nivel`: entero de 1 a 6, opcional. Elige el carácter del día entre los de
+  ese nivel; los totales siempre son de todo el catálogo.
+- `caracter_del_dia`: el mismo durante todo el día (UTC). Sale de la fecha,
+  no del azar, así que dos peticiones del mismo día devuelven el mismo.
+  `null` si no hay caracteres cargados en ese nivel.
+- `caracteres_totales` incluye los caracteres sin nivel HSK; `por_nivel_hsk`
+  solo cuenta los clasificados.
+- Las definiciones vienen en inglés, como en el dataset de Make Me a Hanzi.
+
+```bash
+curl -s "http://localhost/api/v2/publico/resumen/?lang=es"
+```
+
+```json
+{"sistema": "HanziMentor", "caracteres_totales": 696,
+ "por_nivel_hsk": {"1": 83, "2": 71, "3": 92, "4": 117, "5": 183, "6": 150},
+ "caracter_del_dia": {"hanzi": "糖", "pinyin": "táng", "definicion": "candy, sugar, sweets", "nivel_hsk": 3},
+ "generado_en": "2026-10-26T21:11:29Z"}
+```
+
+`lang` distinto de `es` o `en`, o `nivel` fuera de 1 a 6, responde 400
+`ENTRADA_INVALIDA`:
+
+```bash
+curl -s "http://localhost/api/v2/publico/resumen/?lang=en&nivel=9"
+# {"error":"The field 'nivel' must be an integer between 1 and 6","codigo":"ENTRADA_INVALIDA"}
+```
+
+Si `flask_catalogo` está caído, el 502 lo arma Nginx (`infra/nginx/nginx.conf`)
+y no lleva CORS: desde un navegador el aliado no puede leer ese error, solo ve
+que la petición falló. Desde un backend sí lo recibe completo.
 
 ### `GET /health`
 

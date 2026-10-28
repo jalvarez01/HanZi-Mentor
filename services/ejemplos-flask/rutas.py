@@ -2,6 +2,7 @@
 
 from flask import Blueprint, current_app, jsonify, request
 
+from i18n import traducir
 from servicio import buscar_ejemplos
 from validacion import validar_consulta
 
@@ -12,4 +13,7 @@ ejemplos_bp = Blueprint("ejemplos", __name__)
 def ejemplos(hanzi):
     hanzi, idioma, limite = validar_consulta(hanzi, request.args)
     proveedor = current_app.extensions["proveedor_ejemplos"]
-    return jsonify(buscar_ejemplos(proveedor, hanzi, idioma, limite)), 200
+    datos = buscar_ejemplos(proveedor, hanzi, idioma, limite)
+    # El crédito de la licencia es texto para personas: va en el idioma de la petición.
+    datos["atribucion"] = traducir(datos["atribucion"])
+    return jsonify(datos), 200

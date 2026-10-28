@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import EjemplosCaracter from '../components/EjemplosCaracter';
 import TopBar from '../components/TopBar';
 import { evaluar, listarCaracteres, obtenerCaracter } from '../services/api';
 import './Trazos.css';
@@ -127,6 +128,8 @@ export default function Trazos() {
         )}
 
         {cargando && <p className="hm-status hm-status--loading" role="status">{t('strokes.loading')}</p>}
+
+        {caracter && <EjemplosCaracter hanzi={caracter.hanzi} />}
 
         <section className="hm-panel trazos-lista" aria-labelledby="trazos-lista-titulo">
           <div className="hm-section-head">

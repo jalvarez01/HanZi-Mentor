@@ -7,6 +7,7 @@ ErrorDominio con 400 y código ENTRADA_INVALIDA.
 import uuid
 
 from errores import ErrorDominio
+from i18n import IDIOMAS
 from mensajes import N_
 
 LIMITE_DEFECTO = 20
@@ -53,6 +54,32 @@ def validar_consulta_caracteres(argumentos):
 
     excluir = [c for c in argumentos.get("excluir", "").split(",") if c]
     return nivel, excluir, limite
+
+
+def validar_consulta_resumen(argumentos):
+    """Devuelve (idioma, nivel) de GET /api/v2/publico/resumen/.
+
+    Los dos son opcionales y valen None si no vienen: `lang` es "es" o "en"
+    y `nivel` un entero de 1 a 6. El idioma se valida primero, así el error
+    de un `nivel` inválido ya sale en el idioma pedido.
+    """
+    idioma = argumentos.get("lang") or None
+    if idioma is not None and idioma not in IDIOMAS:
+        # Lista neutra (sin "o") para que se pueda traducir igual, como en ejemplos-flask.
+        raise _invalida(N_("Idioma no soportado: use %(idiomas)s"), idiomas=", ".join(IDIOMAS))
+
+    nivel = None
+    texto_nivel = argumentos.get("nivel", "")
+    if texto_nivel:
+        nivel = _entero_de_texto(texto_nivel)
+        if nivel is None or not NIVEL_MINIMO <= nivel <= NIVEL_MAXIMO:
+            raise _invalida(
+                N_("El campo '%(campo)s' debe ser un entero entre %(minimo)s y %(maximo)s"),
+                campo="nivel",
+                minimo=NIVEL_MINIMO,
+                maximo=NIVEL_MAXIMO,
+            )
+    return idioma, nivel
 
 
 def _entero_de_json(valor):

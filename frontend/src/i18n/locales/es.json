@@ -94,6 +94,15 @@
     "reversed": "sentido invertido",
     "unavailable": "No se pudo comprobar el trazo en este momento. Probá de nuevo en unos segundos."
   },
+  "examples": {
+    "kicker": "Ejemplos",
+    "title": "Oraciones con",
+    "loading": "Buscando oraciones…",
+    "empty": "Todavía no hay oraciones de ejemplo con este carácter.",
+    "unavailable": "No se pudieron cargar las oraciones en este momento.",
+    "retry": "Reintentar",
+    "noTranslation": "sin traducción"
+  },
   "practice": {
     "title": "Practicar",
     "modeLabel": "Modo de práctica",
