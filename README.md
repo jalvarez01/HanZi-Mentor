@@ -388,6 +388,14 @@ producción hay que poner el dominio real** (por ejemplo
 `ALLOWED_HOSTS=hanzimentor.app,www.hanzimentor.app`) y nunca `*`: con el
 valor abierto, Django no valida la cabecera `Host` y queda expuesto a ataques
 de host header injection.
+En EC2, `ALLOWED_HOSTS` debe ser la Elastic IP de la instancia y el dominio,
+si lo hay (por ejemplo `ALLOWED_HOSTS=203.0.113.10,hanzimentor.app`).
+
+**`DJANGO_DEBUG`, `CONTENIDO_SECRET_KEY` y `TUTOR_SECRET_KEY`**: Django lee
+`DEBUG` y `SECRET_KEY` del entorno. `DJANGO_DEBUG` vale `0` si no se define;
+en local se pone `1`. Cada clave se genera con
+`python -c "import secrets; print(secrets.token_urlsafe(50))"` y va solo en el
+`.env`. Con `DJANGO_DEBUG=0` y sin clave, el servicio no arranca.
 
 ---
 

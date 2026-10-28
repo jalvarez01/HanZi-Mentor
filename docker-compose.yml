@@ -51,6 +51,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-hanzimentor}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hanzimentor}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      # DEBUG apagado si la variable falta. La clave no lleva valor por
+      # defecto: si falta, Compose avisa y pasa un valor vacío; Django usa
+      # entonces una clave de desarrollo con DJANGO_DEBUG=1 o se niega a
+      # arrancar con DJANGO_DEBUG=0 (ver config/settings.py).
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_SECRET_KEY: ${CONTENIDO_SECRET_KEY}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
     volumes:
       # Dataset de Make Me a Hanzi (fuera del repo): se usa para la carga
       # inicial de caracteres cuando la base está vacía.
@@ -274,6 +281,11 @@ services:
     build: ./services/agente-tutor
     environment:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      # Igual que en contenido: DEBUG apagado por defecto y clave sin valor
+      # por defecto (Compose avisa si falta).
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_SECRET_KEY: ${TUTOR_SECRET_KEY}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
       # Catálogo remoto: pide los caracteres a contenido y, si no responde,
       # usa su lista local.
       CATALOGO: ${CATALOGO:-REMOTO}

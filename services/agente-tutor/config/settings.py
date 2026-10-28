@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,17 +24,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR.parent.parent / ".env")
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+# DEBUG llega del entorno (DJANGO_DEBUG) y por defecto queda apagado: si la
+# variable falta, el servicio nunca muestra la página de depuración.
+DEBUG = os.environ.get("DJANGO_DEBUG", "0").strip().lower() in ("1", "true", "si")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u#@_0&su!x1)&kc8=__ac1i$dh#^!j8jk$whg*m_pq*4g4o-$='
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# La clave real llega del entorno (DJANGO_SECRET_KEY) y nunca va al repo.
+# Sin ella, solo en desarrollo se usa una clave fija marcada como tal; fuera
+# de desarrollo el arranque se detiene. Para generar una:
+#   python -c "import secrets; print(secrets.token_urlsafe(50))"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "").strip()
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "Falta DJANGO_SECRET_KEY y DJANGO_DEBUG no está activo. Define la "
+            "clave en el entorno (en Docker: TUTOR_SECRET_KEY en el .env) o activa "
+            "DJANGO_DEBUG=1 solo en desarrollo."
+        )
+    SECRET_KEY = "solo-desarrollo-agente-tutor-clave-insegura-no-usar-en-produccion"
 
 # En local se deja abierto ('*'). En producción, definir ALLOWED_HOSTS en
-# el .env con el/los dominios reales, separados por coma — nunca dejar '*'.
+# el .env con los hosts reales, separados por coma, y nunca dejar '*'. En
+# EC2: la Elastic IP y el dominio, si lo hay (p. ej. 203.0.113.10,hanzimentor.app).
 _allowed_hosts_env = os.environ.get("ALLOWED_HOSTS")
 ALLOWED_HOSTS = _allowed_hosts_env.split(",") if _allowed_hosts_env else ["*"]
 
@@ -162,3 +173,41 @@ CORS_ALLOWED_ORIGINS = [
 # variable, así que en desarrollo permitimos cualquier origen.
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
+
+# --- Logs ---
+# Todo va a la consola (docker compose logs <servicio>). Sin este bloque,
+# Django solo escribe en consola con DEBUG activo y los errores 500 se
+# perderían en producción. DJANGO_LOG_LEVEL ajusta el nivel del logger
+# "django" (por defecto INFO); django.request queda en ERROR.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "{asctime} {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": os.environ.get("DJANGO_LOG_LEVEL", "INFO").strip().upper() or "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
