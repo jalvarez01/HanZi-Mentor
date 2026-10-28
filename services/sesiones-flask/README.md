@@ -25,7 +25,7 @@ y parte de la plantilla `services/flask-base`.
 | `dominio/excepciones.py` | Errores de negocio con su estado HTTP y su código              |
 | `clientes.py`          | Cliente HTTP resiliente y clientes de catálogo y progreso        |
 | `motores.py`           | `MotorTutor` y `MotorTutorMock` (dificultad y caracteres nuevos) |
-| `notificadores.py`     | `Notificador` y el adaptador de consola                          |
+| `notificadores.py`     | `Notificador` y los adaptadores de consola y de cola (Celery)    |
 | `fabricas.py`          | Elige motor, notificador y clientes según la configuración       |
 | `repositorio.py`       | Acceso a la base; guarda sesión y ejercicios en una transacción  |
 | `servicio.py`          | `SesionEstudioService` y `ResponderEjercicioService`             |
@@ -54,8 +54,33 @@ y sus ejercicios en una sola transacción.
 - `TUTOR_ENGINE`: solo `MOCK`. El motor con LangGraph sigue en agente-tutor
   porque depende del agente y de sus credenciales. Cualquier otro valor hace
   fallar el arranque con un mensaje claro.
-- `NOTIFICADOR`: solo `CONSOLE`, que deja una línea en el log. El de email
-  usaba el backend de correo de Django.
+- `NOTIFICADOR`:
+  - `consola` (por defecto; `console` también vale): deja una línea en el log.
+  - `cola`: publica la tarea `notificar_sesion_lista(usuario_id, sesion_id)`
+    en Redis (`REDIS_URL`) para el worker de `reportes-flask`, que la guarda
+    en `GET /api/v2/reportes/notificaciones/<usuario_id>/`. Publica por
+    **nombre** con `send_task`, sin importar código de reportes-flask, con
+    una app Celery propia sin backend de resultados, sin reintentos y con
+    timeouts de 1 s. En Docker es el valor que usa `flask_sesiones`.
+
+  Publica en un hilo aparte y la respuesta no lo espera: con el contenedor
+  de Redis detenido, solo resolver el nombre `redis` tarda varios segundos y
+  los timeouts de conexión no cubren el DNS.
+
+  - Un hilo **daemon** por proceso de gunicorn, creado en la primera sesión
+    de ese proceso (después del fork, nunca al importar ni en el maestro).
+    El `CMD` del Dockerfile no usa `--preload`; si se agrega, el hilo igual
+    se crea en cada worker, porque se detecta el cambio de pid.
+  - Cola con límite de 100 pendientes (`queue.Queue(maxsize=100)`); si está
+    llena, la notificación se descarta con un aviso en el log.
+
+  **Las notificaciones son de mejor esfuerzo.** Se pierden, con un aviso en
+  el log, si Redis está caído al publicar, si la cola del proceso está
+  llena o si el proceso se reinicia con trabajos pendientes (también al
+  reiniciar Redis, que no guarda nada en disco). En ningún caso cambia la
+  respuesta de crear la sesión: siempre 201.
+
+  El de email usaba el backend de correo de Django y no se portó.
 
 ## Comunicación con otros servicios (base de T16)
 
@@ -114,7 +139,9 @@ CATALOGO_URL=http://127.0.0.1:5081 PROGRESO_URL=http://127.0.0.1:5083 \
 | `HTTP_TIMEOUT`     | `3`                     | Segundos por petición a otro servicio        |
 | `HTTP_REINTENTOS`  | `2`                     | Reintentos de los GET                        |
 | `TUTOR_ENGINE`     | `MOCK`                  | Motor del tutor (solo MOCK)                  |
-| `NOTIFICADOR`      | `CONSOLE`               | Notificador (solo CONSOLE)                   |
+| `NOTIFICADOR`      | `consola`               | Notificador: `consola` o `cola`              |
+| `REDIS_URL`        | `redis://localhost:6379/0` | Broker de Celery (solo con `cola`)        |
+| `REDIS_TIMEOUT`    | `1`                     | Segundos de espera al publicar en Redis      |
 | `GUNICORN_WORKERS` | `2`                     | Procesos de gunicorn (Docker)                |
 
 ## Base de datos en Docker

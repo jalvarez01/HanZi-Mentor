@@ -14,6 +14,13 @@ Servicios que deben cumplirlo:
 | `evaluacion-flask` | T10   | No (sin estado)      | Cumple        |
 | `progreso-flask`   | T11   | Sí                   | Cumple        |
 | `sesiones-flask`   | T12   | Sí                   | Cumple        |
+| `reportes-flask`   | T18, T19 | No (resultados en Redis, caducan) | Cumple |
+
+`reportes-flask` tiene un segundo proceso, el **worker** de Celery
+(servicio `worker` del compose): usa la misma imagen, reemplaza el `CMD`
+por `celery -A tareas worker --concurrency=1` y su healthcheck por
+`celery inspect ping`, porque no levanta HTTP. Ver
+[Tareas asíncronas](#tareas-asíncronas-redis--celery).
 
 Qué módulos ya están en v2, quién los consume y cómo volver a v1 está en
 [`strangler-v1-v2.md`](strangler-v1-v2.md).
@@ -162,6 +169,34 @@ La implementación de referencia es `services/sesiones-flask/clientes.py`
   ejemplo, si una respuesta es correcta), no hay respaldo posible. En ese
   caso se responde `503` con `DEPENDENCIA_NO_DISPONIBLE`, como hace
   `services/evaluacion-flask`.
+
+## Tareas asíncronas (Redis + Celery)
+
+Lo que tarda o no tiene que bloquear la respuesta va a una cola. La
+implementación de referencia es `services/reportes-flask`:
+
+- **Broker y resultados** en `redis` (`REDIS_URL=redis://redis:6379/0`),
+  sin persistencia y con `--maxmemory 64mb --maxmemory-policy
+  volatile-lru`: solo se expulsan claves con caducidad (resultados, 24 h, y
+  notificaciones, 7 días); la cola no caduca y nunca se expulsa.
+- **Solo JSON** (`task_serializer`, `result_serializer`, `accept_content`).
+- **Tareas por nombre** (`@task(name="...")`): otro servicio las publica
+  con `send_task("<nombre>", args=[...])` sin importar el código del
+  worker, como hace `sesiones-flask` con `notificar_sesion_lista`.
+- **Encolar nunca cuelga la petición**: el que publica usa una app Celery
+  sin backend de resultados, `task_publish_retry=False` y timeouts de
+  conexión de 1 s. Si Redis no responde, la ruta responde `503` con
+  `COLA_NO_DISPONIBLE` (o, si la tarea es un efecto secundario, solo deja
+  un aviso en el log).
+- **Errores con código**: una tarea que falla lanza una excepción cuyos
+  `args` son `(codigo, mensaje)`; Celery la guarda en JSON y la API
+  devuelve ese código y el mensaje traducido, nunca el traceback.
+- **Reintentos en un solo lugar**: dentro de una tarea, el `ClienteHttp` va
+  con `reintentos=0` y reintenta Celery (`autoretry_for`, con espera
+  creciente y sin azar).
+- **Pruebas sin Redis**: las tareas se llaman directamente o en modo eager
+  con `result_backend="cache+memory://"`, y los repositorios Redis tienen
+  un doble en memoria.
 
 ## Integración con Docker y Nginx
 

@@ -31,5 +31,8 @@ def desde_entorno():
         "HTTP_REINTENTOS": int(os.environ.get("HTTP_REINTENTOS", "2")),
         # Implementaciones elegidas por las fábricas (ver fabricas.py).
         "TUTOR_ENGINE": os.environ.get("TUTOR_ENGINE", "MOCK").strip().upper(),
-        "NOTIFICADOR": os.environ.get("NOTIFICADOR", "CONSOLE").strip().upper(),
+        "NOTIFICADOR": os.environ.get("NOTIFICADOR", "consola").strip().lower(),
+        # Broker de Celery para NOTIFICADOR=cola y segundos de espera al publicar.
+        "REDIS_URL": os.environ.get("REDIS_URL", "redis://localhost:6379/0"),
+        "REDIS_TIMEOUT": float(os.environ.get("REDIS_TIMEOUT", "1")),
     }

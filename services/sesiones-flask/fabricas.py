@@ -3,7 +3,8 @@ Patrón Factory: decide qué implementación concreta se usa, según la
 configuración. Port de agente-tutor/tutor/infra/factories.py.
 
     TUTOR_ENGINE = MOCK      (REAL, con LangGraph, sigue en agente-tutor)
-    NOTIFICADOR  = CONSOLE
+    NOTIFICADOR  = consola | cola   (console, el valor anterior, es alias de consola)
+    REDIS_URL, REDIS_TIMEOUT        (solo con NOTIFICADOR=cola)
     CATALOGO_URL, PROGRESO_URL, HTTP_TIMEOUT, HTTP_REINTENTOS
 
 Una opción que no existe falla al arrancar, no en la primera petición.
@@ -13,7 +14,7 @@ from dataclasses import dataclass
 
 from clientes import CatalogoRemoto, ClienteHttp, ProgresoRemoto
 from motores import MotorTutor, MotorTutorMock
-from notificadores import Notificador, NotificadorConsola
+from notificadores import Notificador, NotificadorCola, NotificadorConsola, crear_publicador
 
 
 @dataclass
@@ -42,10 +43,15 @@ def crear_motor(config, catalogo):
 
 
 def crear_notificador(config):
-    modo = config["NOTIFICADOR"]
-    if modo == "CONSOLE":
+    modo = config["NOTIFICADOR"].strip().lower()
+    if modo in ("consola", "console"):
         return NotificadorConsola()
-    raise ValueError(f"NOTIFICADOR='{modo}' no existe en sesiones-flask: solo CONSOLE.")
+    if modo == "cola":
+        # Perezoso: no conecta con Redis hasta la primera sesión.
+        return NotificadorCola(crear_publicador(config["REDIS_URL"], config["REDIS_TIMEOUT"]))
+    raise ValueError(
+        f"NOTIFICADOR='{config['NOTIFICADOR']}' no existe en sesiones-flask: consola o cola."
+    )
 
 
 def crear_dependencias(config):
