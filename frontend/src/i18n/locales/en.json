@@ -11,7 +11,8 @@
   "language": {
     "label": "Language",
     "es": "Español",
-    "en": "English"
+    "en": "English",
+    "option": "{{codigo}}, {{nombre}}"
   },
   "nav": {
     "label": "Main navigation",
@@ -57,7 +58,7 @@
       "kicker": "Three strokes",
       "title": "Words of the day",
       "note": "Tap a word to practice its strokes.",
-      "tileLabel": "{{hanzi}}, {{pinyin}}: {{meaning}}. Practice its strokes",
+      "tileAction": "Practice its strokes",
       "loading": "Finding today's words…",
       "error": "We couldn't load the words of the day.",
       "empty": "There are no characters loaded for HSK {{nivel}} yet."

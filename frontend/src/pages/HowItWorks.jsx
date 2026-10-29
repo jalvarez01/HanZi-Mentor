@@ -54,7 +54,7 @@ export default function HowItWorks() {
     <>
       <TopBar title={t('howItWorks.title')} back />
 
-      <div className="hm-page hiw">
+      <main className="hm-page hiw">
         <p className="hiw-intro">{t('howItWorks.intro')}</p>
 
         <Step id="trazos" mark="壹 · 01" title={t('howItWorks.strokes.title')} tono="cinnabar">
@@ -105,7 +105,7 @@ export default function HowItWorks() {
 
           <Puntos items={lista('howItWorks.progress.bullets')} />
         </Step>
-      </div>
+      </main>
     </>
   );
 }
