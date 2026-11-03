@@ -170,6 +170,19 @@
     "newUser": "Empezar como usuario nuevo",
     "userId": "id: {{id}}"
   },
+  "report": {
+    "kicker": "Reporte",
+    "title": "Tu reporte de progreso",
+    "description": "Se genera en segundo plano: podés seguir usando la app mientras tanto.",
+    "generate": "Generar reporte",
+    "queued": "En cola: esperando al generador de reportes…",
+    "generating": "Generando tu reporte…",
+    "generatedAt": "Generado",
+    "download": "Descargar (JSON)",
+    "again": "Generar otro",
+    "retry": "Reintentar",
+    "timeout": "El reporte tardó demasiado. Intentá de nuevo en unos segundos."
+  },
   "howItWorks": {
     "title": "Cómo funciona",
     "intro": "Tres piezas trabajando juntas: lo que dibujás, lo que el tutor aprende de vos, y cuándo te toca repasar.",
