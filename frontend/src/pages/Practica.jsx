@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import RespuestaPinyin from '../components/RespuestaPinyin';
 import TopBar from '../components/TopBar';
 import { useUsuario } from '../hooks/useUsuario';
 import { useFormato } from '../i18n/formato';
-import { crearSesion, responderEjercicio, generarLeccion } from '../services/api';
+import { crearSesion, generarLeccion, obtenerCaracter, responderEjercicio } from '../services/api';
 import './Practica.css';
 
 const NIVELES = [1, 2, 3, 4, 5, 6];
@@ -62,21 +63,43 @@ export default function Practica() {
     }
   }
 
+  // Registra la respuesta en sesiones-flask. Lanza si falla: quien llama decide cómo mostrarlo.
+  async function registrar(acerto, extra = {}) {
+    const resultado = await responderEjercicio(ejercicio.id, acerto);
+    setUltimoResultado({ ...resultado, acerto, ejercicioId: ejercicio.id, ...extra });
+
+    if (resultado.sesion_completada) {
+      setTerminada(true);
+    }
+  }
+
+  // Ejercicios de trazo: el estudiante se califica con "Fallé" o "Acerté".
   async function responder(acerto) {
     setCargando(true);
     setError(null);
 
     try {
-      const resultado = await responderEjercicio(ejercicio.id, acerto);
-      setUltimoResultado({ ...resultado, acerto });
-
-      if (resultado.sesion_completada) {
-        setTerminada(true);
-      }
+      await registrar(acerto);
     } catch (e) {
       setError(e.message);
     } finally {
       setCargando(false);
+    }
+  }
+
+  // Ejercicios de pinyin (T25): RespuestaPinyin muestra el error y conserva lo escrito si esto falla.
+  async function responderPinyin({ acerto, respuesta }) {
+    const ejercicioId = ejercicio.id;
+    await registrar(acerto, { respuesta });
+
+    // Si falló, se muestra la respuesta correcta. Si el catálogo no responde,
+    // el aviso de acierto o fallo ya está y basta con eso.
+    if (!acerto) {
+      obtenerCaracter(ejercicio.caracter)
+        .then((c) =>
+          setUltimoResultado((r) => (r?.ejercicioId === ejercicioId ? { ...r, pinyinCorrecto: c.pinyin } : r)),
+        )
+        .catch(() => {});
     }
   }
 
@@ -273,11 +296,16 @@ export default function Practica() {
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
         <article className="hm-card practica-tarjeta">
-          <span className="hm-kicker">{tipoEjercicio(ejercicio?.tipo)}</span>
+          <span className="hm-kicker">
+            {ejercicio?.tipo === 'trazo' ? t('practice.typeStrokes') : t('practice.typePinyin')}
+          </span>
           <div className="practica-hanzi" lang="zh-Hans">{ejercicio?.caracter}</div>
         </article>
 
-        {!ultimoResultado ? (
+        {!ultimoResultado && ejercicio?.tipo !== 'trazo' ? (
+          // key: un formulario nuevo (vacío) por ejercicio.
+          <RespuestaPinyin key={ejercicio?.id} caracter={ejercicio?.caracter} onResponder={responderPinyin} />
+        ) : !ultimoResultado ? (
           <>
             <p className="practica-pregunta">{t('practice.question')}</p>
             <div className="practica-acciones">
@@ -309,6 +337,16 @@ export default function Practica() {
             <p className={ultimoResultado.acerto ? 'practica-ok' : 'practica-fallo'}>
               {ultimoResultado.acerto ? t('practice.feedbackCorrect') : t('practice.feedbackFailed')}
             </p>
+            {ultimoResultado.respuesta && (
+              <p className="practica-dato">
+                {t('practice.yourAnswer')} <strong>{ultimoResultado.respuesta}</strong>
+              </p>
+            )}
+            {ultimoResultado.pinyinCorrecto && (
+              <p className="practica-dato">
+                {t('practice.correctAnswer')} <strong>{ultimoResultado.pinyinCorrecto}</strong>
+              </p>
+            )}
             {ultimoResultado.aviso && (
               <p className="hm-status hm-status--empty">{t('practice.progressNotSaved')}</p>
             )}
