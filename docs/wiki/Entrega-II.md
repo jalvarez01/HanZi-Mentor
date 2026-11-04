@@ -5,12 +5,13 @@ un ecosistema híbrido de microservicios Flask detrás de Nginx, desplegado en
 AWS Academy, con integración con un equipo aliado y una API de terceros,
 tareas asíncronas e internacionalización.
 
-> **Estado de esta página (28/10/2026):** por ahora incluye las correcciones
+> **Estado de esta página (04/11/2026):** por ahora incluye las correcciones
 > de la Entrega 1, la justificación del bono de excelencia, que se adelantó
-> para revisarla antes del Parcial 02, y la auditoría de UX y accesibilidad.
-> Las secciones de arquitectura y diagramas, servicios (aliado y API de
-> terceros), despliegue en AWS, tareas asíncronas y evidencias se agregan
-> antes de la entrega del 12 de noviembre.
+> para revisarla antes del Parcial 02, la auditoría de UX y accesibilidad, y
+> la arquitectura con sus diagramas (el de despliegue se confirma con la
+> instancia de AWS). Las secciones de servicios (aliado y API de terceros),
+> despliegue en AWS, tareas asíncronas y evidencias se agregan antes de la
+> entrega del 12 de noviembre.
 
 ---
 
@@ -154,3 +155,291 @@ reproducirlo: **[Auditoría UX](Auditoria-UX.md)**.
 
 Se corrigieron 10 hallazgos (H1 a H10) y uno en parte (H11). Quedan
 cuatro pendientes documentados (H11 a H14).
+
+---
+
+## 4. Arquitectura
+
+Los diagramas están en [Mermaid](https://mermaid.js.org/): son texto dentro
+de esta página y GitHub los dibuja, así que se actualizan con el código en
+el mismo Pull Request.
+
+### Antes y después del Strangler Pattern
+
+En la Entrega 1, el frontend llamaba directamente a tres proyectos Django,
+cada uno en su puerto:
+
+```mermaid
+flowchart LR
+    app(["Frontend React"])
+    app -->|":8001"| usuarios["usuarios<br/>Django"]
+    app -->|":8002"| contenido["contenido<br/>Django: caracteres, trazos, lecciones"]
+    app -->|":8003"| tutor["agente-tutor<br/>Django: sesiones, progreso, tutor"]
+    contenido --> db1[("SQLite")]
+    tutor --> db2[("SQLite")]
+```
+
+En la Entrega 2, todo entra por Nginx. Las rutas `/api/v2/` van a los
+microservicios Flask, que son los que usa la aplicación; las `/api/v1/`
+siguen llegando a Django como respaldo:
+
+```mermaid
+flowchart LR
+    app(["Frontend React"]) --> nginx["Nginx<br/>gateway"]
+    nginx -->|"/api/v1/"| v1["Django v1 (respaldo)<br/>contenido · agente_tutor"]
+    nginx -->|"/api/v2/"| v2["Microservicios Flask<br/>catálogo · sesiones · progreso · evaluación<br/>trazos · ejemplos · reportes"]
+    v2 --> redis[("Redis<br/>broker de Celery")]
+    redis --> worker["worker<br/>Celery"]
+```
+
+### Contenedores
+
+Las 14 piezas que levanta `docker-compose.yml` y cómo se comunican. Solo
+Nginx publica un puerto; el resto solo es accesible dentro de la red de
+Docker.
+
+```mermaid
+flowchart TB
+    usuario(["Navegador o celular"])
+    aliado(["Equipo aliado"])
+    tatoeba(["API de Tatoeba"])
+
+    subgraph docker["Docker Compose: misma red interna"]
+        nginx["nginx<br/>gateway, puerto 80"]
+        frontend["frontend<br/>PWA React"]
+
+        subgraph v1["v1: Django, respaldo del Strangler"]
+            contenido["contenido"]
+            tutor["agente_tutor<br/>con el tutor LangGraph"]
+        end
+
+        subgraph v2["v2: microservicios Flask"]
+            catalogo["flask_catalogo<br/>caracteres, lecciones y resumen público"]
+            sesiones["flask_sesiones"]
+            progreso["flask_progreso"]
+            evaluacion["flask_evaluacion"]
+            trazos["flask_trazos"]
+            ejemplos["flask_ejemplos"]
+            reportes["flask_reportes"]
+        end
+
+        redis[("redis<br/>broker y resultados")]
+        worker["worker<br/>Celery"]
+        db[("PostgreSQL db<br/>una base por servicio")]
+        sqlite[("SQLite de agente_tutor")]
+    end
+
+    usuario -->|"HTTP :80"| nginx
+    aliado -->|"/api/v2/publico/resumen/"| nginx
+    nginx -->|"/"| frontend
+    nginx -->|"/api/v1/"| v1
+    nginx -->|"/api/v2/"| v2
+
+    sesiones -->|"HTTP"| catalogo
+    sesiones -->|"HTTP"| progreso
+    sesiones -->|"notificar_sesion_lista"| redis
+    evaluacion -->|"HTTP"| catalogo
+    evaluacion -->|"HTTP"| trazos
+    reportes -->|"encola"| redis
+    redis -->|"tareas"| worker
+    worker -->|"HTTP"| progreso
+    ejemplos -->|"Adapter"| tatoeba
+    tutor -->|"HTTP"| catalogo
+
+    contenido --> db
+    catalogo --> db
+    progreso --> db
+    sesiones --> db
+    tutor --> sqlite
+```
+
+Las bases de los servicios Flask son `db_catalogo`, `db_progreso` y
+`db_sesiones`, en el mismo servidor PostgreSQL que la de `contenido`.
+`flask_trazos`, `flask_evaluacion` y `flask_ejemplos` no guardan estado.
+
+### Despliegue en AWS
+
+> Pendiente de confirmar con el despliegue (T32 a T34): la IP elástica y las
+> reglas definitivas del security group.
+
+```mermaid
+flowchart LR
+    usuario(["Usuario"]) -->|"HTTP :80"| eip
+    aliado(["Equipo aliado"]) -->|"HTTP :80"| eip
+
+    subgraph aws["AWS Academy, us-east-1"]
+        eip["IP elástica"] --> sg{{"Security group<br/>entrada: 80 HTTP y 22 SSH"}}
+        subgraph ec2["EC2 t3.medium con Docker y Compose"]
+            nginx["nginx :80"]
+            resto["frontend, Django, microservicios Flask,<br/>PostgreSQL, Redis y worker de Celery"]
+        end
+        sg --> nginx
+        nginx --> resto
+    end
+
+    resto -->|"HTTPS saliente"| tatoeba(["api.tatoeba.org"])
+```
+
+### Secuencia: crear una sesión adaptativa
+
+Es la versión actualizada del diagrama de la Entrega 1. Antes todo pasaba
+dentro de `agente-tutor`; ahora `flask_sesiones` pide el progreso y los
+caracteres a otros servicios por HTTP, guarda la sesión en su propia base y
+avisa por Redis que está lista.
+
+```mermaid
+sequenceDiagram
+    actor U as App (Practicar)
+    participant N as Nginx
+    participant S as flask_sesiones
+    participant P as flask_progreso
+    participant C as flask_catalogo
+    participant DB as db_sesiones
+    participant B as Redis
+    participant W as worker (Celery)
+
+    U->>N: POST /api/v2/sesiones/ {usuario_id, nivel_hsk, duracion_min}
+    N->>S: misma ruta
+    S->>P: GET /api/v2/progreso/{usuario_id}/
+    P-->>S: nivel, tasa de acierto, dominados
+    S->>S: el motor del tutor sugiere la dificultad
+    S->>P: GET /api/v2/progreso/{usuario_id}/refuerzos/?limite=3
+    P-->>S: caracteres a reforzar
+    S->>C: GET /api/v2/caracteres/?nivel=...&excluir=...&limite=4
+    C-->>S: caracteres nuevos
+    S->>S: SesionEstudioBuilder valida y arma los ejercicios
+
+    alt sesión inválida o nivel no desbloqueado
+        S-->>U: 400 SESION_INVALIDA o NIVEL_NO_PERMITIDO (mensaje traducido)
+    else sesión válida
+        S->>DB: guardar la sesión y sus ejercicios
+        S->>B: publicar notificar_sesion_lista
+        B->>W: notificar_sesion_lista (log y lista de notificaciones)
+        S-->>U: 201 sesión con sus ejercicios
+    end
+
+    Note over S,C: Si progreso o catálogo no responden, la sesión se arma igual<br/>con el progreso inicial o la lista local, y la respuesta trae un aviso.
+```
+
+### API de terceros con el patrón Adapter
+
+El caso de uso solo conoce la interfaz `ProveedorEjemplos`. La fábrica
+decide qué adaptador usar según la variable `PROVEEDOR_EJEMPLOS`, así que
+cambiar de proveedor no toca el caso de uso (inversión de dependencias).
+
+```mermaid
+classDiagram
+    direction LR
+    class ProveedorEjemplos {
+        <<interface>>
+        nombre
+        atribucion
+        obtener(hanzi, idioma, limite) list~Ejemplo~
+    }
+    class AdaptadorTatoeba {
+        obtener(hanzi, idioma, limite) list~Ejemplo~
+    }
+    class EjemplosFalsos {
+        obtener(hanzi, idioma, limite) list~Ejemplo~
+    }
+    class buscar_ejemplos {
+        <<CasoDeUso>>
+    }
+    class crear_proveedor {
+        <<Fabrica>>
+        PROVEEDOR_EJEMPLOS
+    }
+    ProveedorEjemplos <|.. AdaptadorTatoeba
+    ProveedorEjemplos <|.. EjemplosFalsos
+    buscar_ejemplos --> ProveedorEjemplos : depende solo de la interfaz
+    crear_proveedor ..> AdaptadorTatoeba : crea
+    crear_proveedor ..> EjemplosFalsos : crea
+```
+
+```mermaid
+sequenceDiagram
+    participant F as Frontend (Trazos)
+    participant N as Nginx
+    participant R as flask_ejemplos (rutas)
+    participant S as buscar_ejemplos
+    participant A as AdaptadorTatoeba
+    participant T as api.tatoeba.org
+
+    F->>N: GET /api/v2/ejemplos/人/?lang=es&limite=3
+    N->>R: misma ruta
+    R->>S: hanzi, idioma y límite ya validados
+    S->>A: obtener("人", "es", 3)
+    A->>T: GET /v1/sentences (solo traducciones directas)
+    opt ninguna oración con traducción directa
+        A->>T: GET /v1/sentences (acepta indirectas)
+    end
+    T-->>A: oraciones de Tatoeba
+    A-->>S: lista de Ejemplo (texto simplificado, pinyin, traducción)
+    S-->>R: hanzi, idioma, proveedor, atribución y ejemplos
+    R-->>F: 200 JSON
+
+    Note over A,T: Si Tatoeba no responde en 3 s, el adaptador lanza<br/>ProveedorNoDisponible y el servicio responde 503 PROVEEDOR_NO_DISPONIBLE.
+```
+
+### Secuencia: tarea asíncrona (reporte de progreso)
+
+El reporte no se calcula en la petición: `flask_reportes` lo encola en
+Redis, el worker de Celery lo genera y el frontend consulta su estado.
+
+```mermaid
+sequenceDiagram
+    participant F as Frontend (Progreso)
+    participant N as Nginx
+    participant R as flask_reportes
+    participant B as Redis
+    participant W as worker (Celery)
+    participant P as flask_progreso
+
+    F->>N: POST /api/v2/reportes/ {usuario_id}
+    N->>R: misma ruta
+    R->>B: guardar la marca del task_id y publicar la tarea
+    R-->>F: 202 {task_id, estado: pendiente}
+    B->>W: generar_reporte_progreso(usuario_id)
+    W->>P: GET /api/v2/progreso/{usuario_id}/
+
+    alt progreso responde
+        P-->>W: progreso
+        W->>B: resultado listo (caduca a las 24 h)
+    else progreso no responde
+        W->>W: reintenta tras 1, 2 y 4 s
+        W->>B: estado error, DEPENDENCIA_NO_DISPONIBLE
+    end
+
+    loop cada 2 s, hasta 45 s
+        F->>N: GET /api/v2/reportes/{task_id}/
+        N->>R: misma ruta
+        R->>B: leer el estado
+        R-->>F: pendiente, en_proceso, listo con el resultado, o error
+    end
+```
+
+### Secuencia: servicio para el equipo aliado
+
+El equipo aliado consume el resumen público de `flask_catalogo`. El consumo
+del servicio del aliado desde HanZi Mentor (T26) se agrega cuando se acuerde
+el contrato (T03).
+
+```mermaid
+sequenceDiagram
+    participant A as App del equipo aliado
+    participant N as Nginx
+    participant C as flask_catalogo
+    participant DB as db_catalogo
+
+    A->>N: GET /api/v2/publico/resumen/?lang=es&nivel=2
+    N->>C: misma ruta
+    C->>C: validar lang y nivel
+
+    alt parámetro inválido
+        C-->>A: 400 ENTRADA_INVALIDA, en el idioma de lang
+    else parámetros válidos
+        C->>DB: contar caracteres por nivel y elegir el carácter del día
+        DB-->>C: totales y carácter
+        C-->>A: 200 JSON con Access-Control-Allow-Origin: *
+    end
+```
