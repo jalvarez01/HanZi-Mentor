@@ -20,6 +20,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import selectinload
 
 from hsk import CARACTERES_POR_NIVEL
+from lecturas import lecturas_de
 from modelos import Caracter, Ejercicio, Trazo
 
 
@@ -60,6 +61,17 @@ def leer_filtrado(archivo, deseados):
     return resultado
 
 
+def completar_lecturas(sesion):
+    """Llena `lecturas` en los caracteres cargados antes de que existiera la
+    columna, a partir de su `pinyin` y de datos/lecturas_hsk.json. No necesita
+    el dataset. Devuelve cuántos completó."""
+    pendientes = sesion.scalars(select(Caracter).where(Caracter.lecturas.is_(None))).all()
+    for caracter in pendientes:
+        caracter.lecturas = lecturas_de(caracter.hanzi, [caracter.pinyin] if caracter.pinyin else [])
+    sesion.commit()
+    return len(pendientes)
+
+
 def base_vacia(sesion):
     return sesion.scalar(select(func.count()).select_from(Caracter)) == 0
 
@@ -78,11 +90,12 @@ def _deseados(niveles, todos):
     return deseados
 
 
-def _campos(dic):
+def _campos(hanzi, dic):
     dic = dic or {}
-    pinyin = dic.get("pinyin")
+    pinyin = dic.get("pinyin") or []
     return {
         "pinyin": pinyin[0] if pinyin else "",
+        "lecturas": lecturas_de(hanzi, pinyin),
         "definicion": dic.get("definition") or "",
         "radical": dic.get("radical") or "",
         "descomposicion": dic.get("decomposition") or "",
@@ -144,7 +157,7 @@ def cargar(sesion, ruta, niveles=(1, 2), todos=False, limpiar=False):
             else:
                 resumen.actualizados += 1
 
-            for nombre, valor in _campos(dic).items():
+            for nombre, valor in _campos(hanzi, dic).items():
                 setattr(caracter, nombre, valor)
             caracter.nivel_hsk = nivel_de.get(hanzi)
 

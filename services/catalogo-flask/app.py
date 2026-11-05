@@ -7,6 +7,7 @@ import modelos  # noqa: F401  (registra las tablas antes de iniciar_db)
 from db import db_disponible, iniciar_db, usa_db
 from errores import registrar_manejadores
 from i18n import iniciar_i18n
+from migraciones import migrar
 from rutas import catalogo_bp
 from rutas_publico import publico_bp
 
@@ -19,6 +20,8 @@ def create_app(config_extra=None):
 
     # `modelos` ya está importado arriba: iniciar_db crea sus tablas.
     iniciar_db(app)
+    # Columnas nuevas sobre tablas que ya existían (create_all no las agrega).
+    migrar(app)
     # Idioma de los mensajes según Accept-Language (es por defecto).
     iniciar_i18n(app)
     registrar_manejadores(app)

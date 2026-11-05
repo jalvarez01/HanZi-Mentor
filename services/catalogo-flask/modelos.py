@@ -45,6 +45,9 @@ class Caracter(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     hanzi: Mapped[str] = mapped_column(String(4), unique=True, index=True)
     pinyin: Mapped[str] = mapped_column(String(64), default="")
+    # Todas las lecturas, con `pinyin` primero. Nula en bases anteriores
+    # hasta que el arranque la completa (ver carga.completar_lecturas).
+    lecturas: Mapped[list[str] | None] = mapped_column(JSON)
     definicion: Mapped[str] = mapped_column(Text, default="")
     radical: Mapped[str] = mapped_column(String(4), default="")
     descomposicion: Mapped[str] = mapped_column(String(64), default="")

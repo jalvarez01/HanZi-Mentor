@@ -1,0 +1,4 @@
+{"character":"长","definition":"long, lasting; to excel in","pinyin":["zhǎng"],"decomposition":"⿻？一","radical":"长"}
+{"character":"得","definition":"to obtain, to get, to acquire; suitable, proper; ready","pinyin":["dé"],"decomposition":"⿰彳⿱旦寸","radical":"彳"}
+{"character":"了","definition":"clear; to finish; particle of completed action","pinyin":["le","liǎo"],"decomposition":"⿱乛亅","radical":"亅"}
+{"character":"人","definition":"man; people; mankind; someone else","pinyin":["rén"],"decomposition":"？","radical":"人"}

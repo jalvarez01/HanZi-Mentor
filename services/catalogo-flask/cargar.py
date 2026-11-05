@@ -3,6 +3,7 @@
 Uso, desde services/catalogo-flask:
     python cargar.py --ruta ../contenido/data_hanzi --nivel 1 2
     python cargar.py --ruta ../contenido/data_hanzi --todos --limpiar
+    python cargar.py --completar-lecturas
 
 Usa la misma configuración que el servicio: DATABASE_URL (SQLite local
 db.sqlite3 si no se define). Las tablas se crean si no existen.
@@ -12,7 +13,7 @@ import argparse
 import sys
 
 from app import create_app
-from carga import ErrorCarga, base_vacia, cargar
+from carga import ErrorCarga, base_vacia, cargar, completar_lecturas
 
 
 def _argumentos(argv):
@@ -20,7 +21,7 @@ def _argumentos(argv):
         description="Importa caracteres y trazos desde los datos de Make Me a Hanzi."
     )
     parser.add_argument(
-        "--ruta", required=True,
+        "--ruta",
         help="Carpeta que contiene dictionary.txt y graphics.txt.",
     )
     parser.add_argument(
@@ -42,7 +43,17 @@ def _argumentos(argv):
         "--si-vacia", action="store_true",
         help="Solo importa si la base no tiene caracteres (lo usa el arranque en Docker).",
     )
-    return parser.parse_args(argv)
+    parser.add_argument(
+        "--completar-lecturas", action="store_true",
+        help=(
+            "Solo completa `lecturas` en los caracteres que no la tienen (bases "
+            "anteriores a la columna). No necesita el dataset."
+        ),
+    )
+    opciones = parser.parse_args(argv)
+    if not opciones.ruta and not opciones.completar_lecturas:
+        parser.error("falta --ruta (o usar --completar-lecturas)")
+    return opciones
 
 
 def main(argv=None):
@@ -51,6 +62,10 @@ def main(argv=None):
     sesion = app.extensions["db"]["fabrica"]()
 
     try:
+        if opciones.completar_lecturas:
+            print(f"Lecturas completadas en {completar_lecturas(sesion)} caracteres.")
+            return 0
+
         if opciones.si_vacia and not base_vacia(sesion):
             print("La base ya tiene caracteres: no se importa nada.")
             return 0
