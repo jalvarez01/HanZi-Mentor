@@ -30,10 +30,22 @@ def _sin_diacriticos(texto: str) -> str:
     return "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
 
 
+def _lecturas(datos_correctos: dict) -> list:
+    """Todas las lecturas del carácter. Un catálogo anterior a `lecturas`
+    solo manda `pinyin`, y entonces vale solo esa, como en v1."""
+    lecturas = datos_correctos.get("lecturas")
+    if isinstance(lecturas, list) and any(isinstance(x, str) and x for x in lecturas):
+        return [x for x in lecturas if isinstance(x, str) and x]
+    return [datos_correctos.get("pinyin", "")]
+
+
 def _evaluar_pinyin(respuesta_usuario: str, datos_correctos: dict) -> bool:
-    esperado = _sin_diacriticos(_normalizar_texto(datos_correctos.get("pinyin", "")))
+    # Cualquier lectura vale: 长 se acepta como "cháng" o como "zhǎng".
     recibido = _sin_diacriticos(_normalizar_texto(respuesta_usuario))
-    return esperado == recibido
+    return any(
+        _sin_diacriticos(_normalizar_texto(lectura)) == recibido
+        for lectura in _lecturas(datos_correctos)
+    )
 
 
 def _evaluar_significado(respuesta_usuario: str, dificultad: int, datos_correctos: dict) -> bool:

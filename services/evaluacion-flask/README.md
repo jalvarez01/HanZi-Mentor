@@ -56,8 +56,11 @@ Equivalencias con v1 (`services/agente-tutor/tutor`):
 ## Reglas
 
 - **pinyin**: pasa a minúsculas, colapsa espacios y quita tildes y tonos
-  (NFD sin marcas combinantes) en la respuesta y en el pinyin del catálogo,
-  y los compara. "xue", "xué" y "XUÉ" valen para `xué`. Como en v1, el tono
+  (NFD sin marcas combinantes) en la respuesta y en cada lectura del
+  catálogo, y los compara. "xue", "xué" y "XUÉ" valen para `xué`. Las
+  lecturas salen de `lecturas` del detalle; si un catálogo anterior no la
+  manda, vale solo `pinyin`. Acierta con cualquiera: 长 vale como "chang" o
+  como "zhang", y 得 como "de" o "dei". Como en v1, el tono
   no cuenta y la diéresis tampoco (`lu` vale para `lǜ`).
 - **significado**: normaliza igual, cambia comas por espacios, ordena las
   palabras y compara con `SequenceMatcher`. Acierta si la similitud llega al
