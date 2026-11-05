@@ -170,6 +170,19 @@
     "newUser": "Start as a new user",
     "userId": "id: {{id}}"
   },
+  "report": {
+    "kicker": "Report",
+    "title": "Your progress report",
+    "description": "It is generated in the background: you can keep using the app meanwhile.",
+    "generate": "Generate report",
+    "queued": "Queued: waiting for the report generator…",
+    "generating": "Generating your report…",
+    "generatedAt": "Generated",
+    "download": "Download (JSON)",
+    "again": "Generate another",
+    "retry": "Try again",
+    "timeout": "The report took too long. Try again in a few seconds."
+  },
   "howItWorks": {
     "title": "How it works",
     "intro": "Three pieces working together: what you draw, what the tutor learns about you, and when it is time to review.",

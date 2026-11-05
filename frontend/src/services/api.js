@@ -12,6 +12,8 @@
  *                             queda como servicio interno)
  *   - /api/v2/ejemplos/*   -> ejemplos-flask: oraciones de ejemplo de Tatoeba
  *                             (API de terceros detrás de un Adapter)
+ *   - /api/v2/reportes/*   -> reportes-flask: reportes de progreso que genera
+ *                             en segundo plano un worker de Celery
  *
  * v2 responde los mismos campos que v1 (contenido y agente-tutor);
  * /api/v1/ sigue en el gateway solo como respaldo. La única diferencia es
@@ -31,12 +33,14 @@ const SESIONES_URL = import.meta.env.VITE_SESIONES_URL || '';
 const PROGRESO_URL = import.meta.env.VITE_PROGRESO_URL || '';
 const EVALUACION_URL = import.meta.env.VITE_EVALUACION_URL || '';
 const EJEMPLOS_URL = import.meta.env.VITE_EJEMPLOS_URL || '';
+const REPORTES_URL = import.meta.env.VITE_REPORTES_URL || '';
 
 const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
 const SESIONES_API = `${SESIONES_URL}/api/v2`;
 const PROGRESO_API = `${PROGRESO_URL}/api/v2`;
 const EVALUACION_API = `${EVALUACION_URL}/api/v2`;
 const EJEMPLOS_API = `${EJEMPLOS_URL}/api/v2`;
+const REPORTES_API = `${REPORTES_URL}/api/v2`;
 
 class ErrorApi extends Error {
   constructor(mensaje, status, cuerpo) {
@@ -121,6 +125,29 @@ export function responderEjercicio(ejercicioId, acerto) {
 
 export function obtenerProgreso(usuarioId) {
   return pedir(`${PROGRESO_API}/progreso/${usuarioId}/`);
+}
+
+// ---------------------------------------------------------------- reportes
+
+/**
+ * Encola un reporte de progreso (tarea de Celery en reportes-flask). Responde
+ * enseguida con 202 { task_id, estado: "pendiente" }: el reporte se genera en
+ * segundo plano y se consulta con obtenerReporte.
+ */
+export function crearReporte(usuarioId) {
+  return pedir(`${REPORTES_API}/reportes/`, {
+    method: 'POST',
+    body: JSON.stringify({ usuario_id: usuarioId }),
+  });
+}
+
+/**
+ * Estado del reporte: pendiente o en_proceso; listo, con `resultado`; o error,
+ * con `error` (ya traducido) y `codigo`. Un 404 quiere decir que no existe o
+ * que caducó (24 h).
+ */
+export function obtenerReporte(taskId) {
+  return pedir(`${REPORTES_API}/reportes/${encodeURIComponent(taskId)}/`);
 }
 
 // --------------------------------------------------------------- contenido

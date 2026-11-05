@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import ReporteProgreso from '../components/ReporteProgreso';
 import TopBar from '../components/TopBar';
 import { useProgreso } from '../hooks/useProgreso';
 import { useFormato } from '../i18n/formato';
@@ -107,6 +108,9 @@ export default function Progreso() {
                   : t('progress.reviewNone')}
               </p>
             </Bloque>
+
+            {/* key: al empezar como usuario nuevo, el reporte del anterior se descarta */}
+            <ReporteProgreso key={usuarioId} usuarioId={usuarioId} />
 
             <div className="progreso-acciones">
               <button type="button" className="hm-btn hm-btn--block" onClick={recargar}>
