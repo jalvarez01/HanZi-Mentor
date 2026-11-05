@@ -35,6 +35,9 @@ trazo en el detalle del carácter, que es lo que trazos-flask necesita.
 | `docker-entrypoint.sh`| En Docker, crea la base y carga el dataset si la base está vacía |
 | `crear_base.py`       | Crea la base PostgreSQL de `DATABASE_URL` si no existe (idempotente) |
 | `descargar_datos.py`  | Descarga Make Me a Hanzi de GitHub si no hay volumen y la base está vacía |
+| `lecturas.py`, `datos/lecturas_hsk.json` | Todas las lecturas en pinyin de los caracteres HSK (ver "Varias lecturas") |
+| `scripts/generar_lecturas.py` | Regenera `datos/lecturas_hsk.json` desde Unicode Unihan      |
+| `migraciones.py`      | Agrega columnas nuevas a bases que ya existían (`create_all` no lo hace) |
 
 Equivalencias con v1:
 
@@ -94,10 +97,44 @@ Opciones de `cargar.py`:
 | `--todos`         | Importa todo el archivo; los que no son HSK quedan con `nivel_hsk` nulo |
 | `--limpiar`       | Borra caracteres, trazos y ejercicios antes de importar             |
 | `--si-vacia`      | Solo importa si la base no tiene caracteres                         |
+| `--completar-lecturas` | Solo completa `lecturas` en los caracteres que no la tienen; no usa `--ruta` |
 
 Volver a correrlo actualiza los caracteres existentes y reemplaza sus
 trazos, sin duplicar. Para pruebas hay un dataset mínimo en
-`tests/datos/makemeahanzi` (人, 大, 两 y 丶).
+`tests/datos/makemeahanzi` (人, 大, 两 y 丶) y otro con caracteres de varias
+lecturas en `tests/datos/lecturas` (长, 得, 了 y 人).
+
+## Varias lecturas
+
+Make Me a Hanzi trae una sola lectura para la mayoría de los caracteres: 长
+solo `zhǎng` y 得 solo `dé`. Para que el formulario de pinyin acepte también
+`cháng` o `de`, el catálogo guarda todas las lecturas en `lecturas`:
+
+- **Fuente:** [Unicode Unihan](https://www.unicode.org/reports/tr38/)
+  17.0.0, `Unihan_Readings.txt`, campo `kXHC1983` (las lecturas del Xiandai
+  Hanyu Cidian). Si un carácter no lo tiene, se usa `kMandarin`, y si tampoco,
+  el pinyin de Make Me a Hanzi. Hoy los 696 caracteres HSK salen de
+  `kXHC1983` y 179 tienen más de una lectura.
+- **Licencia:** Unicode License v3 (<https://www.unicode.org/license.txt>).
+  La fuente y la licencia también van en la cabecera del JSON.
+- **Orden:** la lectura de Make Me a Hanzi primero (es el `pinyin` de
+  siempre) y después las de Unihan, sin repetidas. Por ejemplo, 长 queda
+  `["zhǎng", "cháng"]` y 得 `["dé", "de", "děi"]`.
+- **Sin descargas:** el servicio nunca descarga Unihan. Solo usa
+  `datos/lecturas_hsk.json`, que se regenera con:
+
+  ```bash
+  python scripts/generar_lecturas.py --diccionario services/contenido/data_hanzi/dictionary.txt
+  # o con un Unihan.zip ya descargado: --unihan Unihan.zip
+  ```
+
+**Bases que ya existían.** `create_all` no agrega columnas a una tabla que
+ya está creada, así que `migraciones.py` hace `ALTER TABLE ... ADD COLUMN IF
+NOT EXISTS lecturas` en cada arranque (en SQLite revisa antes si la columna
+existe). Después, el arranque en Docker corre `python cargar.py
+--completar-lecturas`, que llena las filas vacías a partir del `pinyin`
+guardado y del JSON, sin volver a descargar el dataset. Mientras una fila no
+esté completa, el detalle devuelve `[pinyin]`.
 
 ## Variables de entorno
 
@@ -165,7 +202,10 @@ curl -s "http://localhost:5081/api/v2/caracteres/?nivel=1&excluir=人&limite=4"
 
 ### `GET /api/v2/caracteres/<hanzi>/`
 
-Incluye los trazos en orden de escritura, con su path SVG y su mediana.
+Incluye los trazos en orden de escritura, con su path SVG y su mediana, y
+`lecturas`: todas las lecturas en pinyin, con `pinyin` primero. `lecturas`
+es la única clave que no existe en v1 y va al final, así que las claves de
+v1 quedan iguales y en el mismo orden (`tests/test_contrato.py`).
 
 ```bash
 curl -s http://localhost:5081/api/v2/caracteres/人/
@@ -178,8 +218,12 @@ curl -s http://localhost:5081/api/v2/caracteres/人/
    {"secuencia": 1, "path_svg": "M 458 800 Q 400 700 300 540 Z",
     "mediana": [[458, 800], [435, 764], [400, 700], [350, 620], [300, 540]]},
    {"secuencia": 2, "path_svg": "M 520 560 Q 600 400 760 200 Z",
-    "mediana": [[520, 560], [600, 400], [760, 200]]}]}
+    "mediana": [[520, 560], [600, 400], [760, 200]]}],
+ "lecturas": ["rén"]}
 ```
+
+Con varias lecturas: `GET /api/v2/caracteres/长/` devuelve `"pinyin": "zhǎng"`
+y, al final, `"lecturas": ["zhǎng", "cháng"]`.
 
 ### `POST /api/v2/lecciones/generar/`
 

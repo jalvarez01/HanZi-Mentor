@@ -269,3 +269,32 @@ def test_con_trazos_caido_pinyin_sigue_funcionando():
 
     assert resp.status_code == 200
     assert resp.get_json()["acerto"] is True
+
+
+# ------------------------------------------------- varias lecturas (pinyin)
+
+
+CHANG = {"hanzi": "长", "pinyin": "zhǎng", "lecturas": ["zhǎng", "cháng"], "trazos": []}
+
+
+@pytest.mark.parametrize("respuesta, acerto", [
+    ("cháng", True), ("chang", True), ("zhǎng", True), ("zhang", True), ("ma", False),
+])
+def test_长_por_el_endpoint_acepta_cualquier_lectura(respuesta, acerto):
+    client = cliente_con(catalogo=CatalogoFalso({"长": CHANG}))
+
+    resp = client.post("/api/v2/evaluacion/", json={"tipo": "pinyin", "caracter": "长", "respuesta": respuesta})
+
+    assert resp.status_code == 200
+    assert resp.get_json() == {"tipo": "pinyin", "caracter": "长", "acerto": acerto}
+
+
+def test_con_un_catalogo_sin_lecturas_vale_solo_el_pinyin():
+    viejo = {"长": {"hanzi": "长", "pinyin": "zhǎng", "trazos": []}}
+    client = cliente_con(catalogo=CatalogoFalso(viejo))
+
+    def acerto(r):
+        return client.post("/api/v2/evaluacion/", json={"tipo": "pinyin", "caracter": "长", "respuesta": r}).get_json()["acerto"]
+
+    assert acerto("zhang") is True
+    assert acerto("chang") is False

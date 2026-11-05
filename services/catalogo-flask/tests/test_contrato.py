@@ -55,10 +55,14 @@ def v1():
     return _leer_serializers()
 
 
-def comparar(datos, serializer, v1):
-    """Compara claves y orden, y baja a los serializers anidados."""
+def comparar(datos, serializer, v1, extras=()):
+    """Compara claves y orden, y baja a los serializers anidados.
+
+    `extras` son claves que solo tiene v2 y que van al final, después de todas
+    las de v1, para que un cliente de v1 no note la diferencia.
+    """
     esperado = v1[serializer]
-    assert list(datos) == esperado["campos"], f"{serializer}: claves distintas a v1"
+    assert list(datos) == esperado["campos"] + list(extras), f"{serializer}: claves distintas a v1"
     for campo, anidado in esperado["anidados"].items():
         valor = datos[campo]
         for item in valor if isinstance(valor, list) else [valor]:
@@ -86,7 +90,8 @@ def test_contrato_detalle_de_caracter(client, crear_caracter, v1):
     datos = client.get("/api/v2/caracteres/人/").get_json()
 
     assert len(datos["trazos"]) == 2
-    comparar(datos, "CaracterSerializer", v1)
+    # `lecturas` es nueva en v2: va al final y las claves de v1 no se mueven.
+    comparar(datos, "CaracterSerializer", v1, extras=["lecturas"])
 
 
 def test_contrato_generar_leccion(client, crear_caracter, v1):

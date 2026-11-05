@@ -34,4 +34,9 @@ else
     echo "Sin dataset en /datos ni descargado: no se importan caracteres."
 fi
 
+# Bases cargadas antes de la columna `lecturas`: se completa desde el pinyin
+# guardado y datos/lecturas_hsk.json, sin volver a descargar el dataset.
+python cargar.py --completar-lecturas \
+    || echo "AVISO: no se pudieron completar las lecturas; el detalle usa el pinyin."
+
 exec "$@"

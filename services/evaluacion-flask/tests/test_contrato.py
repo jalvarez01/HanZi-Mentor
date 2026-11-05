@@ -80,3 +80,9 @@ def test_catalogo_manda_secuencia_y_mediana_por_trazo():
     claves = _claves_de_dicts(_arbol(SERIALIZACION_CATALOGO))
 
     assert any({"secuencia", "mediana"} <= set(c) for c in claves), claves
+
+
+def test_catalogo_manda_pinyin_y_lecturas_en_el_detalle():
+    claves = _claves_de_dicts(_arbol(SERIALIZACION_CATALOGO))
+
+    assert any({"pinyin", "lecturas"} <= set(c) for c in claves), claves

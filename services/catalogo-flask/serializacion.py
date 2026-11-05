@@ -34,6 +34,9 @@ def caracter_detalle(c):
         "descomposicion": c.descomposicion,
         "nivel_hsk": c.nivel_hsk,
         "trazos": [trazo(t) for t in c.trazos],
+        # Solo en v2, al final para no mover las claves de v1: todas las
+        # lecturas, con `pinyin` primero. Una base sin completar usa el pinyin.
+        "lecturas": c.lecturas or ([c.pinyin] if c.pinyin else []),
     }
 
 

@@ -67,3 +67,43 @@ class TestCasosInvalidos:
     def test_trazo_no_pasa_por_la_regla_pura(self):
         with pytest.raises(ValueError):
             evaluar_respuesta("trazo", 3, {}, {})
+
+
+class TestVariasLecturas:
+    """El catálogo manda `lecturas` con todas las pronunciaciones (pinyin primero)."""
+
+    CHANG = {"pinyin": "zhǎng", "lecturas": ["zhǎng", "cháng"]}
+    DE = {"pinyin": "dé", "lecturas": ["dé", "de", "děi"]}
+    LE = {"pinyin": "le", "lecturas": ["le", "liǎo", "liào"]}
+    REN = {"pinyin": "rén", "lecturas": ["rén"]}
+
+    @pytest.mark.parametrize("respuesta", ["cháng", "chang", "zhǎng", "ZHANG"])
+    def test_长_acepta_cualquier_lectura(self, respuesta):
+        assert evaluar_respuesta("pinyin", 3, respuesta, self.CHANG)
+
+    @pytest.mark.parametrize("respuesta", ["dé", "de", "děi", "dei"])
+    def test_得_acepta_cualquier_lectura(self, respuesta):
+        assert evaluar_respuesta("pinyin", 3, respuesta, self.DE)
+
+    @pytest.mark.parametrize("respuesta", ["le", "liǎo", "liao"])
+    def test_了_acepta_cualquier_lectura(self, respuesta):
+        assert evaluar_respuesta("pinyin", 3, respuesta, self.LE)
+
+    @pytest.mark.parametrize("datos", [CHANG, DE, LE, REN])
+    def test_una_respuesta_incorrecta_sigue_fallando(self, datos):
+        assert not evaluar_respuesta("pinyin", 3, "ma", datos)
+
+    def test_un_caracter_de_una_sola_lectura(self):
+        assert evaluar_respuesta("pinyin", 3, "ren", self.REN)
+        assert not evaluar_respuesta("pinyin", 3, "chang", self.REN)
+
+    def test_catalogo_anterior_sin_lecturas_usa_el_pinyin(self):
+        assert evaluar_respuesta("pinyin", 3, "zhang", {"pinyin": "zhǎng"})
+        assert not evaluar_respuesta("pinyin", 3, "chang", {"pinyin": "zhǎng"})
+
+    @pytest.mark.parametrize("lecturas", [None, [], "cháng", [None, ""]])
+    def test_lecturas_vacias_o_raras_vuelven_al_pinyin(self, lecturas):
+        datos = {"pinyin": "zhǎng", "lecturas": lecturas}
+
+        assert evaluar_respuesta("pinyin", 3, "zhang", datos)
+        assert not evaluar_respuesta("pinyin", 3, "chang", datos)
