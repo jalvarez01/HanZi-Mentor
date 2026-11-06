@@ -145,7 +145,20 @@
     "progressLabel": "Avance del ejercicio",
     "counter": "{{actual}} de {{total}}",
     "progressNotSaved": "Tu respuesta quedó guardada, pero no se pudo actualizar tu progreso en este momento.",
-    "notAvailable": "no disponible"
+    "notAvailable": "no disponible",
+    "typePinyin": "Pinyin",
+    "yourAnswer": "Tu respuesta:",
+    "correctAnswer": "La respuesta correcta es:"
+  },
+  "pinyinForm": {
+    "label": "Escribí el pinyin de este carácter",
+    "help": "Con o sin tonos: rén, ren2 o ren. Para ü podés usar v.",
+    "required": "Escribí una respuesta antes de comprobar.",
+    "tooLong": "Máximo {{maximo}} caracteres.",
+    "invalidChars": "Usá solo letras del pinyin, números de tono (1 a 5) y espacios.",
+    "check": "Comprobar",
+    "checking": "Comprobando…",
+    "dontKnow": "No lo sé"
   },
   "progress": {
     "title": "Progreso",
