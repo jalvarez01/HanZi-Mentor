@@ -192,6 +192,8 @@ services:
       TRAZOS_URL: http://flask_trazos:5000
       HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
       GUNICORN_WORKERS: ${EVALUACION_WORKERS:-2}
+      # Adaptador que explica los errores (RF-IA-04): hoy solo "reglas".
+      EXPLICADOR_ERRORES: ${EXPLICADOR_ERRORES:-reglas}
     expose:
       - "5000"
     depends_on:
