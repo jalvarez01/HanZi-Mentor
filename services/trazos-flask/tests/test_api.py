@@ -12,7 +12,11 @@ ANCHO = ALTO = 300
 LIENZO = 1024
 DESPLAZAMIENTO_Y = 900
 
-CAMPOS_200 = {"aprobado", "puntaje", "motivo", "detalle", "invertido", "puntos_lejanos"}
+# razon_longitud se suma en RF-IA-04: evaluacion-flask la usa para explicar
+# si un trazo "incompleto" quedó corto o se pasó de largo.
+CAMPOS_200 = {
+    "aprobado", "puntaje", "motivo", "detalle", "invertido", "puntos_lejanos", "razon_longitud",
+}
 
 
 def a_canvas(punto):
@@ -74,6 +78,19 @@ def test_trazo_invertido(client):
     assert datos["aprobado"] is False
     assert datos["invertido"] is True
     assert datos["motivo"] == "invertido"
+
+
+def test_razon_longitud_distingue_corto_de_largo(client):
+    # Solo la primera mitad de la mediana: el trazo queda corto.
+    corto = client.post(URL, json=cuerpo(puntos=[a_canvas(p) for p in densificar(MEDIANA[:2])]))
+    # Ida, vuelta e ida: el recorrido triplica el esperado.
+    ida_y_vuelta = MEDIANA + list(reversed(MEDIANA))[1:] + MEDIANA[1:]
+    largo = client.post(URL, json=cuerpo(puntos=[a_canvas(p) for p in densificar(ida_y_vuelta)]))
+
+    assert corto.get_json()["motivo"] == "incompleto"
+    assert corto.get_json()["razon_longitud"] < 0.55
+    assert largo.get_json()["motivo"] == "incompleto"
+    assert largo.get_json()["razon_longitud"] > 1.80
 
 
 def test_acepta_puntos_como_objetos(client):
