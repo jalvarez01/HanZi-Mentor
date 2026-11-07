@@ -130,12 +130,6 @@
   text-align: center;
 }
 
-.practica-hanzi {
-  margin: 14px 0 10px;
-  color: var(--jade);
-  font: 96px/1 var(--font-display);
-}
-
 .practica-dato {
   margin: 4px 0;
   color: var(--ink-muted);

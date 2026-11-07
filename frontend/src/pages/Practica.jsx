@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import CuadriculaHanzi from '../components/CuadriculaHanzi';
 import PorQue from '../components/PorQue';
 import RespuestaPinyin from '../components/RespuestaPinyin';
 import TopBar from '../components/TopBar';
@@ -219,9 +220,9 @@ export default function Practica() {
         <main className="hm-page practica">
           <Avance actual={indiceLeccion} total={leccion.ejercicios.length} />
 
-          <article className="hm-card practica-tarjeta">
+          <article className="hm-card practica-tarjeta cuadricula-hanzi">
             <span className="hm-kicker">{tipoEjercicio(ejercicioLeccion.tipo)}</span>
-            <div className="practica-hanzi" lang="zh-Hans">{ejercicioLeccion.caracter.hanzi}</div>
+            <CuadriculaHanzi hanzi={ejercicioLeccion.caracter.hanzi} />
             <p className="practica-dato">
               {ejercicioLeccion.caracter.pinyin} · {ejercicioLeccion.caracter.definicion}
             </p>
@@ -296,11 +297,11 @@ export default function Practica() {
 
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
-        <article className="hm-card practica-tarjeta">
+        <article className="hm-card practica-tarjeta cuadricula-hanzi">
           <span className="hm-kicker">
             {ejercicio?.tipo === 'trazo' ? t('practice.typeStrokes') : t('practice.typePinyin')}
           </span>
-          <div className="practica-hanzi" lang="zh-Hans">{ejercicio?.caracter}</div>
+          <CuadriculaHanzi hanzi={ejercicio?.caracter} />
         </article>
 
         {!ultimoResultado && ejercicio?.tipo !== 'trazo' ? (
