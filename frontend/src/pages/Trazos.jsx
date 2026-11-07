@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import EjemplosCaracter from '../components/EjemplosCaracter';
+import PorQue from '../components/PorQue';
 import TopBar from '../components/TopBar';
 import { evaluar, listarCaracteres, obtenerCaracter } from '../services/api';
 import './Trazos.css';
@@ -168,7 +169,9 @@ export default function Trazos() {
  *
  * El SVG de fondo pinta el trazo correcto; el canvas de arriba captura el
  * dedo o el mouse. Al soltar, el trazo capturado se manda a evaluar
- * (RF-APR-01) y, si se aprueba, se avanza solo al trazo siguiente.
+ * (RF-APR-01) y, si se aprueba, se avanza solo al trazo siguiente. Si el
+ * aprobado trae una nota de mejora (RF-IA-04), no se avanza solo: la nota
+ * queda a la vista y se sigue con "Siguiente".
  */
 function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
   const { t } = useTranslation();
@@ -270,7 +273,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
       });
       setResultado(veredicto);
 
-      if (veredicto.aprobado) {
+      if (veredicto.aprobado && !veredicto.nota) {
         setTimeout(() => onAprobado?.(), 900);
       }
     } catch (e) {
@@ -352,6 +355,18 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
           <p className="resultado-detalle">{resultado.detalle}</p>
           {resultado.invertido && <span className="resultado-tag">{t('strokes.reversed')}</span>}
         </div>
+      )}
+
+      {/* RF-IA-04: un aprobado "aceptable" dice dónde mejorar. */}
+      {resultado?.aprobado && resultado.nota && (
+        <p className="trazos-nota" role="status">
+          {resultado.nota.texto} <span className="trazos-nota__seguir">{t('strokes.noteNext')}</span>
+        </p>
+      )}
+
+      {/* RF-IA-04: solo con un trazo fallado que el servicio pudo explicar. */}
+      {resultado && !resultado.aprobado && resultado.explicacion && (
+        <PorQue explicacion={resultado.explicacion} anunciar />
       )}
     </>
   );

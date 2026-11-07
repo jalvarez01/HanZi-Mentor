@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import PorQue from '../components/PorQue';
 import RespuestaPinyin from '../components/RespuestaPinyin';
 import TopBar from '../components/TopBar';
 import { useUsuario } from '../hooks/useUsuario';
@@ -88,9 +89,9 @@ export default function Practica() {
   }
 
   // Ejercicios de pinyin (T25): RespuestaPinyin muestra el error y conserva lo escrito si esto falla.
-  async function responderPinyin({ acerto, respuesta }) {
+  async function responderPinyin({ acerto, respuesta, explicacion, nota }) {
     const ejercicioId = ejercicio.id;
-    await registrar(acerto, { respuesta });
+    await registrar(acerto, { respuesta, explicacion, nota });
 
     // Si falló, se muestra la respuesta correcta. Si el catálogo no responde,
     // el aviso de acierto o fallo ya está y basta con eso.
@@ -337,6 +338,9 @@ export default function Practica() {
             <p className={ultimoResultado.acerto ? 'practica-ok' : 'practica-fallo'}>
               {ultimoResultado.acerto ? t('practice.feedbackCorrect') : t('practice.feedbackFailed')}
             </p>
+            {ultimoResultado.acerto && ultimoResultado.nota && (
+              <p className="practica-nota">{ultimoResultado.nota.texto}</p>
+            )}
             {ultimoResultado.respuesta && (
               <p className="practica-dato">
                 {t('practice.yourAnswer')} <strong>{ultimoResultado.respuesta}</strong>
@@ -346,6 +350,17 @@ export default function Practica() {
               <p className="practica-dato">
                 {t('practice.correctAnswer')} <strong>{ultimoResultado.pinyinCorrecto}</strong>
               </p>
+            )}
+            {!ultimoResultado.acerto && ultimoResultado.explicacion && (
+              <PorQue explicacion={ultimoResultado.explicacion} />
+            )}
+            {/* Trazo autocalificado: no hay veredicto del servicio, la pista es fija. */}
+            {!ultimoResultado.acerto && ejercicio?.tipo === 'trazo' && (
+              <PorQue pista={t('practice.strokeHint')}>
+                <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="practica-enlace">
+                  {t('practice.seeStrokes')}
+                </Link>
+              </PorQue>
             )}
             {ultimoResultado.aviso && (
               <p className="hm-status hm-status--empty">{t('practice.progressNotSaved')}</p>

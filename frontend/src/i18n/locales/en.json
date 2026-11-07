@@ -84,6 +84,7 @@
     "noStrokeData": "This character has no stroke data loaded yet.",
     "previous": "Previous",
     "next": "Next",
+    "noteNext": "Tap Next to continue.",
     "step": "stroke {{actual}} of {{total}}",
     "loading": "Loading…",
     "listKicker": "Library",
@@ -148,7 +149,12 @@
     "notAvailable": "not available",
     "typePinyin": "Pinyin",
     "yourAnswer": "Your answer:",
-    "correctAnswer": "The correct answer is:"
+    "correctAnswer": "The correct answer is:",
+    "strokeHint": "Review the direction and order of each stroke in Strokes."
+  },
+  "feedback": {
+    "why": "Why",
+    "hint": "Hint:"
   },
   "pinyinForm": {
     "label": "Type the pinyin of this character",

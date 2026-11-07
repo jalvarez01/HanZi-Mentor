@@ -186,6 +186,16 @@
 .practica-ok { color: var(--jade); }
 .practica-fallo { color: var(--cinnabar); }
 
+/* Nota de tono al acertar un pinyin (RF-IA-04): dato discreto, no un error */
+.practica-nota {
+  margin: -6px 0 12px;
+  color: var(--ink-muted);
+  font: var(--fs-md) var(--font-ui);
+}
+
+/* Enlace a Trazos dentro del bloque "Por qué": alineado con su texto */
+.por-que .practica-enlace { margin: 8px 0 0; padding: 4px 0; background: none; }
+
 /* Resumen final */
 .practica-resumen {
   display: flex;

@@ -172,6 +172,8 @@ export function obtenerCaracter(hanzi) {
  * { secuencia, puntos, ancho, alto }: la mediana la busca el servicio en el
  * catálogo. Un 503 DEPENDENCIA_NO_DISPONIBLE quiere decir que no se pudo
  * evaluar, no que la respuesta esté mal. `dificultad` es opcional (1 a 5).
+ * RF-IA-04: si falla, la respuesta trae `explicacion` { codigo, titulo,
+ * porque, pista }; si un pinyin acierta, `nota` { codigo, texto } con su tono.
  */
 export async function evaluar({ tipo, caracter, respuesta, dificultad }) {
   try {

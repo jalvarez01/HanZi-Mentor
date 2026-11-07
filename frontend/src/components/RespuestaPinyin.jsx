@@ -84,8 +84,9 @@ export default function RespuestaPinyin({ caracter, onResponder }) {
 
     ejecutar(async () => {
       const respuesta = normalizarPinyin(valor);
-      const { acerto } = await evaluar({ tipo: 'pinyin', caracter, respuesta });
-      await onResponder({ acerto, respuesta });
+      // `explicacion` (si falló) y `nota` (si acertó) son opcionales (RF-IA-04).
+      const { acerto, explicacion, nota } = await evaluar({ tipo: 'pinyin', caracter, respuesta });
+      await onResponder({ acerto, respuesta, explicacion, nota });
     });
   }
 
