@@ -88,8 +88,29 @@ Respuesta `200`:
 
 ```json
 {"aprobado": true, "puntaje": 100, "motivo": "correcto", "detalle": "Trazo correcto.",
- "invertido": false, "puntos_lejanos": []}
+ "invertido": false, "puntos_lejanos": [], "razon_longitud": 0.997}
 ```
+
+`motivo` puede ser, en este orden de decisión:
+
+| `motivo` | `aprobado` | Cuándo |
+|----------|------------|--------|
+| `vacio` | no | Sin mediana o sin puntos suficientes para comparar |
+| `fuera_de_lugar` | no | El trazo está en otra parte del carácter: el percentil 90 de la distancia de sus puntos al recorrido esperado supera `UMBRAL_FUERA_DE_LUGAR` (0.12 del lienzo). Puntaje máximo 20. No se juzgan el sentido ni el largo |
+| `invertido` | no | La comparación al revés es buena (hasta `UMBRAL_ACEPTABLE`) y claramente mejor que la directa (`MARGEN_INVERSION`). Puntaje máximo 40 |
+| `incompleto` | no | `razon_longitud` por debajo de 0.55 (corto) o por encima de 1.80 (largo). Puntaje máximo 45 |
+| `correcto` | sí | Distancia media hasta `UMBRAL_ACEPTABLE` (0.09) |
+| `impreciso` | no | En su lugar, pero con distancia media mayor que `UMBRAL_ACEPTABLE` |
+
+La calibración de `UMBRAL_FUERA_DE_LUGAR` (85 trazos reales, con temblor,
+desplazados, cortos, largos y en otra zona) está comentada en
+`comparador.py` y cubierta por `tests/test_lejania.py`.
+
+`razon_longitud` es el largo dibujado dividido por el largo esperado,
+medido sobre las curvas ya suavizadas y remuestreadas (3 decimales). Por
+debajo de 0.55 o por encima de 1.80 el `motivo` es `incompleto`: con este
+campo, evaluacion-flask distingue un trazo corto de uno largo para
+explicar el error (RF-IA-04). `distancia_media` sigue sin exponerse.
 
 Errores (siempre JSON):
 

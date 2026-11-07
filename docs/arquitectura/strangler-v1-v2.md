@@ -10,7 +10,8 @@ prefijo de la URL quién atiende cada petición:
 
 Las dos versiones responden el mismo JSON (mismas claves y mismo orden). Lo
 comprueban los `tests/test_contrato.py` de cada servicio Flask, que leen los
-serializers de v1.
+serializers de v1. Las excepciones deliberadas están en "Diferencias
+deliberadas con v1", más abajo.
 
 ## Estado por módulo
 
@@ -22,9 +23,26 @@ serializers de v1.
 | Progreso | `GET /api/v1/tutor/progreso/<uuid>/` (agente_tutor) | `GET /api/v2/progreso/<uuid>/` (flask_progreso) | Frontend y flask_sesiones (v2) | Migrado. v1 de respaldo |
 | Sesiones | `POST /api/v1/tutor/sesiones/`, `GET /api/v1/tutor/sesiones/<id>/` (agente_tutor) | `POST /api/v2/sesiones/`, `GET /api/v2/sesiones/<id>/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
 | Ejercicios | `POST /api/v1/tutor/ejercicios/<id>/responder/` (agente_tutor) | `POST /api/v2/ejercicios/<id>/responder/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
-| Evaluación | Sin ruta pública (`EvaluarEjercicioService` dentro de agente_tutor) | `POST /api/v2/evaluacion/` (flask_evaluacion) | Frontend (Trazos, v2) | Migrado. v1 sin endpoint |
+| Evaluación | Sin ruta pública (`EvaluarEjercicioService` dentro de agente_tutor) | `POST /api/v2/evaluacion/` (flask_evaluacion) | Frontend (Trazos y Práctica, v2) | Migrado, con diferencias deliberadas (ver abajo). v1 sin endpoint |
 | Ejemplos | No existe | `GET /api/v2/ejemplos/<hanzi>/` (flask_ejemplos, Tatoeba) | Todavía ningún cliente | Nuevo en v2 |
 | Reportes | No existe | `POST /api/v2/reportes/`, `GET /api/v2/reportes/<task_id>/`, `GET /api/v2/reportes/notificaciones/<uuid>/` (flask_reportes + worker) | Todavía ningún cliente (frontend en T20) | Nuevo en v2 |
+
+### Diferencias deliberadas con v1
+
+evaluacion-flask ya no es un port idéntico de `evaluacion_logic.py` (RF-IA-04):
+
+- **Significado**: acepta un sentido suelto de la definición ("good" para
+  好, que en v1 daba 0.17 contra la definición completa y fallaba). Un
+  sentido de 1 a 3 letras ("an", "one") solo acierta con coincidencia
+  exacta. Los umbrales por dificultad son los de v1.
+- **Respuesta**: agrega dos campos opcionales al final, `explicacion` (si la
+  respuesta falla) y `nota` (tono de un pinyin correcto, o dónde mejorar un
+  trazo aprobado como "aceptable"). Las claves de v1
+  no cambian de nombre ni de orden.
+- trazos-flask agrega `razon_longitud` a su respuesta, que v1 (contenido)
+  ya devolvía; evaluación la usa para explicar el error, sin exponerla.
+
+Detalle en el README de `services/evaluacion-flask`.
 
 Lo que sigue en Django:
 
