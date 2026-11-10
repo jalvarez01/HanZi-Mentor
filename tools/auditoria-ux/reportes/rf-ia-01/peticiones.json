@@ -1,0 +1,212 @@
+[
+  {
+    "caso": "con-aviso: trazo fallo",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": false,
+      "codigo_error": "TRAZO_AUTOCALIFICADO"
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin fallo",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": false,
+      "codigo_error": "PINYIN_DISTINTO"
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin no-se",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": false,
+      "codigo_error": "NO_SABE"
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin fallo",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": false,
+      "codigo_error": "PINYIN_DISTINTO"
+    }
+  },
+  {
+    "caso": "con-aviso: trazo acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "con-aviso: trazo acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "con-aviso: trazo acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "con-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin sin-explicacion",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": false
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: trazo acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "sin-aviso: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "patrones-caido: trazo acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "patrones-caido: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "patrones-caido: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "patrones-caido: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "patrones-caido: pinyin acierto",
+    "ruta": "/api/v2/ejercicios/<id>/responder/",
+    "cuerpo": {
+      "acerto": true
+    }
+  },
+  {
+    "caso": "trazos 375: trazo al revés",
+    "ruta": "/api/v2/progreso/<usuario>/errores/",
+    "cuerpo": {
+      "caracter": "一",
+      "codigo_error": "TRAZO_INVERTIDO"
+    }
+  },
+  {
+    "caso": "trazos 1280: trazo al revés",
+    "ruta": "/api/v2/progreso/<usuario>/errores/",
+    "cuerpo": {
+      "caracter": "一",
+      "codigo_error": "TRAZO_INVERTIDO"
+    }
+  },
+  {
+    "caso": "trazos 375 (errores/ caído): trazo al revés",
+    "ruta": "/api/v2/progreso/<usuario>/errores/",
+    "cuerpo": {
+      "caracter": "一",
+      "codigo_error": "TRAZO_INVERTIDO"
+    }
+  }
+]
