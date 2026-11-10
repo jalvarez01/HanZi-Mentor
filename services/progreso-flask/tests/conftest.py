@@ -29,11 +29,11 @@ def sesion(app):
 def responder(client):
     """POST de una respuesta; devuelve el JSON del progreso actualizado."""
 
-    def enviar(caracter, acerto, usuario=USUARIO):
-        resp = client.post(
-            f"/api/v2/progreso/{usuario}/respuestas/",
-            json={"caracter": caracter, "acerto": acerto},
-        )
+    def enviar(caracter, acerto, usuario=USUARIO, codigo_error=None):
+        cuerpo = {"caracter": caracter, "acerto": acerto}
+        if codigo_error is not None:
+            cuerpo["codigo_error"] = codigo_error
+        resp = client.post(f"/api/v2/progreso/{usuario}/respuestas/", json=cuerpo)
         assert resp.status_code == 200, resp.get_data(as_text=True)
         return resp.get_json()
 

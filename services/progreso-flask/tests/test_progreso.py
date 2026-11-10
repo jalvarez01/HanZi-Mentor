@@ -261,3 +261,208 @@ def test_los_metodos_del_modelo_no_guardan(sesion):
     assert progreso.errores_frecuentes == {"学": 1}
     assert progreso.caracteres_dominados == ["人"]
     assert contar(sesion) == 0
+
+
+# ---------- codigo_error en respuestas/ (RF-IA-01) ----------
+
+
+def entidad(sesion):
+    return sesion.scalars(select(ProgresoUsuario)).one()
+
+
+def test_fallo_con_codigo_error_queda_en_el_historial(responder, sesion):
+    responder("学", False, codigo_error="PINYIN_INICIAL")
+
+    progreso = entidad(sesion)
+    assert progreso.errores_por_codigo == {"PINYIN_INICIAL": 1}
+    (fallo,) = progreso.historial_errores
+    assert (fallo["codigo"], fallo["caracter"], fallo["origen"]) == ("PINYIN_INICIAL", "学", "sesion")
+    assert fallo["dominado"] is False
+    assert fecha(fallo["fecha"]).tzinfo is not None
+
+
+def test_fallo_sin_codigo_error_funciona_como_antes(responder, sesion):
+    datos = responder("学", False)
+
+    assert datos["errores_frecuentes"] == {"学": 1}
+    progreso = entidad(sesion)
+    assert progreso.errores_por_codigo == {}
+    assert progreso.historial_errores[0]["codigo"] is None
+
+
+def test_el_historial_recuerda_si_el_caracter_estaba_dominado(responder, sesion):
+    responder("学", True)
+    responder("学", False, codigo_error="NO_SABE")
+    responder("学", False, codigo_error="NO_SABE")
+
+    assert [e["dominado"] for e in entidad(sesion).historial_errores] == [True, False]
+
+
+@pytest.mark.parametrize("codigo", ["OTRO_CODIGO", "", "trazo_invertido", 7, True, ["NO_SABE"]])
+def test_codigo_error_invalido_devuelve_400_y_no_guarda(client, sesion, codigo):
+    resp = client.post(
+        f"{URL}respuestas/", json={"caracter": "学", "acerto": False, "codigo_error": codigo}
+    )
+
+    assert resp.status_code == 400
+    assert resp.get_json()["codigo"] == "ENTRADA_INVALIDA"
+    assert contar(sesion) == 0
+
+
+def test_codigo_error_null_es_como_no_mandarlo(client, sesion):
+    resp = client.post(
+        f"{URL}respuestas/", json={"caracter": "学", "acerto": False, "codigo_error": None}
+    )
+
+    assert resp.status_code == 200
+    assert entidad(sesion).historial_errores[0]["codigo"] is None
+
+
+@pytest.mark.parametrize("codigo", ["PINYIN_INICIAL", "OTRO_CODIGO", 7])
+def test_codigo_error_con_acierto_se_ignora(client, sesion, codigo):
+    resp = client.post(
+        f"{URL}respuestas/", json={"caracter": "学", "acerto": True, "codigo_error": codigo}
+    )
+
+    assert resp.status_code == 200
+    progreso = entidad(sesion)
+    assert progreso.historial_errores == []
+    assert progreso.errores_por_codigo == {}
+
+
+def test_la_respuesta_con_codigo_error_no_cambia_de_forma(client, responder):
+    sin_codigo = responder("学", False)
+    con_codigo = responder("校", False, codigo_error="NO_SABE")
+
+    assert list(con_codigo) == list(sin_codigo)
+    assert con_codigo == client.get(URL).get_json()
+
+
+# ---------- POST /progreso/<usuario_id>/errores/ (página Trazos) ----------
+
+
+def test_error_de_trazo_solo_alimenta_el_historial(client, responder, sesion):
+    responder("人", True)
+    responder("大", False)
+    antes = client.get(URL).get_json()
+
+    resp = client.post(f"{URL}errores/", json={"caracter": "人", "codigo_error": "TRAZO_INVERTIDO"})
+
+    assert resp.status_code == 200
+    assert resp.get_json() == {"usuario_id": USUARIO, "registrado": True}
+    despues = client.get(URL).get_json()
+    # Ni racha, ni dominados, ni errores frecuentes, ni tasa, ni repaso.
+    for campo in antes:
+        if campo != "actualizado_en":
+            assert despues[campo] == antes[campo], campo
+    progreso = entidad(sesion)
+    assert progreso.agenda_repaso.keys() == {"人", "大"}
+    assert progreso.errores_por_codigo == {"TRAZO_INVERTIDO": 1}
+    assert progreso.historial_errores[-1]["origen"] == "trazos"
+
+
+def test_error_de_trazo_de_usuario_nuevo_crea_el_progreso_inicial(client, sesion):
+    resp = client.post(f"{URL}errores/", json={"caracter": "人", "codigo_error": "TRAZO_CORTO"})
+
+    assert resp.status_code == 200
+    assert contar(sesion) == 1
+    datos = client.get(URL).get_json()
+    assert (datos["tasa_acierto"], datos["errores_frecuentes"], datos["proximo_repaso"]) == (0.5, {}, None)
+
+
+def test_reintento_del_mismo_trazo_no_se_registra_dos_veces(client, sesion):
+    cuerpo = {"caracter": "人", "codigo_error": "TRAZO_INVERTIDO"}
+
+    assert client.post(f"{URL}errores/", json=cuerpo).get_json()["registrado"] is True
+    assert client.post(f"{URL}errores/", json=cuerpo).get_json()["registrado"] is False
+
+    assert len(entidad(sesion).historial_errores) == 1
+
+
+@pytest.mark.parametrize("cuerpo", [
+    {},
+    {"caracter": "人"},
+    {"codigo_error": "TRAZO_INVERTIDO"},
+    {"caracter": "人", "codigo_error": None},
+    {"caracter": "人", "codigo_error": "OTRO_CODIGO"},
+    {"caracter": "人", "codigo_error": "PINYIN_INICIAL"},
+    {"caracter": "人", "codigo_error": "TRAZO_AUTOCALIFICADO"},
+    {"caracter": "人", "codigo_error": "NO_SABE"},
+    {"caracter": "人" * 9, "codigo_error": "TRAZO_INVERTIDO"},
+    ["人", "TRAZO_INVERTIDO"],
+])
+def test_error_de_trazo_invalido_devuelve_400_y_no_guarda(client, sesion, cuerpo):
+    resp = client.post(f"{URL}errores/", json=cuerpo)
+
+    assert resp.status_code == 400
+    assert resp.get_json()["codigo"] == "ENTRADA_INVALIDA"
+    assert contar(sesion) == 0
+
+
+def test_errores_solo_acepta_post(client):
+    assert client.get(f"{URL}errores/").status_code == 405
+
+
+# ---------- GET /progreso/<usuario_id>/patrones/ ----------
+
+
+def test_patrones_de_usuario_nuevo_es_vacio_y_no_guarda(client, sesion):
+    resp = client.get(f"{URL}patrones/")
+
+    assert resp.status_code == 200
+    assert resp.get_json() == {"usuario_id": USUARIO, "ventana_dias": 14, "patrones": []}
+    assert contar(sesion) == 0
+
+
+def test_dos_fallos_no_son_un_patron(client, responder):
+    responder("学", False, codigo_error="PINYIN_INICIAL")
+    responder("学", False, codigo_error="PINYIN_INICIAL")
+
+    assert client.get(f"{URL}patrones/").get_json()["patrones"] == []
+
+
+def test_patrones_por_tipo_de_error_y_por_caracter(client, responder):
+    # Trazos: tres trazos al revés en caracteres distintos.
+    for caracter in ("人", "大", "水"):
+        client.post(f"{URL}errores/", json={"caracter": caracter, "codigo_error": "TRAZO_INVERTIDO"})
+    # Sesión: el mismo carácter fallado cuatro veces.
+    for _ in range(4):
+        responder("学", False, codigo_error="TRAZO_AUTOCALIFICADO")
+
+    patrones = client.get(f"{URL}patrones/").get_json()["patrones"]
+
+    assert [p["codigo"] for p in patrones] == ["PATRON_CARACTER_RECURRENTE", "PATRON_TRAZO_INVERTIDO"]
+    recurrente, invertido = patrones
+    assert list(invertido) == [
+        "codigo", "tipo", "frecuencia", "caracteres", "ultima_vez", "titulo", "consejo",
+    ]
+    assert (recurrente["tipo"], recurrente["frecuencia"], recurrente["caracteres"]) == ("caracter", 4, ["学"])
+    assert (invertido["tipo"], invertido["frecuencia"]) == ("error", 3)
+    assert sorted(invertido["caracteres"]) == sorted(["人", "大", "水"])
+    assert invertido["titulo"] == "Trazos al revés"
+    assert invertido["ultima_vez"].endswith("Z")
+
+
+def test_patrones_usa_la_ventana_de_14_dias(sesion):
+    usuario = uuid.UUID(USUARIO)
+    ahora = datetime(2026, 11, 9, 12, 0, tzinfo=timezone.utc)
+    for dias in (20, 16, 15):
+        servicio.registrar_respuesta(
+            sesion, usuario, "学", False, momento=ahora - timedelta(days=dias), codigo_error="NO_SABE"
+        )
+
+    assert servicio.detectar_patrones(sesion, usuario, momento=ahora) == []
+
+    for dias in (3, 2, 1):
+        servicio.registrar_respuesta(
+            sesion, usuario, "校", False, momento=ahora - timedelta(days=dias), codigo_error="NO_SABE"
+        )
+    patrones = servicio.detectar_patrones(sesion, usuario, momento=ahora)
+    assert [p.codigo for p in patrones] == ["PATRON_CARACTER_RECURRENTE", "PATRON_NO_SABE"]
+    assert patrones[0].caracteres == ("校",)
+
+
+def test_patrones_solo_acepta_get_y_valida_el_usuario(client):
+    assert client.post(f"{URL}patrones/", json={}).status_code == 405
+    resp = client.get("/api/v2/progreso/no-es-uuid/patrones/")
+    assert (resp.status_code, resp.get_json()["codigo"]) == (400, "ENTRADA_INVALIDA")

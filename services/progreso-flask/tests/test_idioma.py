@@ -32,3 +32,68 @@ def test_405_en_ingles(client):
 
     assert resp.status_code == 405
     assert resp.get_json() == {"error": "Method not allowed", "codigo": "METODO_NO_PERMITIDO"}
+
+
+def test_codigo_error_desconocido_en_espanol_y_en_ingles(client):
+    url = f"/api/v2/progreso/{USUARIO}/respuestas/"
+    cuerpo = {"caracter": "学", "acerto": False, "codigo_error": "OTRO"}
+
+    es = client.post(url, json=cuerpo)
+    en = client.post(url, json=cuerpo, headers=EN)
+
+    assert es.get_json() == {
+        "error": "El campo 'codigo_error' no es un código de error conocido",
+        "codigo": "ENTRADA_INVALIDA",
+    }
+    assert en.get_json() == {
+        "error": "The field 'codigo_error' is not a known error code",
+        "codigo": "ENTRADA_INVALIDA",
+    }
+
+
+def test_error_de_trazo_con_codigo_de_pinyin_en_ingles(client):
+    url = f"/api/v2/progreso/{USUARIO}/errores/"
+
+    falta = client.post(url, json={"caracter": "人"}, headers=EN)
+    pinyin = client.post(url, json={"caracter": "人", "codigo_error": "PINYIN_FINAL"}, headers=EN)
+
+    assert falta.get_json()["error"] == "The field 'codigo_error' is required"
+    assert pinyin.get_json()["error"] == "The field 'codigo_error' must be a stroke error code"
+
+
+def test_patrones_traduce_titulo_y_consejo_pero_no_los_codigos(client):
+    url = f"/api/v2/progreso/{USUARIO}/"
+    for caracter in ("人", "大", "水"):
+        client.post(f"{url}errores/", json={"caracter": caracter, "codigo_error": "TRAZO_INVERTIDO"})
+
+    (es,) = client.get(f"{url}patrones/").get_json()["patrones"]
+    (en,) = client.get(f"{url}patrones/", headers=EN).get_json()["patrones"]
+
+    assert es["titulo"] == "Trazos al revés"
+    assert es["consejo"] == (
+        "Antes de trazar, mirá dónde empieza el modelo: casi siempre es de arriba "
+        "hacia abajo y de izquierda a derecha."
+    )
+    assert en["titulo"] == "Strokes written backwards"
+    assert en["consejo"] == (
+        "Before you draw, look at where the model starts: almost always top to "
+        "bottom and left to right."
+    )
+    for campo in ("codigo", "tipo", "frecuencia", "caracteres", "ultima_vez"):
+        assert es[campo] == en[campo]
+
+
+def test_todos_los_patrones_tienen_traduccion_al_ingles(app):
+    from flask_babel import force_locale, gettext
+
+    from dominio.patrones import CARACTER_RECURRENTE, PATRONES_DE_ERROR, RETROCESO
+
+    textos = [t for _, titulo, consejo in (CARACTER_RECURRENTE, RETROCESO) for t in (titulo, consejo)]
+    for definiciones in PATRONES_DE_ERROR.values():
+        for _, titulo, consejo in definiciones.values():
+            textos += [titulo, consejo]
+
+    assert len(textos) == 22
+    with app.test_request_context(), force_locale("en"):
+        for texto in textos:
+            assert gettext(texto) != texto, texto
