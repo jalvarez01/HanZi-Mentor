@@ -39,6 +39,8 @@ class ProgresoFalso:
         self.refuerzos = list(refuerzos)
         self.caido = caido
         self.respuestas = []
+        # El codigo_error de cada respuesta, en el mismo orden (RF-IA-01).
+        self.codigos = []
         self.rachas = {}
         self.tasa = 0.5
 
@@ -53,8 +55,9 @@ class ProgresoFalso:
     def caracteres_a_reforzar(self, usuario_id, limite=3):
         return self.refuerzos[:limite]
 
-    def registrar_respuesta(self, usuario_id, caracter, acerto):
+    def registrar_respuesta(self, usuario_id, caracter, acerto, codigo_error=None):
         self.respuestas.append((usuario_id, caracter, acerto))
+        self.codigos.append(codigo_error)
         if self.caido:
             return None
         self.rachas[caracter] = self.rachas.get(caracter, 0) + 1 if acerto else 0

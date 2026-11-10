@@ -250,3 +250,80 @@ def test_progreso_caido_guarda_la_respuesta_y_devuelve_aviso(client, crear_sesio
     assert sesion_db.get(Ejercicio, ejercicio["id"]).respondido is True
     # Ya quedó respondido: no se puede volver a responder.
     assert responder(client, ejercicio["id"]).status_code == 409
+
+
+# ---------- codigo_error (RF-IA-01) ----------
+
+
+def responder_con(client, ejercicio_id, **cuerpo):
+    return client.post(f"/api/v2/ejercicios/{ejercicio_id}/responder/", json=cuerpo)
+
+
+@pytest.mark.parametrize("codigo", ["PINYIN_INICIAL", "TRAZO_AUTOCALIFICADO", "NO_SABE", "TRAZO_INVERTIDO"])
+def test_el_codigo_error_de_un_fallo_llega_a_progreso(client, crear_sesion, progreso, codigo):
+    ejercicio = crear_sesion()["ejercicios"][0]
+    sin_codigo = responder(client, crear_sesion()["ejercicios"][0]["id"], False).get_json()
+
+    resp = responder_con(client, ejercicio["id"], acerto=False, codigo_error=codigo)
+
+    assert resp.status_code == 200
+    # La respuesta tiene la misma forma con o sin código.
+    assert list(resp.get_json()) == list(sin_codigo)
+    assert progreso.respuestas[-1] == (USUARIO, "目", False)
+    assert progreso.codigos == [None, codigo]
+
+
+def test_sin_codigo_error_o_con_null_no_se_manda_nada(client, crear_sesion, progreso):
+    ejercicios = crear_sesion()["ejercicios"]
+
+    assert responder_con(client, ejercicios[0]["id"], acerto=False).status_code == 200
+    assert responder_con(client, ejercicios[1]["id"], acerto=False, codigo_error=None).status_code == 200
+
+    assert progreso.codigos == [None, None]
+
+
+@pytest.mark.parametrize("codigo", ["OTRO_CODIGO", "", "no_sabe", 7, True, ["NO_SABE"], {"a": 1}])
+def test_codigo_error_invalido_devuelve_400_y_no_marca_nada(client, crear_sesion, sesion_db, progreso, codigo):
+    ejercicio = crear_sesion()["ejercicios"][0]
+
+    resp = responder_con(client, ejercicio["id"], acerto=False, codigo_error=codigo)
+
+    assert resp.status_code == 400
+    assert resp.get_json() == {
+        "error": "El campo 'codigo_error' no es un código de error conocido",
+        "codigo": "ENTRADA_INVALIDA",
+    }
+    assert sesion_db.get(Ejercicio, ejercicio["id"]).respondido is False
+    assert progreso.respuestas == []
+
+
+@pytest.mark.parametrize("codigo", ["PINYIN_INICIAL", "OTRO_CODIGO", 7])
+def test_codigo_error_con_acierto_se_ignora(client, crear_sesion, sesion_db, progreso, codigo):
+    ejercicio = crear_sesion()["ejercicios"][0]
+
+    resp = responder_con(client, ejercicio["id"], acerto=True, codigo_error=codigo)
+
+    assert resp.status_code == 200
+    assert sesion_db.get(Ejercicio, ejercicio["id"]).fue_correcto is True
+    assert progreso.codigos == [None]
+
+
+def test_el_servicio_no_manda_codigo_con_un_acierto(crear_sesion, sesion_db, progreso):
+    ejercicio = crear_sesion()["ejercicios"][0]
+
+    ResponderEjercicioService(progreso).responder(
+        sesion_db, ejercicio["id"], True, codigo_error="NO_SABE"
+    )
+
+    assert progreso.codigos == [None]
+
+
+def test_progreso_caido_con_codigo_error_guarda_la_respuesta(client, crear_sesion, sesion_db, progreso):
+    ejercicio = crear_sesion()["ejercicios"][0]
+    progreso.caido = True
+
+    resp = responder_con(client, ejercicio["id"], acerto=False, codigo_error="NO_SABE")
+
+    assert resp.status_code == 200
+    assert "aviso" in resp.get_json()
+    assert sesion_db.get(Ejercicio, ejercicio["id"]).respondido is True

@@ -63,3 +63,19 @@ def test_aviso_en_ingles_con_las_mismas_claves(client, crear_sesion, progreso):
         "The answer was saved in the session, but the progress could not be updated: "
         "the progress service did not respond."
     )
+
+
+def test_codigo_error_desconocido_en_ingles(client, crear_sesion):
+    ejercicio = crear_sesion()["ejercicios"][0]["id"]
+
+    resp = client.post(
+        f"/api/v2/ejercicios/{ejercicio}/responder/",
+        json={"acerto": False, "codigo_error": "OTRO"},
+        headers=EN,
+    )
+
+    assert resp.status_code == 400
+    assert resp.get_json() == {
+        "error": "The field 'codigo_error' is not a known error code",
+        "codigo": "ENTRADA_INVALIDA",
+    }
