@@ -23,6 +23,7 @@ y parte de la plantilla `services/flask-base`.
 | `dominio/sesion.py`    | Ciclo de vida: pendientes y cierre de la sesión                  |
 | `dominio/repaso.py`    | Intervalos del repaso, para informar `proximo_repaso`            |
 | `dominio/excepciones.py` | Errores de negocio con su estado HTTP y su código              |
+| `dominio/codigos_error.py` | Códigos que acepta `codigo_error` al responder (RF-IA-01)    |
 | `clientes.py`          | Cliente HTTP resiliente y clientes de catálogo y progreso        |
 | `motores.py`           | `MotorTutor` y `MotorTutorMock` (dificultad y caracteres nuevos) |
 | `notificadores.py`     | `Notificador` y los adaptadores de consola y de cola (Celery)    |
@@ -202,6 +203,32 @@ Cuerpo: `{"acerto": true}` (acepta los mismos valores que `BooleanField` de
 DRF). Marca el ejercicio, cierra la sesión si era el último y registra la
 respuesta en progreso-flask.
 
+Opcional, `codigo_error` (RF-IA-01): el tipo de error de un fallo, por
+ejemplo `{"acerto": false, "codigo_error": "PINYIN_INICIAL"}`. Lo usa
+progreso-flask para detectar patrones de error.
+
+- Se valida acá, antes de marcar el ejercicio: un texto fuera de la lista o
+  un valor que no es texto responde 400 `ENTRADA_INVALIDA` y el ejercicio
+  queda sin responder. Si solo lo validara progreso-flask, su 400 llegaría
+  al estudiante como el `aviso` de "el servicio de progreso no respondió".
+- Ausente o `null`, la respuesta funciona como siempre.
+- Con un acierto se ignora sin revisarlo, para que un cliente que lo manda
+  de más no pierda la respuesta.
+- No se guarda en `db_sesiones` (el esquema no cambia). Se reenvía a
+  `POST .../respuestas/` de progreso-flask solo cuando existe; sin él, el
+  cuerpo es el de siempre, `{"caracter", "acerto"}`.
+- La respuesta no cambia de forma. Si progreso-flask no responde, el
+  código se pierde junto con el resto del progreso de esa respuesta, y se
+  devuelve el `aviso` de siempre.
+
+Los 14 códigos (`dominio/codigos_error.py`) son los 12 `explicacion.codigo`
+de evaluacion-flask (`TRAZO_*`, `PINYIN_*`, `SIGNIFICADO_*`) más
+`TRAZO_AUTOCALIFICADO` ("Fallé" en un trazo) y `NO_SABE` ("No lo sé"). Un
+servicio no importa código de otro, así que la lista es una copia:
+`tests/test_codigos.py` la compara con `adaptadores/reglas.py` de
+evaluacion-flask y con `dominio/codigos.py` de progreso-flask, leídos con
+`ast`.
+
 ```json
 {"ejercicio": {"id": 1, "caracter": "人", "tipo": "significado", "dificultad": 2, "es_refuerzo": false},
  "sesion_completada": false, "pendientes": 3,
@@ -227,7 +254,7 @@ Siempre `{"error": "<mensaje>", "codigo": "<CODIGO>"}`:
 
 | Estado | `codigo`                  | Cuándo                                         |
 |--------|---------------------------|------------------------------------------------|
-| 400    | `ENTRADA_INVALIDA`        | Cuerpo inválido o fuera de rango               |
+| 400    | `ENTRADA_INVALIDA`        | Cuerpo inválido o fuera de rango, o `codigo_error` desconocido |
 | 400    | `NIVEL_NO_PERMITIDO`      | El nivel pedido no está desbloqueado           |
 | 400    | `SESION_INVALIDA`         | No alcanzan los ejercicios (mínimo 3, máximo 20) |
 | 404    | `NO_ENCONTRADO`           | Sesión, ejercicio o ruta inexistente           |

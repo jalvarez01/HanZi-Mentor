@@ -21,6 +21,7 @@ deliberadas con v1", más abajo.
 | Caracteres | `GET /api/v1/caracteres/`, `/api/v1/caracteres/<hanzi>/` (contenido) | `GET /api/v2/caracteres/`, `/api/v2/caracteres/<hanzi>/` (flask_catalogo) | Frontend, agente-tutor y flask_sesiones (v2) | Migrado. v1 de respaldo |
 | Lecciones | `POST /api/v1/lecciones/generar/`, `GET /api/v1/lecciones/<id>/` (contenido) | Las mismas rutas bajo `/api/v2/` (flask_catalogo) | Frontend (v2) | Migrado. v1 de respaldo |
 | Progreso | `GET /api/v1/tutor/progreso/<uuid>/` (agente_tutor) | `GET /api/v2/progreso/<uuid>/` (flask_progreso) | Frontend y flask_sesiones (v2) | Migrado. v1 de respaldo |
+| Patrones de error | No existe | `POST /api/v2/progreso/<uuid>/errores/`, `GET /api/v2/progreso/<uuid>/patrones/` (flask_progreso) | Frontend (Trazos, Práctica y Progreso) | Nuevo en v2 (RF-IA-01) |
 | Sesiones | `POST /api/v1/tutor/sesiones/`, `GET /api/v1/tutor/sesiones/<id>/` (agente_tutor) | `POST /api/v2/sesiones/`, `GET /api/v2/sesiones/<id>/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
 | Ejercicios | `POST /api/v1/tutor/ejercicios/<id>/responder/` (agente_tutor) | `POST /api/v2/ejercicios/<id>/responder/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
 | Evaluación | Sin ruta pública (`EvaluarEjercicioService` dentro de agente_tutor) | `POST /api/v2/evaluacion/` (flask_evaluacion) | Frontend (Trazos y Práctica, v2) | Migrado, con diferencias deliberadas (ver abajo). v1 sin endpoint |
@@ -43,6 +44,27 @@ evaluacion-flask ya no es un port idéntico de `evaluacion_logic.py` (RF-IA-04):
   ya devolvía; evaluación la usa para explicar el error, sin exponerla.
 
 Detalle en el README de `services/evaluacion-flask`.
+
+progreso-flask agrega, sin equivalente en v1 (RF-IA-01):
+
+- **Registro de errores por tipo**: `POST .../respuestas/` acepta un
+  `codigo_error` opcional (el `explicacion.codigo` de evaluación,
+  `NO_SABE` o `TRAZO_AUTOCALIFICADO`), que flask_sesiones reenvía desde
+  `POST /api/v2/ejercicios/<id>/responder/`. Se guarda en dos columnas
+  nuevas de `progresos`, `errores_por_codigo` e `historial_errores`, que
+  agrega una migración idempotente. Las respuestas no cambian de forma.
+- **`POST /api/v2/progreso/<uuid>/errores/`**: la página Trazos anota el
+  tipo de error de un trazo fallado. Solo alimenta los patrones; no toca
+  racha, dominados, tasa ni repaso.
+- **`GET /api/v2/progreso/<uuid>/patrones/`**: los patrones de error del
+  estudiante en los últimos 14 días, con título y consejo traducidos.
+
+Las tres rutas quedan bajo `location /api/v2/progreso/` del gateway, sin
+cambios en Nginx. Volver a v1 en el gateway (más abajo) las deja sin
+destino: agente_tutor no las tiene. Trazos y el aviso de fin de sesión
+siguen sin mostrar nada; la sección "Tus patrones de error" de Progreso
+muestra su estado de error con "Reintentar", y el resto de la página
+funciona. v1 ignora `codigo_error` en `responder`.
 
 Lo que sigue en Django:
 
