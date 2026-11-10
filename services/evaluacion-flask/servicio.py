@@ -11,7 +11,15 @@ Diferencias con v1:
   vez de pedírselo a contenido;
 - si catálogo o trazos no responden, lanza DependenciaNoDisponibleError
   (503). v1 devolvía False o {"aprobado": False, "motivo": "error_servicio"},
-  que el usuario no puede distinguir de un error suyo.
+  que el usuario no puede distinguir de un error suyo;
+- el significado acierta si la respuesta se parece a la definición completa
+  o a cualquiera de sus sentidos ("good" para 好). v1 solo comparaba con la
+  definición completa, y un sentido correcto suelto fallaba. Las
+  definiciones están en inglés: una respuesta en español no acierta;
+- si la respuesta falla, el explicador (puerto ExplicadorErrores, RF-IA-04)
+  agrega una explicación; si un pinyin acierta, se agrega la nota de tono, y
+  si un trazo se aprueba con un tramo desviado, la nota de mejora.
+  Las dos son un extra: si el explicador falla, se responde sin explicación.
 
 Los mensajes van en español con N_ y los traduce errores.py. El 400 de
 trazos-flask ya llega en el idioma del usuario, porque clientes.py le
@@ -28,6 +36,8 @@ from dominio.excepciones import (
     DependenciaNoDisponibleError,
     TrazoNoEncontradoError,
 )
+from dominio.explicacion import ErrorEvaluado
+from dominio.notas import nota_de_mejora, nota_de_tono
 from errores import ErrorDominio
 from mensajes import N_
 
@@ -45,23 +55,55 @@ class ResultadoEvaluacion:
     secuencia: int | None = None
     # Para trazo: el veredicto completo de trazos-flask.
     detalle_trazo: dict = field(default_factory=dict)
+    # Solo si falló: por qué y qué hacer (dominio.explicacion.Explicacion).
+    explicacion: object = None
+    # Solo si acertó: nota de tono (pinyin) o de mejora (trazo).
+    nota: object = None
 
 
 class EvaluacionService:
-    def __init__(self, catalogo, trazos):
+    def __init__(self, catalogo, trazos, explicador=None):
         self._catalogo = catalogo
         self._trazos = trazos
+        self._explicador = explicador
 
     def evaluar(self, solicitud):
         detalle = self._detalle(solicitud.caracter)
 
         if solicitud.tipo == "trazo":
-            return self._evaluar_trazo(solicitud, detalle)
+            resultado = self._evaluar_trazo(solicitud, detalle)
+            if resultado.acerto:
+                resultado.nota = nota_de_mejora(detalle, resultado.secuencia, resultado.detalle_trazo)
+        else:
+            acerto = evaluar_respuesta(
+                solicitud.tipo, solicitud.dificultad, solicitud.respuesta, detalle
+            )
+            resultado = ResultadoEvaluacion(solicitud.tipo, solicitud.caracter, acerto)
+            if acerto and solicitud.tipo == "pinyin":
+                resultado.nota = nota_de_tono(solicitud.respuesta, detalle)
 
-        acerto = evaluar_respuesta(
-            solicitud.tipo, solicitud.dificultad, solicitud.respuesta, detalle
+        if not resultado.acerto:
+            resultado.explicacion = self._explicar(solicitud, detalle, resultado)
+        return resultado
+
+    def _explicar(self, solicitud, detalle, resultado):
+        if self._explicador is None:
+            return None
+        error = ErrorEvaluado(
+            acerto=resultado.acerto,
+            caracter=solicitud.caracter,
+            respuesta=solicitud.respuesta,
+            datos_correctos=detalle,
+            dificultad=solicitud.dificultad,
+            secuencia=resultado.secuencia,
+            veredicto_trazo=resultado.detalle_trazo,
         )
-        return ResultadoEvaluacion(solicitud.tipo, solicitud.caracter, acerto)
+        try:
+            return self._explicador.explicar_error(solicitud.tipo, error)
+        except Exception:
+            # La explicación es un extra: el veredicto ya está y se responde igual.
+            logger.exception("El explicador '%s' falló", getattr(self._explicador, "nombre", "?"))
+            return None
 
     def _detalle(self, hanzi):
         try:

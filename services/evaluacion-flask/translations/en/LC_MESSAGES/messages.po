@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: evaluacion-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-26 09:54-0500\n"
+"POT-Creation-Date: 2026-11-07 18:24+0000\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: en\n"
@@ -14,6 +14,343 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
+
+#: adaptadores/reglas.py:86
+#, python-format
+msgid "Trazo %(secuencia)s"
+msgstr "Stroke %(secuencia)s"
+
+#: adaptadores/reglas.py:87
+msgid "Cada trazo tiene su lugar dentro del carácter."
+msgstr "Each stroke has its own place inside the character."
+
+#: adaptadores/reglas.py:88 adaptadores/reglas.py:100
+#, python-format
+msgid "Empezá %(inicio)s y avanzá %(direccion)s."
+msgstr "Start %(inicio)s and move %(direccion)s."
+
+#: adaptadores/reglas.py:95
+#, python-format
+msgid "Trazo %(secuencia)s al revés"
+msgstr "Stroke %(secuencia)s is reversed"
+
+#: adaptadores/reglas.py:97
+msgid ""
+"Cada trazo se escribe siempre en el mismo sentido. Así lo recordás mejor "
+"y escribís más rápido."
+msgstr ""
+"Each stroke is always written in the same direction. That way you "
+"remember it better and write faster."
+
+#: adaptadores/reglas.py:110
+#, python-format
+msgid "Trazo %(secuencia)s: desvío %(tramo)s"
+msgstr "Stroke %(secuencia)s: off course %(tramo)s"
+
+#: adaptadores/reglas.py:113
+#, python-format
+msgid "Trazo %(secuencia)s: forma"
+msgstr "Stroke %(secuencia)s: shape"
+
+#: adaptadores/reglas.py:118
+msgid "Si un trazo se corre de lugar, todo el carácter se deforma."
+msgstr "If a stroke moves out of place, the whole character comes out misshapen."
+
+#: adaptadores/reglas.py:120
+#, python-format
+msgid "Mirá el modelo: el trazo empieza %(inicio)s y va %(direccion)s."
+msgstr "Look at the model: the stroke starts %(inicio)s and moves %(direccion)s."
+
+#: adaptadores/reglas.py:132
+#, python-format
+msgid "Trazo %(secuencia)s: inicio y final"
+msgstr "Stroke %(secuencia)s: start and end"
+
+#: adaptadores/reglas.py:134
+msgid "Cada trazo tiene un largo fijo. Si cambia, el carácter queda deforme."
+msgstr ""
+"Each stroke has a set length. If it changes, the character comes out "
+"misshapen."
+
+#: adaptadores/reglas.py:137
+#, python-format
+msgid "Empezá %(inicio)s y terminá %(fin)s."
+msgstr "Start %(inicio)s and finish %(fin)s."
+
+#: adaptadores/reglas.py:145
+#, python-format
+msgid "Trazo %(secuencia)s: falta el final"
+msgstr "Stroke %(secuencia)s: the end is missing"
+
+#: adaptadores/reglas.py:147
+#, python-format
+msgid ""
+"Llegaste a cerca del %(porcentaje)s %% del trazo. Si no lo terminás, el "
+"carácter queda deforme."
+msgstr ""
+"You reached about %(porcentaje)s%% of the stroke. If you do not finish "
+"it, the character comes out misshapen."
+
+#: adaptadores/reglas.py:150
+#, python-format
+msgid "Mantené el dedo apoyado hasta llegar %(fin)s."
+msgstr "Keep your finger down until you are %(fin)s."
+
+#: adaptadores/reglas.py:155
+#, python-format
+msgid "Trazo %(secuencia)s: sobra recorrido"
+msgstr "Stroke %(secuencia)s: extra length"
+
+#: adaptadores/reglas.py:157
+#, python-format
+msgid ""
+"Mide cerca del %(porcentaje)s %% de lo esperado. Quizá uniste este trazo "
+"con el siguiente; cada uno va por separado."
+msgstr ""
+"It is about %(porcentaje)s%% of the expected length. You may have joined "
+"this stroke with the next one; each one goes separately."
+
+#: adaptadores/reglas.py:160
+#, python-format
+msgid "Levantá el dedo cuando llegues %(fin)s."
+msgstr "Lift your finger once you are %(fin)s."
+
+#: adaptadores/reglas.py:197
+#, python-format
+msgid ""
+"Decilo en dos partes, %(inicial)s y %(final)s, y después juntalas con el "
+"%(tono)s."
+msgstr ""
+"Say it in two parts, %(inicial)s and %(final)s, then join them with the "
+"%(tono)s."
+
+#: adaptadores/reglas.py:203
+msgid "Consonante inicial"
+msgstr "Initial consonant"
+
+#: adaptadores/reglas.py:205
+#, python-format
+msgid ""
+"La terminación %(final)s está bien. Con otra letra al comienzo, ya es "
+"otra palabra."
+msgstr ""
+"The ending %(final)s is right. With a different first letter, it is a "
+"different word."
+
+#: adaptadores/reglas.py:213
+msgid "Terminación de la sílaba"
+msgstr "Syllable ending"
+
+#: adaptadores/reglas.py:215
+#, python-format
+msgid ""
+"La consonante %(inicial)s está bien. Con otra terminación, ya es otra "
+"palabra."
+msgstr ""
+"The consonant %(inicial)s is right. With a different ending, it is a "
+"different word."
+
+#: adaptadores/reglas.py:225
+#, python-format
+msgid ""
+"Decí la lectura principal en voz alta con el %(tono)s; según la palabra, "
+"también se lee %(otras)s."
+msgstr ""
+"Say the main reading aloud with the %(tono)s; depending on the word, it "
+"is also read %(otras)s."
+
+#: adaptadores/reglas.py:230
+#, python-format
+msgid ""
+"Mirá el carácter y decí su lectura en voz alta tres veces, con el "
+"%(tono)s."
+msgstr ""
+"Look at the character and say its reading aloud three times, with the "
+"%(tono)s."
+
+#: adaptadores/reglas.py:235
+msgid "Inicial y terminación"
+msgstr "Initial and ending"
+
+#: adaptadores/reglas.py:237 adaptadores/reglas.py:289
+msgid "Suele pasar cuando lo confundís con un carácter parecido."
+msgstr "This usually happens when you mix it up with a similar character."
+
+#: adaptadores/reglas.py:258
+msgid "Sobran palabras"
+msgstr "Extra words"
+
+#: adaptadores/reglas.py:260
+#, python-format
+msgid ""
+"%(comunes)s está bien, pero las otras palabras no son parte del "
+"significado."
+msgstr "%(comunes)s is right, but the other words are not part of the meaning."
+
+#: adaptadores/reglas.py:263
+#, python-format
+msgid "Respondé con un solo sentido, por ejemplo: %(sentido)s."
+msgstr "Answer with a single meaning, for example: %(sentido)s."
+
+#: adaptadores/reglas.py:274
+msgid "Ortografía"
+msgstr "Spelling"
+
+#: adaptadores/reglas.py:276
+msgid ""
+"La palabra se parece, pero en esta dificultad tiene que estar bien "
+"escrita."
+msgstr "The word is close, but at this difficulty it has to be spelled right."
+
+#: adaptadores/reglas.py:279
+#, python-format
+msgid "Compará letra por letra con la definición: %(definicion)s."
+msgstr "Compare it letter by letter with the definition: %(definicion)s."
+
+#: adaptadores/reglas.py:287
+msgid "Otro sentido"
+msgstr "A different meaning"
+
+#: adaptadores/reglas.py:292
+#, python-format
+msgid ""
+"Definición: %(definicion)s. Respondé en inglés, como aparece en el "
+"catálogo."
+msgstr ""
+"Definition: %(definicion)s. Answer in English, as it appears in the "
+"catalog."
+
+#: dominio/geometria.py:23
+msgid "arriba a la izquierda"
+msgstr "at the top left"
+
+#: dominio/geometria.py:24
+msgid "arriba al centro"
+msgstr "at the top center"
+
+#: dominio/geometria.py:25
+msgid "arriba a la derecha"
+msgstr "at the top right"
+
+#: dominio/geometria.py:26
+msgid "a media altura a la izquierda"
+msgstr "halfway down on the left"
+
+#: dominio/geometria.py:27
+msgid "en el centro"
+msgstr "in the center"
+
+#: dominio/geometria.py:28
+msgid "a media altura a la derecha"
+msgstr "halfway down on the right"
+
+#: dominio/geometria.py:29
+msgid "abajo a la izquierda"
+msgstr "at the bottom left"
+
+#: dominio/geometria.py:30
+msgid "abajo al centro"
+msgstr "at the bottom center"
+
+#: dominio/geometria.py:31
+msgid "abajo a la derecha"
+msgstr "at the bottom right"
+
+#: dominio/geometria.py:36
+msgid "hacia la derecha"
+msgstr "to the right"
+
+#: dominio/geometria.py:37
+msgid "hacia arriba y a la derecha"
+msgstr "up and to the right"
+
+#: dominio/geometria.py:38
+msgid "hacia arriba"
+msgstr "up"
+
+#: dominio/geometria.py:39
+msgid "hacia arriba y a la izquierda"
+msgstr "up and to the left"
+
+#: dominio/geometria.py:40
+msgid "hacia la izquierda"
+msgstr "to the left"
+
+#: dominio/geometria.py:41
+msgid "hacia abajo y a la izquierda"
+msgstr "down and to the left"
+
+#: dominio/geometria.py:42
+msgid "hacia abajo"
+msgstr "down"
+
+#: dominio/geometria.py:43
+msgid "hacia abajo y a la derecha"
+msgstr "down and to the right"
+
+#: dominio/geometria.py:51
+msgid "al principio"
+msgstr "at the beginning"
+
+#: dominio/geometria.py:52
+msgid "en el medio"
+msgstr "in the middle"
+
+#: dominio/geometria.py:53
+msgid "al final"
+msgstr "at the end"
+
+#: dominio/notas.py:18
+msgid "tono neutro"
+msgstr "neutral tone"
+
+#: dominio/notas.py:19
+msgid "primer tono"
+msgstr "first tone"
+
+#: dominio/notas.py:20
+msgid "segundo tono"
+msgstr "second tone"
+
+#: dominio/notas.py:21
+msgid "tercer tono"
+msgstr "third tone"
+
+#: dominio/notas.py:22
+msgid "cuarto tono"
+msgstr "fourth tone"
+
+#: dominio/notas.py:33
+#, python-format
+msgid "Se lee %(lectura)s, %(tono)s."
+msgstr "It is read %(lectura)s, %(tono)s."
+
+#: dominio/notas.py:40
+#, python-format
+msgid "Bien. Al principio, el trazo sale %(direccion)s."
+msgstr "Good. At the start, the stroke heads %(direccion)s."
+
+#: dominio/notas.py:41
+#, python-format
+msgid "Bien. En el medio, el trazo gira %(direccion)s."
+msgstr "Good. In the middle, the stroke turns %(direccion)s."
+
+#: dominio/notas.py:42
+#, python-format
+msgid "Bien. Al final, el trazo gira %(direccion)s."
+msgstr "Good. At the end, the stroke turns %(direccion)s."
+
+#: dominio/notas.py:46
+msgid "Bien. Al principio, seguí más cerca de la guía."
+msgstr "Good. At the start, stay closer to the guide."
+
+#: dominio/notas.py:47
+msgid "Bien. En el medio, seguí más cerca de la guía."
+msgstr "Good. In the middle, stay closer to the guide."
+
+#: dominio/notas.py:48
+msgid "Bien. Al final, seguí más cerca de la guía."
+msgstr "Good. At the end, stay closer to the guide."
 
 #: errores.py:51
 msgid "Solicitud incorrecta"
@@ -31,24 +368,24 @@ msgstr "Method not allowed"
 msgid "Error interno"
 msgstr "Internal error"
 
-#: servicio.py:36
+#: servicio.py:46
 msgid "El servicio de catálogo no respondió. Probá de nuevo en unos segundos."
 msgstr "The catalog service did not respond. Try again in a few seconds."
 
-#: servicio.py:37
+#: servicio.py:47
 msgid "El servicio de trazos no respondió. Probá de nuevo en unos segundos."
 msgstr "The strokes service did not respond. Try again in a few seconds."
 
-#: servicio.py:72
+#: servicio.py:114
 #, python-format
 msgid "No existe el carácter '%(hanzi)s'."
 msgstr "The character '%(hanzi)s' does not exist."
 
-#: servicio.py:92
+#: servicio.py:134
 msgid "Los puntos del trazo no son válidos"
 msgstr "The stroke points are not valid"
 
-#: servicio.py:118
+#: servicio.py:160
 #, python-format
 msgid "El carácter '%(hanzi)s' no tiene un trazo con secuencia %(secuencia)s."
 msgstr "The character '%(hanzi)s' has no stroke with sequence %(secuencia)s."

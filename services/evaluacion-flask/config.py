@@ -23,4 +23,6 @@ def desde_entorno():
         # Segundos por petición y reintentos de los GET (ver clientes.py).
         "HTTP_TIMEOUT": float(os.environ.get("HTTP_TIMEOUT", "3")),
         "HTTP_REINTENTOS": int(os.environ.get("HTTP_REINTENTOS", "2")),
+        # Adaptador que explica los errores (RF-IA-04). Hoy solo "reglas".
+        "EXPLICADOR_ERRORES": os.environ.get("EXPLICADOR_ERRORES", "reglas").strip().lower(),
     }

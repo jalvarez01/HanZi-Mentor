@@ -17,4 +17,7 @@ def validar_trazo(solicitud):
         "detalle": traducir(resultado.detalle),
         "invertido": resultado.invertido,
         "puntos_lejanos": resultado.puntos_lejanos,
+        # Largo dibujado / largo esperado: con él, evaluacion-flask distingue
+        # un trazo corto de uno largo (los dos llegan como "incompleto").
+        "razon_longitud": round(resultado.razon_longitud, 3),
     }

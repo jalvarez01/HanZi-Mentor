@@ -12,6 +12,16 @@ from fabricas import Dependencias
 
 TRAZO_OK = {"secuencia": 1, "puntos": [[0, 0], [1, 1]], "ancho": 320, "alto": 320}
 
+# RF-IA-04 suma `nota` (pinyin correcto) y `explicacion` (respuesta incorrecta)
+# al final de la respuesta. Las pruebas que comparaban la respuesta entera
+# comparan ahora los campos de siempre; los nuevos se prueban en
+# test_explicador.py.
+CAMPOS_BASE = ("tipo", "caracter", "acerto")
+
+
+def base(datos):
+    return {k: datos[k] for k in CAMPOS_BASE}
+
 
 def assert_error(resp, estado, codigo):
     assert resp.status_code == estado, resp.get_data(as_text=True)
@@ -34,7 +44,8 @@ def test_evalua_pinyin_correctamente(evaluar, catalogo):
     resp = evaluar(tipo="pinyin", caracter="学", respuesta="xue")
 
     assert resp.status_code == 200
-    assert resp.get_json() == {"tipo": "pinyin", "caracter": "学", "acerto": True}
+    assert base(resp.get_json()) == {"tipo": "pinyin", "caracter": "学", "acerto": True}
+    assert list(resp.get_json()) == [*CAMPOS_BASE, "nota"]
     assert catalogo.consultas == ["学"]
 
 
@@ -58,7 +69,8 @@ def test_evalua_significado_incorrectamente(evaluar):
     resp = evaluar(tipo="significado", caracter="学", respuesta="mountain")
 
     assert resp.status_code == 200
-    assert resp.get_json() == {"tipo": "significado", "caracter": "学", "acerto": False}
+    assert base(resp.get_json()) == {"tipo": "significado", "caracter": "学", "acerto": False}
+    assert list(resp.get_json()) == [*CAMPOS_BASE, "explicacion"]
 
 
 def test_significado_correcto_en_otro_orden(evaluar):
@@ -286,7 +298,7 @@ def test_长_por_el_endpoint_acepta_cualquier_lectura(respuesta, acerto):
     resp = client.post("/api/v2/evaluacion/", json={"tipo": "pinyin", "caracter": "长", "respuesta": respuesta})
 
     assert resp.status_code == 200
-    assert resp.get_json() == {"tipo": "pinyin", "caracter": "长", "acerto": acerto}
+    assert base(resp.get_json()) == {"tipo": "pinyin", "caracter": "长", "acerto": acerto}
 
 
 def test_con_un_catalogo_sin_lecturas_vale_solo_el_pinyin():

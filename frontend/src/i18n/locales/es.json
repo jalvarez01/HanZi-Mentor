@@ -84,6 +84,7 @@
     "noStrokeData": "Este carácter todavía no tiene trazos cargados.",
     "previous": "Anterior",
     "next": "Siguiente",
+    "noteNext": "Tocá Siguiente para seguir.",
     "step": "trazo {{actual}} de {{total}}",
     "loading": "Cargando…",
     "listKicker": "Biblioteca",
@@ -148,7 +149,12 @@
     "notAvailable": "no disponible",
     "typePinyin": "Pinyin",
     "yourAnswer": "Tu respuesta:",
-    "correctAnswer": "La respuesta correcta es:"
+    "correctAnswer": "La respuesta correcta es:",
+    "strokeHint": "Repasá la dirección y el orden de cada trazo en Trazos."
+  },
+  "feedback": {
+    "why": "Por qué",
+    "hint": "Pista:"
   },
   "pinyinForm": {
     "label": "Escribí el pinyin de este carácter",

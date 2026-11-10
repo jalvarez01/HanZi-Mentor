@@ -1,0 +1,61 @@
+/*
+ * Tarjeta de papel con la cruz punteada de borde a borde (Práctica). La
+ * tarjeta lleva .cuadricula-hanzi; dentro van las guías y el carácter de
+ * CuadriculaHanzi.jsx. El kicker queda arriba y el dato, si hay, abajo.
+ */
+
+.cuadricula-hanzi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* Alto para el carácter centrado más el kicker y un dato de dos líneas,
+     con margen entre ellos. */
+  min-height: 256px;
+  /* Papel sólido: el paisaje no compite con el carácter. La sombra
+     desplazada es la de la tarjeta. */
+  border-color: var(--line);
+  background: var(--paper);
+}
+
+/* Kicker y dato por encima de la cruz. */
+.cuadricula-hanzi > :not(.cuadricula-hanzi__guias, .cuadricula-hanzi__caracter) {
+  position: relative;
+}
+
+.cuadricula-hanzi__guias {
+  position: absolute;
+  inset: 0;
+  /* Contenedor de consulta: las líneas se miden contra su ancho (cqw). */
+  container-type: size;
+  pointer-events: none;
+}
+
+.cuadricula-hanzi__guias svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Misma cruz que el lienzo de Trazos tal como se ve: allí el SVG es de 1024
+ * y el grosor y el punteado (1.5, 8 y 10) escalan con el ancho del lienzo
+ * (a 375 px: 0.50, 2.65 y 3.31 px; a 1280 px: 0.75, 4.02 y 5.02 px). La
+ * tarjeta tiene el mismo ancho que ese lienzo, así que se aplica la misma
+ * proporción sobre el ancho de la tarjeta.
+ */
+.cuadricula-hanzi__guias line {
+  stroke: var(--ochre);
+  stroke-width: calc(100cqw * 1.5 / 1024);
+  stroke-dasharray: calc(100cqw * 8 / 1024) calc(100cqw * 10 / 1024);
+  opacity: 0.45;
+}
+
+.cuadricula-hanzi__caracter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--jade);
+  font: 120px/1 var(--font-display);
+}

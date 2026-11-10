@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: trazos-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-25 21:50-0500\n"
+"POT-Creation-Date: 2026-11-07 18:13+0000\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: es\n"
@@ -15,37 +15,41 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: comparador.py:244
+#: comparador.py:290
 msgid "El carácter no tiene datos de trazo para comparar."
 msgstr ""
 
-#: comparador.py:251
+#: comparador.py:297
 msgid "No se registró ningún trazo."
 msgstr ""
 
-#: comparador.py:294
+#: comparador.py:338
+msgid "Trazo fuera de lugar. Intentá de nuevo."
+msgstr ""
+
+#: comparador.py:353
 msgid ""
 "La forma es correcta, pero lo trazaste en sentido contrario. Revisá por "
 "dónde empieza el trazo."
 msgstr ""
 
-#: comparador.py:304
+#: comparador.py:363
 msgid "El trazo quedó corto. Recorré el trazo completo."
 msgstr ""
 
-#: comparador.py:312
+#: comparador.py:371
 msgid "El trazo se pasó de largo respecto del esperado."
 msgstr ""
 
-#: comparador.py:320
+#: comparador.py:379
 msgid "Trazo correcto."
 msgstr ""
 
-#: comparador.py:327
+#: comparador.py:386
 msgid "Trazo aceptable. Con más precisión quedaría perfecto."
 msgstr ""
 
-#: comparador.py:334
+#: comparador.py:393
 msgid "El trazo se alejó bastante del recorrido esperado."
 msgstr ""
 

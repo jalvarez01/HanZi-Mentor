@@ -131,6 +131,20 @@
 /* Invertido: error conceptual, no de pulso. Se distingue con el acento ocre. */
 .resultado.invertido { --tinte: var(--ochre-tint); border-left-color: var(--ochre); }
 
+/* Nota de mejora de un aprobado (RF-IA-04): discreta, como la nota de tono de
+   Práctica, sobre el papel de los paneles para que se lea sobre el paisaje. */
+.trazos-nota {
+  margin: -8px 0 14px;
+  padding: 8px 13px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  color: var(--ink-muted);
+  font: var(--fs-md)/1.45 var(--font-ui);
+}
+
+.trazos-nota__seguir { color: var(--ink-faint); }
+
 /* Controles: la fila lleva el papel de los paneles; botones y contador sin cambios */
 .trazos-controles {
   display: flex;

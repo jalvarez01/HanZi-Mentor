@@ -13,5 +13,5 @@ evaluacion_bp = Blueprint("evaluacion", __name__)
 def evaluar():
     solicitud = validar_evaluacion(request.get_json(silent=True))
     deps = current_app.extensions["dependencias"]
-    resultado = EvaluacionService(deps.catalogo, deps.trazos).evaluar(solicitud)
+    resultado = EvaluacionService(deps.catalogo, deps.trazos, deps.explicador).evaluar(solicitud)
     return jsonify(serializacion.resultado(resultado)), 200

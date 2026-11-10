@@ -1,20 +1,25 @@
 """
 Patrón Factory: arma los clientes de los servicios de los que depende,
 según la configuración (CATALOGO_URL, TRAZOS_URL, HTTP_TIMEOUT,
-HTTP_REINTENTOS).
+HTTP_REINTENTOS), y el explicador de errores (EXPLICADOR_ERRORES).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from flask import has_request_context, request
 
+from adaptadores.fabrica import crear_explicador
+from adaptadores.reglas import ExplicadorReglas
 from clientes import CatalogoRemoto, ClienteHttp, TrazosRemoto
+from dominio.puertos import ExplicadorErrores
 
 
 @dataclass
 class Dependencias:
     catalogo: CatalogoRemoto
     trazos: TrazosRemoto
+    # Las pruebas que no lo pasan usan el de reglas, que no necesita red.
+    explicador: ExplicadorErrores = field(default_factory=ExplicadorReglas)
 
 
 def idioma_del_usuario():
@@ -38,4 +43,5 @@ def crear_dependencias(config):
     return Dependencias(
         catalogo=CatalogoRemoto(_cliente(config, "CATALOGO_URL")),
         trazos=TrazosRemoto(_cliente(config, "TRAZOS_URL")),
+        explicador=crear_explicador(config),
     )
