@@ -32,5 +32,22 @@ export function useFormato() {
       if (horas < 24) return rtf.format(horas, 'hour');
       return rtf.format(Math.round(horas / 24), 'day');
     },
+
+    /**
+     * Tiempo relativo desde una fecha pasada, en minutos, horas o días:
+     * "hace 5 minutos", "hace 3 horas", "ayer", "hace 4 días" / "5 minutes
+     * ago", "yesterday". Menos de un minuto: "ahora" / "now". null -> null.
+     */
+    hace(iso) {
+      if (!iso) return null;
+
+      const minutos = Math.max(0, Math.round((new Date() - new Date(iso)) / 6e4));
+      const rtf = new Intl.RelativeTimeFormat(idioma, { numeric: 'auto' });
+
+      if (minutos < 1) return rtf.format(0, 'second');
+      if (minutos < 60) return rtf.format(-minutos, 'minute');
+      if (minutos < 24 * 60) return rtf.format(-Math.round(minutos / 60), 'hour');
+      return rtf.format(-Math.round(minutos / (24 * 60)), 'day');
+    },
   };
 }

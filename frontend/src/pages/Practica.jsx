@@ -7,7 +7,13 @@ import RespuestaPinyin from '../components/RespuestaPinyin';
 import TopBar from '../components/TopBar';
 import { useUsuario } from '../hooks/useUsuario';
 import { useFormato } from '../i18n/formato';
-import { crearSesion, generarLeccion, obtenerCaracter, responderEjercicio } from '../services/api';
+import {
+  crearSesion,
+  generarLeccion,
+  obtenerCaracter,
+  obtenerPatrones,
+  responderEjercicio,
+} from '../services/api';
 import './Practica.css';
 
 const NIVELES = [1, 2, 3, 4, 5, 6];
@@ -26,6 +32,8 @@ export default function Practica() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
   const [terminada, setTerminada] = useState(false);
+  // RF-IA-01: patrón principal del estudiante, para el aviso de fin de sesión.
+  const [patronFinal, setPatronFinal] = useState(null);
 
   const [leccion, setLeccion] = useState(null);
   const [indiceLeccion, setIndiceLeccion] = useState(0);
@@ -53,6 +61,7 @@ export default function Practica() {
     setError(null);
     setTerminada(false);
     setUltimoResultado(null);
+    setPatronFinal(null);
 
     try {
       const nueva = await crearSesion({ usuarioId, nivelHsk: nivel });
@@ -66,13 +75,26 @@ export default function Practica() {
   }
 
   // Registra la respuesta en sesiones-flask. Lanza si falla: quien llama decide cómo mostrarlo.
-  async function registrar(acerto, extra = {}) {
-    const resultado = await responderEjercicio(ejercicio.id, acerto);
+  // `codigoError` (RF-IA-01) es el tipo de error de un fallo, si se conoce.
+  async function registrar(acerto, extra = {}, codigoError) {
+    const resultado = await responderEjercicio(ejercicio.id, acerto, codigoError);
     setUltimoResultado({ ...resultado, acerto, ejercicioId: ejercicio.id, ...extra });
 
     if (resultado.sesion_completada) {
       setTerminada(true);
+      avisarPatron(sesion.id);
     }
+  }
+
+  // Al cerrar la sesión se busca el patrón principal para el aviso final. Es
+  // un extra: sin patrones, o si la petición falla, el cierre queda como estaba.
+  function avisarPatron(sesionId) {
+    obtenerPatrones(usuarioId)
+      .then((r) => {
+        const principal = r?.patrones?.[0];
+        if (principal) setPatronFinal({ ...principal, sesionId });
+      })
+      .catch(() => {});
   }
 
   // Ejercicios de trazo: el estudiante se califica con "Fallé" o "Acerté".
@@ -81,7 +103,7 @@ export default function Practica() {
     setError(null);
 
     try {
-      await registrar(acerto);
+      await registrar(acerto, {}, acerto ? undefined : 'TRAZO_AUTOCALIFICADO');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -90,9 +112,11 @@ export default function Practica() {
   }
 
   // Ejercicios de pinyin (T25): RespuestaPinyin muestra el error y conserva lo escrito si esto falla.
-  async function responderPinyin({ acerto, respuesta, explicacion, nota }) {
+  // El tipo de error es el código de la explicación; "No lo sé" trae el suyo.
+  // Sin explicación (el explicador falló) no se manda ninguno.
+  async function responderPinyin({ acerto, respuesta, explicacion, nota, codigoError }) {
     const ejercicioId = ejercicio.id;
-    await registrar(acerto, { respuesta, explicacion, nota });
+    await registrar(acerto, { respuesta, explicacion, nota }, codigoError ?? explicacion?.codigo);
 
     // Si falló, se muestra la respuesta correcta. Si el catálogo no responde,
     // el aviso de acierto o fallo ya está y basta con eso.
@@ -269,6 +293,18 @@ export default function Practica() {
               {t('practice.currentAccuracy')}{' '}
               <strong>{tasaAcierto(ultimoResultado.tasa_acierto)}</strong>
             </p>
+          )}
+
+          {/* RF-IA-01: una nota, no un error. Solo si hay algún patrón. */}
+          {patronFinal?.sesionId === sesion.id && (
+            <div className="practica-patron" role="status">
+              <p className="hm-kicker practica-patron__etiqueta">{t('practice.patternKicker')}</p>
+              <p className="practica-patron__titulo">{patronFinal.titulo}</p>
+              <p className="practica-patron__consejo">{patronFinal.consejo}</p>
+              <Link to="/progreso" className="practica-patron__enlace">
+                {t('practice.seePatterns')}
+              </Link>
+            </div>
           )}
 
           <button type="button" className="hm-btn" onClick={() => setSesion(null)}>

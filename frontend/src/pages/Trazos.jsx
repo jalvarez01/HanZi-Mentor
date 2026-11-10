@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import EjemplosCaracter from '../components/EjemplosCaracter';
 import PorQue from '../components/PorQue';
 import TopBar from '../components/TopBar';
-import { evaluar, listarCaracteres, obtenerCaracter } from '../services/api';
+import { useUsuario } from '../hooks/useUsuario';
+import { evaluar, listarCaracteres, obtenerCaracter, registrarErrorDeTrazo } from '../services/api';
 import './Trazos.css';
 
 // Make Me a Hanzi usa un lienzo de 1024x1024 con el eje Y invertido:
@@ -27,6 +28,7 @@ export default function Trazos() {
   const [params] = useSearchParams();
   const pedido = params.get('caracter');
   const { t } = useTranslation();
+  const { usuarioId } = useUsuario();
 
   const [lista, setLista] = useState([]);
   const [caracter, setCaracter] = useState(null);
@@ -98,6 +100,7 @@ export default function Trazos() {
               trazos={trazos}
               hasta={trazoActual}
               hanzi={caracter?.hanzi}
+              usuarioId={usuarioId}
               onAprobado={() => setTrazoActual((n) => Math.min(trazos.length, n + 1))}
               key={caracter?.hanzi}
             />
@@ -172,8 +175,12 @@ export default function Trazos() {
  * (RF-APR-01) y, si se aprueba, se avanza solo al trazo siguiente. Si el
  * aprobado trae una nota de mejora (RF-IA-04), no se avanza solo: la nota
  * queda a la vista y se sigue con "Siguiente".
+ *
+ * RF-IA-01: un trazo fallado que el servicio pudo explicar anota su tipo de
+ * error en el progreso, sin esperar la respuesta. Solo alimenta los patrones
+ * de error; si falla, acá no cambia nada.
  */
-function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
+function LienzoTrazos({ trazos, hasta, hanzi, usuarioId, onAprobado }) {
   const { t } = useTranslation();
   const canvasRef = useRef(null);
   const dibujando = useRef(false);
@@ -272,6 +279,13 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
         },
       });
       setResultado(veredicto);
+
+      if (!veredicto.aprobado && veredicto.explicacion?.codigo && usuarioId) {
+        registrarErrorDeTrazo(usuarioId, {
+          caracter: hanzi,
+          codigoError: veredicto.explicacion.codigo,
+        }).catch(() => {});
+      }
 
       if (veredicto.aprobado && !veredicto.nota) {
         setTimeout(() => onAprobado?.(), 900);

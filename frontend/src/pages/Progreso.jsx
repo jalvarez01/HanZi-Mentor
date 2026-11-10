@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import PatronesError from '../components/PatronesError';
 import ReporteProgreso from '../components/ReporteProgreso';
 import TopBar from '../components/TopBar';
 import { useProgreso } from '../hooks/useProgreso';
@@ -10,6 +12,13 @@ export default function Progreso() {
   const { datos, cargando, error, recargar, usuarioId, reiniciar } = useProgreso();
   const { t } = useTranslation();
   const formato = useFormato();
+  // "Actualizar" también vuelve a pedir los patrones de error (RF-IA-01).
+  const [recargaPatrones, setRecargaPatrones] = useState(0);
+
+  function actualizar() {
+    recargar();
+    setRecargaPatrones((n) => n + 1);
+  }
 
   return (
     <>
@@ -89,6 +98,9 @@ export default function Progreso() {
               )}
             </Bloque>
 
+            {/* key: al empezar como usuario nuevo, los patrones del anterior se descartan */}
+            <PatronesError key={usuarioId} usuarioId={usuarioId} recarga={recargaPatrones} />
+
             <Bloque kicker={t('progress.masteredKicker')} titulo={t('progress.mastered')} id="progreso-dominados">
               {datos.caracteres_dominados.length === 0 ? (
                 <p className="hm-status hm-status--empty">{t('progress.masteredEmpty')}</p>
@@ -113,7 +125,7 @@ export default function Progreso() {
             <ReporteProgreso key={usuarioId} usuarioId={usuarioId} />
 
             <div className="progreso-acciones">
-              <button type="button" className="hm-btn hm-btn--block" onClick={recargar}>
+              <button type="button" className="hm-btn hm-btn--block" onClick={actualizar}>
                 {t('progress.refresh')}
               </button>
               <button type="button" className="progreso-reiniciar" onClick={reiniciar}>

@@ -150,7 +150,9 @@
     "typePinyin": "Pinyin",
     "yourAnswer": "Tu respuesta:",
     "correctAnswer": "La respuesta correcta es:",
-    "strokeHint": "Repasá la dirección y el orden de cada trazo en Trazos."
+    "strokeHint": "Repasá la dirección y el orden de cada trazo en Trazos.",
+    "patternKicker": "Para tu próxima sesión",
+    "seePatterns": "Ver tus patrones"
   },
   "feedback": {
     "why": "Por qué",
@@ -187,7 +189,17 @@
     "reviewNone": "Sin repasos agendados.",
     "refresh": "Actualizar",
     "newUser": "Empezar como usuario nuevo",
-    "userId": "id: {{id}}"
+    "userId": "id: {{id}}",
+    "patternsKicker": "Tus errores",
+    "patternsTitle": "Tus patrones de error",
+    "patternsEmpty": "Todavía no hay suficientes respuestas para detectar patrones.",
+    "patternsError": "No se pudieron cargar tus patrones de error.",
+    "patternsCharacters": "Caracteres implicados",
+    "patternsTimes_one": "{{count}} vez",
+    "patternsTimes_other": "{{count}} veces",
+    "patternsLastTime": "Última vez: {{cuando}}",
+    "patternsWindow_one": "Según tus fallos del último día.",
+    "patternsWindow_other": "Según tus fallos de los últimos {{count}} días."
   },
   "report": {
     "kicker": "Reporte",
