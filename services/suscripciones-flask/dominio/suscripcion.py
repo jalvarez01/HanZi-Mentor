@@ -11,8 +11,11 @@ que un proceso tenga que pasar a cambiarlo.
 | Premium cancelada   | premium       | renovar (*)            |
 | Premium vencida     | free          | activar                |
 
-(*) Solo cuando faltan PERIODO_DIAS días o menos para el vencimiento: así un
-doble clic no cobra dos renovaciones seguidas.
+(*) Solo cuando faltan VENTANA_RENOVACION_DIAS (7) días o menos para el
+vencimiento. Así no se puede renovar justo después de activar o de renovar
+(un doble clic no cobra dos periodos seguidos), y una suscripción cancelada
+puede renovarse cuando entra en esa ventana. Cada periodo sigue siendo de
+PERIODO_DIAS (30) días.
 
 Cancelar no devuelve dinero: Premium sigue hasta `vence_en` y después vuelve
 a Free. Renovar una suscripción cancelada la deja activa otra vez.
@@ -22,7 +25,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from dominio.excepciones import AccionNoPermitida
-from dominio.planes import FREE, PERIODO_DIAS, PLANES, PREMIUM
+from dominio.planes import FREE, PERIODO_DIAS, PLANES, PREMIUM, VENTANA_RENOVACION_DIAS
 from mensajes import N_
 
 ACTIVA = "activa"
@@ -34,6 +37,7 @@ RENOVAR = "renovar"
 CANCELAR = "cancelar"
 
 PERIODO = timedelta(days=PERIODO_DIAS)
+VENTANA_RENOVACION = timedelta(days=VENTANA_RENOVACION_DIAS)
 
 
 def ahora():
@@ -54,6 +58,18 @@ class Estado:
     def nivel_maximo(self):
         return PLANES[self.plan].nivel_maximo
 
+    @property
+    def renovable_desde(self):
+        """Desde cuándo se puede renovar: vence_en menos la ventana de renovación.
+
+        Solo para un Premium vigente (activo o cancelado); para Free, vencida o
+        sin suscripción, None. El frontend lo usa para decir desde qué fecha
+        aparece "Renovar" cuando todavía no está en `acciones`.
+        """
+        if self.plan != PREMIUM or self.vence_en is None:
+            return None
+        return self.vence_en - VENTANA_RENOVACION
+
 
 def estado_actual(guardada, momento):
     """`guardada` es la Suscripcion de la base o None si el usuario nunca pagó."""
@@ -64,7 +80,7 @@ def estado_actual(guardada, momento):
         return Estado(FREE, VENCIDA, guardada.vence_en, (ACTIVAR,))
 
     acciones = []
-    if guardada.vence_en - momento <= PERIODO:
+    if guardada.vence_en - momento <= VENTANA_RENOVACION:
         acciones.append(RENOVAR)
     if guardada.estado == ACTIVA:
         acciones.append(CANCELAR)
@@ -93,7 +109,7 @@ def verificar(accion, estado):
     raise _conflicto(
         N_("Solo se puede renovar cuando faltan %(dias)s días o menos para el vencimiento."),
         "RENOVACION_ANTICIPADA",
-        dias=PERIODO_DIAS,
+        dias=VENTANA_RENOVACION_DIAS,
     )
 
 

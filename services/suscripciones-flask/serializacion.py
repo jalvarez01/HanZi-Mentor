@@ -40,6 +40,8 @@ def suscripcion(usuario_id, estado):
         "vence_en": fecha(estado.vence_en),
         "nivel_maximo": estado.nivel_maximo,
         "acciones": list(estado.acciones),
+        # Revisión de #55: al final, para no cambiar el orden de las demás claves.
+        "renovable_desde": fecha(estado.renovable_desde),
     }
 
 

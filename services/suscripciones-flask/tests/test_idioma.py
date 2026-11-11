@@ -35,14 +35,18 @@ def test_pago_rechazado_en_ingles(client):
     assert resp.get_json() == {"error": "The bank declined the card.", "codigo": "TARJETA_RECHAZADA"}
 
 
-def test_renovacion_anticipada_con_los_dias(client, activar, renovar):
+def test_renovacion_anticipada_con_los_dias(client, activar):
     activar()
-    renovar()
 
-    resp = client.post(f"{URL}renovar/", json={"pago": pago()}, headers=EN)
+    es = client.post(f"{URL}renovar/", json={"pago": pago()})
+    en = client.post(f"{URL}renovar/", json={"pago": pago()}, headers=EN)
 
-    assert resp.get_json()["error"] == (
-        "You can only renew when 30 days or fewer are left before it expires."
+    assert es.get_json() == {
+        "error": "Solo se puede renovar cuando faltan 7 días o menos para el vencimiento.",
+        "codigo": "RENOVACION_ANTICIPADA",
+    }
+    assert en.get_json()["error"] == (
+        "You can only renew when 7 days or fewer are left before it expires."
     )
 
 

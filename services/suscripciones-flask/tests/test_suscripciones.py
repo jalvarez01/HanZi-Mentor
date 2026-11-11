@@ -25,6 +25,7 @@ def test_usuario_nuevo_tiene_free(client):
         "vence_en": None,
         "nivel_maximo": 3,
         "acciones": ["activar"],
+        "renovable_desde": None,
     }
 
 
@@ -52,7 +53,9 @@ def test_activar_premium(client, activar):
         "estado": "activa",
         "vence_en": "2026-12-11T15:00:00Z",
         "nivel_maximo": 6,
-        "acciones": ["renovar", "cancelar"],
+        # Revisión de #55: recién activada todavía no se puede renovar.
+        "acciones": ["cancelar"],
+        "renovable_desde": "2026-12-04T15:00:00Z",
     }
     p = cuerpo["pago"]
     assert (p["concepto"], p["estado"], p["monto"], p["moneda"]) == ("activacion", "aprobado", 14900, "COP")
@@ -127,7 +130,8 @@ def test_cancelar_mantiene_premium_hasta_el_vencimiento(client, activar):
     assert resp.status_code == 200
     s = resp.get_json()["suscripcion"]
     assert (s["plan"], s["estado"], s["vence_en"]) == ("premium", "cancelada", "2026-12-11T15:00:00Z")
-    assert s["acciones"] == ["renovar"]
+    # Faltan 30 días: renovar recién aparece en la ventana de 7.
+    assert s["acciones"] == []
     assert "pago" not in resp.get_json()
 
     otra = client.post(f"{URL}cancelar/")
@@ -145,7 +149,7 @@ def test_free_no_cancela_ni_renueva(client, renovar):
 
 def test_renovar_suma_30_dias_y_no_deja_renovar_dos_veces(client, activar, renovar, reloj):
     activar()
-    reloj.avanzar(days=5)
+    reloj.avanzar(days=23)  # faltan 7 días: dentro de la ventana
 
     resp = renovar()
 
@@ -160,9 +164,11 @@ def test_renovar_suma_30_dias_y_no_deja_renovar_dos_veces(client, activar, renov
     assert len(pagos(client)) == 2
 
 
-def test_renovar_una_cancelada_la_reactiva(client, activar, renovar):
+def test_renovar_una_cancelada_la_reactiva(client, activar, renovar, reloj):
     activar()
     client.post(f"{URL}cancelar/")
+    reloj.avanzar(days=23)
+    assert consultar(client)["acciones"] == ["renovar"]
 
     s = renovar().get_json()["suscripcion"]
 
@@ -170,8 +176,9 @@ def test_renovar_una_cancelada_la_reactiva(client, activar, renovar):
     assert s["acciones"] == ["cancelar"]
 
 
-def test_renovacion_rechazada_no_cambia_nada(client, activar, renovar):
+def test_renovacion_rechazada_no_cambia_nada(client, activar, renovar, reloj):
     activar()
+    reloj.avanzar(days=23)
     antes = consultar(client)
 
     resp = renovar(RECHAZADA)
@@ -204,7 +211,7 @@ def test_cada_usuario_tiene_su_suscripcion(client, activar):
 
 def test_historial_del_mas_reciente_al_mas_antiguo(client, activar, renovar, reloj):
     activar()
-    reloj.avanzar(days=1)
+    reloj.avanzar(days=23)
     renovar()
 
     assert [p["concepto"] for p in pagos(client)] == ["renovacion", "activacion"]
@@ -218,3 +225,95 @@ def test_entrada_invalida(client):
     for resp in (sin_uuid, plan_free, sin_cuerpo):
         assert resp.status_code == 400
         assert resp.get_json()["codigo"] == "ENTRADA_INVALIDA"
+
+
+
+# ---------- ventana de renovación de 7 días (revisión de #55) ----------
+
+
+def test_no_se_puede_activar_y_renovar_enseguida(client, activar, renovar):
+    activar()
+
+    resp = renovar()
+
+    assert (resp.status_code, resp.get_json()["codigo"]) == (409, "RENOVACION_ANTICIPADA")
+    assert [p["concepto"] for p in pagos(client)] == ["activacion"]
+
+
+def test_ocho_dias_antes_responde_409_y_no_cobra(client, activar, renovar, reloj):
+    activar()
+    reloj.avanzar(days=22)  # faltan 8 días
+
+    assert consultar(client)["acciones"] == ["cancelar"]
+    resp = renovar()
+
+    assert (resp.status_code, resp.get_json()["codigo"]) == (409, "RENOVACION_ANTICIPADA")
+    assert len(pagos(client)) == 1
+
+
+def test_siete_dias_antes_se_puede_renovar(client, activar, renovar, reloj):
+    activar()
+    reloj.avanzar(days=23)  # faltan 7 días
+
+    assert consultar(client)["acciones"] == ["renovar", "cancelar"]
+    resp = renovar()
+
+    assert resp.status_code == 200
+    assert resp.get_json()["suscripcion"]["vence_en"] == "2027-01-10T15:00:00Z"
+
+
+def test_cancelada_dentro_de_la_ventana_puede_renovar(client, activar, renovar, reloj):
+    activar()
+    client.post(f"{URL}cancelar/")
+    reloj.avanzar(days=25)  # faltan 5 días
+
+    assert consultar(client)["acciones"] == ["renovar"]
+    resp = renovar()
+
+    assert resp.status_code == 200
+    s = resp.get_json()["suscripcion"]
+    assert (s["estado"], s["vence_en"]) == ("activa", "2027-01-10T15:00:00Z")
+
+
+
+# ---------- renovable_desde (revisión de #55) ----------
+
+CLAVES = ["usuario_id", "plan", "nombre_plan", "estado", "vence_en", "nivel_maximo", "acciones"]
+
+
+def test_renovable_desde_va_al_final_sin_cambiar_el_orden(client, activar):
+    free = consultar(client)
+    premium = activar().get_json()["suscripcion"]
+
+    for s in (free, premium):
+        assert list(s) == CLAVES + ["renovable_desde"]
+
+
+def test_renovable_desde_en_activa_y_cancelada(client, activar):
+    activar()
+    activa = consultar(client)
+    cancelada = client.post(f"{URL}cancelar/").get_json()["suscripcion"]
+
+    # vence_en 2026-12-11T15:00:00Z menos 7 días.
+    assert activa["renovable_desde"] == "2026-12-04T15:00:00Z"
+    assert cancelada["estado"] == "cancelada"
+    assert cancelada["renovable_desde"] == "2026-12-04T15:00:00Z"
+
+
+def test_renovable_desde_se_mueve_al_renovar(client, activar, renovar, reloj):
+    activar()
+    reloj.avanzar(days=23)
+
+    s = renovar().get_json()["suscripcion"]
+
+    assert (s["vence_en"], s["renovable_desde"]) == ("2027-01-10T15:00:00Z", "2027-01-03T15:00:00Z")
+
+
+def test_renovable_desde_es_null_en_free_y_vencida(client, activar, reloj):
+    assert consultar(client)["renovable_desde"] is None
+
+    activar()
+    reloj.avanzar(days=30)
+    vencida = consultar(client)
+
+    assert (vencida["plan"], vencida["estado"], vencida["renovable_desde"]) == ("free", "vencida", None)
