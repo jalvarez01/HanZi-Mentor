@@ -140,7 +140,8 @@ Docker, Node.js 22, la misma versión de la imagen del frontend.
 git clone https://github.com/jalvarez01/HanZi-Mentor.git
 cd HanZi-Mentor
 
-# 2. Variables de entorno (opcional: sin .env se usan los valores por defecto)
+# 2. Variables de entorno (obligatorio: sin .env, contenido y agente_tutor
+#    no arrancan porque les falta la clave de Django)
 cp .env.example .env      # Windows: copy .env.example .env
 
 # 3. Construir y levantar todo
@@ -165,6 +166,9 @@ docker compose logs -f nginx
 
 Para detener todo: `docker compose down` (con `-v` también borra las
 bases). Si el puerto 80 está ocupado, cambiar `GATEWAY_PORT` en `.env`.
+
+El `.env.example` trae `DJANGO_DEBUG=1`, que en local deja arrancar a Django
+sin claves. Fuera de local, ver [Variables de entorno](#variables-de-entorno).
 
 ---
 
@@ -336,17 +340,17 @@ Totales de hoy:
 | Servicio | Tests |
 |----------|------:|
 | catalogo-flask | 117 |
-| progreso-flask | 70 |
-| sesiones-flask | 109 |
-| evaluacion-flask | 117 |
-| trazos-flask | 21 |
+| progreso-flask | 248 |
+| sesiones-flask | 250 |
+| evaluacion-flask | 247 |
+| trazos-flask | 55 |
 | ejemplos-flask | 46 (+1 que se salta: la prueba en vivo contra Tatoeba) |
 | reportes-flask | 75 |
-| suscripciones-flask | 67 |
+| suscripciones-flask | 84 |
 | flask-base | 19 |
 | contenido | 39 |
 | agente-tutor | 53 |
-| **Total** | **733** |
+| **Total** | **1233** |
 
 La prueba en vivo de ejemplos se activa con `TATOEBA_EN_VIVO=1`. Los tests
 de contrato de los servicios Flask leen los serializers de Django del mismo
@@ -393,14 +397,23 @@ producción hay que poner el dominio real** (por ejemplo
 `ALLOWED_HOSTS=hanzimentor.app,www.hanzimentor.app`) y nunca `*`: con el
 valor abierto, Django no valida la cabecera `Host` y queda expuesto a ataques
 de host header injection.
-En EC2, `ALLOWED_HOSTS` debe ser la Elastic IP de la instancia y el dominio,
-si lo hay (por ejemplo `ALLOWED_HOSTS=203.0.113.10,hanzimentor.app`).
+En EC2, `ALLOWED_HOSTS` lleva la Elastic IP de la instancia y el dominio, si
+lo hay, y además `localhost`, `contenido` y `agente_tutor`: el healthcheck de
+`agente_tutor` entra por `localhost` y `agente_tutor` llama a `contenido` por
+su nombre en la red de Docker. Sin esos nombres Django responde
+`DisallowedHost` y `agente_tutor` queda `unhealthy`. Por ejemplo:
+`ALLOWED_HOSTS=203.0.113.10,hanzimentor.app,localhost,contenido,agente_tutor`.
 
 **`DJANGO_DEBUG`, `CONTENIDO_SECRET_KEY` y `TUTOR_SECRET_KEY`**: Django lee
 `DEBUG` y `SECRET_KEY` del entorno. `DJANGO_DEBUG` vale `0` si no se define;
 en local se pone `1`. Cada clave se genera con
 `python -c "import secrets; print(secrets.token_urlsafe(50))"` y va solo en el
-`.env`. Con `DJANGO_DEBUG=0` y sin clave, el servicio no arranca.
+`.env`. Con `DJANGO_DEBUG=0` y sin clave, el servicio no arranca. En EC2 va
+`DJANGO_DEBUG=0` con las dos claves.
+
+**HTTPS:** servida por `http://<IP>` la app funciona, pero el navegador no
+registra el service worker fuera de un contexto seguro (HTTPS o
+`localhost`): sin certificado la PWA no se instala ni funciona sin conexión.
 
 ---
 

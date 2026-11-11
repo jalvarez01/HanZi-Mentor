@@ -394,7 +394,7 @@ El mismo patrón se usa para los pagos de Premium (RF-USR-01):
 `PASARELA_PAGO` elige el adaptador. Hoy el único es `PasarelaSimulada`, que
 no mueve dinero; una pasarela real sería otro adaptador, sin tocar el caso
 de uso. Detalle en el
-[README del servicio](https://github.com/jalvarez01/HanZi-Mentor/blob/development/services/suscripciones-flask/README.md).
+[README del servicio](https://github.com/jalvarez01/HanZi-Mentor/blob/main/services/suscripciones-flask/README.md).
 
 ### Secuencia: tarea asíncrona (reporte de progreso)
 
