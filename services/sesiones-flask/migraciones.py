@@ -12,6 +12,11 @@ curva de olvido. Admite NULL (un acierto, o un fallo sin código), así que
 las filas que ya existen quedan con NULL y no se reescribe la tabla.
 modelos.py declara la misma columna: una base nueva y una migrada tienen el
 mismo esquema.
+
+RF-IA-05 agrega a `sesiones` el desempeño que se registra al cerrarla:
+`completada_en`, `duracion_seg` y `aciertos`. También admiten NULL: una
+sesión en curso no los tiene, y las que se cerraron antes se calculan con
+la fecha de su última respuesta (dominio/desempeno.py).
 """
 
 import logging
@@ -23,6 +28,10 @@ logger = logging.getLogger(__name__)
 # (tabla, columna, tipo SQL). Todas admiten NULL y no llevan valor por defecto.
 COLUMNAS_NUEVAS = (
     ("ejercicios", "codigo_error", "VARCHAR(40)"),
+    # RF-IA-05: desempeño registrado al cerrar la sesión.
+    ("sesiones", "completada_en", "TIMESTAMP WITH TIME ZONE"),
+    ("sesiones", "duracion_seg", "INTEGER"),
+    ("sesiones", "aciertos", "SMALLINT"),
 )
 
 

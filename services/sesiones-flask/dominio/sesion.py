@@ -19,9 +19,15 @@ def esta_pendiente(ejercicio):
     return not ejercicio.respondido
 
 
-def cerrar_si_completa(sesion):
-    """Marca la sesión como completada cuando ya no quedan pendientes."""
+def cerrar_si_completa(sesion, momento=None):
+    """Marca la sesión como completada cuando ya no quedan pendientes.
+
+    `momento` (RF-IA-05) es la fecha de la última respuesta: queda como
+    `completada_en` para calcular el desempeño.
+    """
     if ejercicios_pendientes(sesion) == 0 and sesion.estado != "completada":
         sesion.estado = "completada"
+        if momento is not None:
+            sesion.completada_en = momento
         return True
     return False

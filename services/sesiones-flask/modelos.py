@@ -14,6 +14,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator
 
 from db import Base
+from dominio.desempeno import calcular_desempeno
 
 ESTADOS = {
     "borrador": "Borrador",
@@ -55,7 +56,8 @@ class SesionEstudio(Base):
     """Sesión de práctica generada para un usuario en un momento dado.
 
     Solo persistencia: las reglas de cuándo se cierra o cuántos ejercicios
-    quedan pendientes viven en dominio/sesion.py.
+    quedan pendientes viven en dominio/sesion.py, y las del desempeño en
+    dominio/desempeno.py.
     """
 
     __tablename__ = "sesiones"
@@ -72,12 +74,24 @@ class SesionEstudio(Base):
     estado: Mapped[str] = mapped_column(String(20), default="borrador")
     creada_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
     duracion_estimada_min: Mapped[int] = mapped_column(SmallInteger, default=10)
+    # RF-IA-05. Desempeño registrado al cerrar la sesión (dominio/desempeno.py).
+    # NULL mientras está en curso y en las sesiones cerradas antes de RF-IA-05.
+    # Lo agrega migraciones.py en una base que ya existía.
+    completada_en: Mapped[datetime | None] = mapped_column(FechaUTC)
+    duracion_seg: Mapped[int | None] = mapped_column(Integer)
+    aciertos: Mapped[int | None] = mapped_column(SmallInteger)
 
     ejercicios: Mapped[list["Ejercicio"]] = relationship(
         back_populates="sesion",
         order_by="Ejercicio.id",
         cascade="all, delete-orphan",
     )
+
+    def calcular_desempeno(self):
+        """calcularDesempeño() de RF-IA-05: duración, fecha y resultados de la
+        sesión terminada, o None si sigue en curso. La regla vive en
+        dominio/desempeno.py."""
+        return calcular_desempeno(self)
 
     def __repr__(self):
         return f"Sesión {self.id} usuario {self.usuario_id} HSK{self.nivel_hsk}"
