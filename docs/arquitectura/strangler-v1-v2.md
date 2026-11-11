@@ -22,6 +22,7 @@ deliberadas con v1", más abajo.
 | Lecciones | `POST /api/v1/lecciones/generar/`, `GET /api/v1/lecciones/<id>/` (contenido) | Las mismas rutas bajo `/api/v2/` (flask_catalogo) | Frontend (v2) | Migrado. v1 de respaldo |
 | Progreso | `GET /api/v1/tutor/progreso/<uuid>/` (agente_tutor) | `GET /api/v2/progreso/<uuid>/` (flask_progreso) | Frontend y flask_sesiones (v2) | Migrado. v1 de respaldo |
 | Patrones de error | No existe | `POST /api/v2/progreso/<uuid>/errores/`, `GET /api/v2/progreso/<uuid>/patrones/` (flask_progreso) | Frontend (Trazos, Práctica y Progreso) | Nuevo en v2 (RF-IA-01) |
+| Curva de olvido | No existe (agenda con intervalos fijos en cada respuesta) | `POST /api/v2/progreso/<uuid>/curva-olvido/`, `GET /api/v2/progreso/<uuid>/repasos/` (flask_progreso) | flask_sesiones (al cerrar la sesión y al armarla) y frontend (Progreso) | Nuevo en v2, cambia el repaso de v1 (RF-IA-02) |
 | Sesiones | `POST /api/v1/tutor/sesiones/`, `GET /api/v1/tutor/sesiones/<id>/` (agente_tutor) | `POST /api/v2/sesiones/`, `GET /api/v2/sesiones/<id>/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
 | Ejercicios | `POST /api/v1/tutor/ejercicios/<id>/responder/` (agente_tutor) | `POST /api/v2/ejercicios/<id>/responder/` (flask_sesiones) | Frontend (v2) | Migrado. v1 de respaldo |
 | Evaluación | Sin ruta pública (`EvaluarEjercicioService` dentro de agente_tutor) | `POST /api/v2/evaluacion/` (flask_evaluacion) | Frontend (Trazos y Práctica, v2) | Migrado, con diferencias deliberadas (ver abajo). v1 sin endpoint |
@@ -65,6 +66,30 @@ destino: agente_tutor no las tiene. Trazos y el aviso de fin de sesión
 siguen sin mostrar nada; la sección "Tus patrones de error" de Progreso
 muestra su estado de error con "Reintentar", y el resto de la página
 funciona. v1 ignora `codigo_error` en `responder`.
+
+RF-IA-02 (curva de olvido) cambia el repaso espaciado que venía de v1:
+
+| Tema | v1 (y v2 antes de RF-IA-02) | v2 desde RF-IA-02 |
+|------|-----------------------------|-------------------|
+| Algoritmo | Intervalos fijos según la racha: 1, 3, 7, 16, 35 o 90 días; 12 horas tras un fallo | SM-2 por carácter con factor de facilidad (2.5 al empezar, mínimo 1.3): 1 día, 6 días y después `round(intervalo x facilidad)`; 12 horas tras un fallo |
+| Calidad de la respuesta | Solo acierto o fallo | De 0 a 4 según el `codigo_error`: acierto 4, fallo cercano 2, fallo 1, `NO_SABE` 0 |
+| Cuándo se agenda | En cada respuesta (`ResponderEjercicioService`) | Una vez por carácter al cerrar la sesión, con su peor respuesta: flask_sesiones llama a `POST .../curva-olvido/`, idempotente por sesión (tabla `sesiones_aplicadas`) |
+| `proximo_repaso` | Solo cambiaba si la fecha nueva era anterior: quedaba una fecha vieja que nunca se corregía | Siempre la fecha más cercana de la agenda, calculada al leer |
+| Repasos vencidos | No se usaban: un carácter dominado no volvía a una sesión | `GET .../repasos/`; flask_sesiones pone hasta 4 vencidos primero, y la sección "Próximos repasos" de Progreso los muestra |
+
+- Las respuestas mantienen la forma de v1. `proximo_repaso` de `responder`
+  sigue siendo la estimación con intervalos fijos; la fecha real es la de
+  `repasos/`.
+- `db_progreso` suma la columna `curva_olvido` y la tabla
+  `sesiones_aplicadas`; `db_sesiones` suma `ejercicios.codigo_error`. Las
+  dos migraciones son idempotentes y no reescriben filas. Los caracteres
+  agendados con el algoritmo anterior conservan su fecha y toman su estado
+  SM-2 de la racha la primera vez que se vuelven a responder.
+- Volver a v1 en el gateway deja `repasos/` sin destino: la sección
+  "Próximos repasos" muestra su estado de error con "Reintentar". flask_sesiones
+  llama a flask_progreso por su URL interna (`PROGRESO_URL`), no por el
+  gateway, así que la curva se sigue aplicando en v2; v1 no la conoce y
+  sigue agendando con intervalos fijos sobre su propia base.
 
 Lo que sigue en Django:
 

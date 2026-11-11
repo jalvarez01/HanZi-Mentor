@@ -18,10 +18,11 @@ y parte de la plantilla `services/flask-base`.
 | `app.py`               | Fábrica `create_app()`: config, base, errores, dependencias, rutas |
 | `config.py`            | Configuración desde variables de entorno                         |
 | `db.py`                | SQLAlchemy 2.x: `Base`, sesión por petición, chequeo de conexión |
+| `migraciones.py`       | Columnas nuevas sobre una tabla que ya existe (idempotente, RF-IA-02) |
 | `modelos.py`           | `SesionEstudio` y `Ejercicio`                                    |
-| `dominio/builder.py`   | `SesionEstudioBuilder` con todas las validaciones de v1          |
+| `dominio/builder.py`   | `SesionEstudioBuilder` con las validaciones de v1, vencidos y sin caracteres repetidos |
 | `dominio/sesion.py`    | Ciclo de vida: pendientes y cierre de la sesión                  |
-| `dominio/repaso.py`    | Intervalos del repaso, para informar `proximo_repaso`            |
+| `dominio/repaso.py`    | Intervalos fijos para la estimación de `proximo_repaso` que devuelve responder |
 | `dominio/excepciones.py` | Errores de negocio con su estado HTTP y su código              |
 | `dominio/codigos_error.py` | Códigos que acepta `codigo_error` al responder (RF-IA-01)    |
 | `clientes.py`          | Cliente HTTP resiliente y clientes de catálogo y progreso        |
@@ -49,6 +50,31 @@ Equivalencias con v1 (`services/agente-tutor/tutor`):
 El Builder no usa el ORM directamente: `build(repositorio)` valida todo y
 recién entonces llama a `repositorio.guardar_sesion()`, que guarda la sesión
 y sus ejercicios en una sola transacción.
+
+### Composición de una sesión (RF-IA-02)
+
+`SesionEstudioService` arma la sesión en este orden, sin repetir ningún
+carácter entre los grupos ni dentro de uno:
+
+| Orden | Grupo     | Cuántos | De dónde | Tipo | `es_refuerzo` |
+|-------|-----------|---------|----------|------|---------------|
+| 1     | Vencidos  | Hasta 4 | `GET .../repasos/?limite=4` de progreso-flask, del más atrasado al menos atrasado | `significado` | true |
+| 2     | Refuerzos | Hasta 3 | `GET .../refuerzos/`: los caracteres con más fallos | `trazo` | true |
+| 3     | Nuevos    | Hasta completar 7, con al menos 1 | Catálogo, sin los dominados | `significado` | false |
+
+- Sin vencidos ni refuerzos son 7 nuevos; con 4 vencidos y 3 refuerzos va 1
+  nuevo, así que una sesión tiene de 7 a 8 ejercicios (menos si el catálogo
+  no alcanza; el mínimo del Builder sigue siendo 3).
+- Un carácter que es vencido y también refuerzo, o refuerzo y también nuevo,
+  aparece una sola vez, en el primer grupo. Cada grupo se pide con margen
+  (uno de más por cada carácter ya elegido) para completar su cantidad
+  después de quitar los repetidos. Antes de RF-IA-02 un refuerzo podía
+  repetirse como nuevo.
+- Los vencidos son lo que hace volver a los caracteres dominados: el motor
+  los excluye de los nuevos, así que sin la curva de olvido un carácter
+  dominado no volvía a practicarse.
+- Los vencidos son de tipo `significado` para que Práctica los evalúe en el
+  servidor (como pinyin), y llevan `es_refuerzo` true porque son repasos.
 
 ## Motor y notificador
 
@@ -88,7 +114,7 @@ y sus ejercicios en una sola transacción.
 | Servicio      | Variable       | Rutas que usa                                                    |
 |---------------|----------------|------------------------------------------------------------------|
 | catalogo-flask| `CATALOGO_URL` | `GET /api/v2/caracteres/?nivel=&excluir=&limite=`                |
-| progreso-flask| `PROGRESO_URL` | `GET /api/v2/progreso/<id>/`, `GET .../refuerzos/?limite=3`, `POST .../respuestas/` |
+| progreso-flask| `PROGRESO_URL` | `GET /api/v2/progreso/<id>/`, `GET .../repasos/?limite=4`, `GET .../refuerzos/`, `POST .../respuestas/`, `POST .../curva-olvido/` |
 
 Las URL son la base del servicio, sin `/api/v2` (por ejemplo
 `http://flask_catalogo:5000`). Todo pasa por `clientes.ClienteHttp`:
@@ -104,8 +130,10 @@ Las URL son la base del servicio, sin `/api/v2` (por ejemplo
 |-------------------------------|---------------------------------------------------------------|
 | Catálogo caído o vacío        | Usa una lista local de 10 caracteres por nivel HSK (la de v1) |
 | GET de progreso caído         | Usa los valores iniciales (HSK1, tasa 0.5, sin dominados)     |
+| Repasos vencidos caídos       | La sesión se arma sin vencidos                                |
 | Refuerzos caídos              | La sesión se arma sin refuerzos                               |
 | POST de respuesta caído       | La respuesta queda guardada en la sesión y se devuelve `aviso` |
+| POST de curva de olvido caído | Advertencia en el log; la respuesta no cambia y la sesión queda completada. No se reintenta |
 
 Nunca se devuelve una página HTML: los errores propios del servicio siempre
 son JSON. Con progreso caído, un usuario que ya tenía desbloqueado un nivel
@@ -153,8 +181,35 @@ con una base por servicio. La de este es `db_sesiones`:
 `DATABASE_URL=postgresql+psycopg2://hanzimentor:hanzimentor@db:5432/db_sesiones`
 
 Al arrancar, `crear_base.py` crea la base si no existe (si existe, solo lo
-informa), se crean las tablas una sola vez y arranca gunicorn. Si PostgreSQL
-no responde, el servicio arranca igual y `/health` responde 503.
+informa), se crean las tablas una sola vez, se agregan las columnas que
+falten (ver "Migración") y arranca gunicorn. Si PostgreSQL no responde, el
+servicio arranca igual y `/health` responde 503.
+
+### Migración
+
+RF-IA-02 trae la primera migración de `db_sesiones`. `create_all` no altera
+una tabla que ya existe, así que `migraciones.aplicar()`, con el mismo
+patrón que progreso-flask, agrega la columna en una base con datos:
+
+```sql
+ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS codigo_error VARCHAR(40);
+```
+
+- La llama `iniciar_db` en cada arranque, después de `create_all`.
+- Es idempotente: si la columna ya está, no hace nada. En PostgreSQL,
+  `IF NOT EXISTS` cubre además el caso de dos workers que arrancan a la vez.
+- La columna admite NULL y no tiene valor por defecto: las filas que ya
+  existen quedan con NULL y la tabla no se reescribe. Una imagen anterior
+  del servicio puede seguir insertando si hay que volver atrás.
+- `sesiones` no cambia.
+
+Se probó sobre una copia de `db_sesiones` hecha con `pg_dump` (88 sesiones y
+372 ejercicios): la primera ejecución agregó la columna, la segunda y la
+tercera no hicieron nada, y la cantidad de filas y una huella md5 de las
+columnas anteriores de las dos tablas fueron idénticas antes y después.
+Antes del despliegue se respaldó la base con `pg_dump`, y después la huella
+de la base real siguió idéntica. `tests/test_migraciones.py` repite la
+prueba en SQLite con el esquema anterior.
 
 ## Idioma de los mensajes
 
@@ -179,8 +234,9 @@ serializers de agente-tutor (`tests/test_contrato.py` lo comprueba).
 ### `POST /api/v2/sesiones/`
 
 Cuerpo: `usuario_id` (UUID, o un entero como acepta DRF), `nivel_hsk` (1 a
-6) y `duracion_min` (5 a 60, por defecto 10). Responde `201`. Los refuerzos
-(los caracteres con más fallos, tipo `trazo`) van primero.
+6) y `duracion_min` (5 a 60, por defecto 10). Responde `201`. Primero van los
+repasos vencidos y después los refuerzos (ver "Composición de una sesión").
+La forma de la respuesta no cambia.
 
 ```json
 {"id": 2, "usuario_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "nivel_hsk": 1, "dificultad": 2,
@@ -214,9 +270,10 @@ progreso-flask para detectar patrones de error.
 - Ausente o `null`, la respuesta funciona como siempre.
 - Con un acierto se ignora sin revisarlo, para que un cliente que lo manda
   de más no pierda la respuesta.
-- No se guarda en `db_sesiones` (el esquema no cambia). Se reenvía a
-  `POST .../respuestas/` de progreso-flask solo cuando existe; sin él, el
-  cuerpo es el de siempre, `{"caracter", "acerto"}`.
+- Se guarda en `ejercicios.codigo_error` (RF-IA-02) cuando `acerto` es
+  false, y NULL cuando es true, para calcular la curva de olvido al cerrar
+  la sesión. Se reenvía a `POST .../respuestas/` de progreso-flask solo
+  cuando existe; sin él, el cuerpo es el de siempre, `{"caracter", "acerto"}`.
 - La respuesta no cambia de forma. Si progreso-flask no responde, el
   código se pierde junto con el resto del progreso de esa respuesta, y se
   devuelve el `aviso` de siempre.
@@ -235,10 +292,31 @@ evaluacion-flask y con `dominio/codigos.py` de progreso-flask, leídos con
  "proximo_repaso": "2026-10-24T20:32:45.555728+00:00", "tasa_acierto": 0.55}
 ```
 
-`proximo_repaso` es la fecha del próximo repaso de ese carácter, en el mismo
-formato que v1 (`+00:00`). progreso-flask no expone la agenda por carácter,
-así que se calcula acá con los mismos intervalos y la racha que devuelve
-progreso-flask; puede diferir en milisegundos de la que guardó progreso.
+`proximo_repaso` es una **estimación** del próximo repaso de ese carácter,
+en el mismo formato que v1 (`+00:00`). Se calcula acá
+(`dominio/repaso.py`) con los intervalos fijos de antes (1, 3, 7, 16, 35 o
+90 días según la racha que devuelve progreso-flask, o 12 horas si falló).
+Desde RF-IA-02 la fecha real la agenda progreso-flask con la curva de olvido
+(SM-2) al cerrar la sesión, así que puede no coincidir con la que muestra
+`GET /api/v2/progreso/<id>/repasos/` y la sección "Próximos repasos".
+
+**Al cerrar la sesión (RF-IA-02).** Cuando la respuesta responde el último
+ejercicio pendiente, después de registrarla en progreso-flask se llama a
+`POST /api/v2/progreso/<id>/curva-olvido/` con:
+
+- `sesion_id`;
+- `cerrada_en`: la fecha de la última respuesta, con zona horaria;
+- `respuestas`: una por ejercicio respondido de la sesión, en su orden, con
+  `caracter`, `acerto` y `codigo_error` si existe.
+
+Va después de registrar la respuesta porque ahí progreso-flask fija el
+estado inicial de un carácter que ya tenía agenda. Es un POST: no se
+reintenta. Si progreso-flask no responde o devuelve un error, queda una
+advertencia en el log ("No se pudo aplicar la curva de olvido de la sesión
+N"), la respuesta de responder no cambia y la sesión queda completada
+igual. Esa sesión no se vuelve a enviar más tarde. progreso-flask es
+idempotente por sesión: si dos respuestas cierran la misma sesión a la vez,
+la curva se aplica una sola vez.
 
 Si progreso-flask no responde, la respuesta igual queda guardada:
 
