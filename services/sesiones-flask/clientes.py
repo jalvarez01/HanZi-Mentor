@@ -11,7 +11,8 @@ lo que necesita por HTTP con `ClienteHttp`, que aplica tres reglas:
    (`ServicioNoDisponible`) y cada cliente decide la respuesta degradada:
    - catálogo caído: lista local chica de caracteres por nivel HSK;
    - GET de progreso caído: valores iniciales del progreso;
-   - repasos vencidos o refuerzos caídos: la sesión va sin ellos;
+   - repasos vencidos, refuerzos o patrones de error caídos: la sesión va
+     sin ellos;
    - POST de una respuesta caído: None, y la ruta agrega un aviso;
    - POST de la curva de olvido caído: None y una advertencia en el log.
 
@@ -201,6 +202,20 @@ class ProgresoRemoto:
             return [r["caracter"] for r in datos.get("vencidos", [])][:limite]
         except (ServicioNoDisponible, AttributeError, KeyError, TypeError) as error:
             logger.warning("Repasos no disponibles, la sesión va sin vencidos: %s", error)
+            return []
+
+    def patrones_de_error(self, usuario_id):
+        """Patrones de error del estudiante, del más relevante al menos (RF-IA-03).
+
+        Los detecta progreso-flask (RF-IA-01). Si no responde, lista vacía: la
+        sesión se arma sin ejercicios adaptados.
+        """
+        try:
+            datos = self._cliente.get(f"/api/v2/progreso/{usuario_id}/patrones/")
+            patrones = datos.get("patrones", [])
+            return [p for p in patrones if isinstance(p, dict)] if isinstance(patrones, list) else []
+        except (ServicioNoDisponible, AttributeError, TypeError) as error:
+            logger.warning("Patrones de error no disponibles, la sesión va sin adaptados: %s", error)
             return []
 
     def aplicar_curva_olvido(self, usuario_id, sesion_id, cerrada_en, respuestas):
