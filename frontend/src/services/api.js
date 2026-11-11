@@ -20,6 +20,10 @@
  * que responder un ejercicio puede traer `aviso`, con `tasa_acierto` y
  * `proximo_repaso` en null, si el servicio de progreso no respondió.
  *
+ * RF-IA-01: al responder un fallo se manda su tipo en `codigo_error`, la
+ * página Trazos anota los suyos en progreso/<id>/errores/ y los patrones que
+ * salen de ahí se leen en progreso/<id>/patrones/.
+ *
  * Cada base sale de una variable VITE_* y por defecto es vacía (mismo
  * origen): en desarrollo lo resuelve el proxy de Vite hacia Nginx y en
  * Docker el propio Nginx que sirve el frontend. Solo hace falta definirlas
@@ -114,10 +118,18 @@ export function obtenerSesion(sesionId) {
   return pedir(`${SESIONES_API}/sesiones/${sesionId}/`);
 }
 
-export function responderEjercicio(ejercicioId, acerto) {
+/**
+ * `codigoError` (RF-IA-01) es el tipo de error de una respuesta fallada: el
+ * `explicacion.codigo` de la evaluación, NO_SABE o TRAZO_AUTOCALIFICADO. Es
+ * opcional y solo se manda con un fallo.
+ */
+export function responderEjercicio(ejercicioId, acerto, codigoError) {
+  const cuerpo = { acerto };
+  if (!acerto && codigoError) cuerpo.codigo_error = codigoError;
+
   return pedir(`${SESIONES_API}/ejercicios/${ejercicioId}/responder/`, {
     method: 'POST',
-    body: JSON.stringify({ acerto }),
+    body: JSON.stringify(cuerpo),
   });
 }
 
@@ -125,6 +137,28 @@ export function responderEjercicio(ejercicioId, acerto) {
 
 export function obtenerProgreso(usuarioId) {
   return pedir(`${PROGRESO_API}/progreso/${usuarioId}/`);
+}
+
+/**
+ * Patrones de error del estudiante (RF-IA-01), del más relevante al menos
+ * relevante: { usuario_id, ventana_dias, patrones: [{ codigo, tipo,
+ * frecuencia, caracteres, ultima_vez, titulo, consejo }] }. `titulo` y
+ * `consejo` llegan en el idioma activo. Sin datos suficientes, `patrones` es [].
+ */
+export function obtenerPatrones(usuarioId) {
+  return pedir(`${PROGRESO_API}/progreso/${usuarioId}/patrones/`);
+}
+
+/**
+ * Anota el tipo de error de un trazo fallado en la página Trazos (RF-IA-01).
+ * Solo alimenta los patrones: no cambia la racha, la tasa ni el repaso.
+ * `codigoError` es el `explicacion.codigo` de la evaluación (TRAZO_*).
+ */
+export function registrarErrorDeTrazo(usuarioId, { caracter, codigoError }) {
+  return pedir(`${PROGRESO_API}/progreso/${usuarioId}/errores/`, {
+    method: 'POST',
+    body: JSON.stringify({ caracter, codigo_error: codigoError }),
+  });
 }
 
 // ---------------------------------------------------------------- reportes

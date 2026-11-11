@@ -23,6 +23,8 @@ class Progreso:
     errores_frecuentes: dict = field(default_factory=dict)
     aciertos_consecutivos: dict = field(default_factory=dict)
     agenda_repaso: dict = field(default_factory=dict)
+    errores_por_codigo: dict = field(default_factory=dict)
+    historial_errores: list = field(default_factory=list)
     proximo_repaso: datetime | None = None
 
 
@@ -147,3 +149,78 @@ def test_peores_caracteres_ordena_de_peor_a_mejor():
 
     assert reglas.peores_caracteres(errores, 2) == [("人", 5), ("且", 3)]
     assert reglas.peores_caracteres(None, 3) == []
+
+
+# ---------- historial de errores (RF-IA-01) ----------
+
+
+def test_anotar_error_guarda_la_entrada_y_suma_al_codigo():
+    progreso = Progreso()
+
+    assert reglas.anotar_error(progreso, "学", "PINYIN_INICIAL", AHORA, dominado=True)
+    reglas.anotar_error(progreso, "校", "PINYIN_INICIAL", AHORA)
+
+    assert progreso.historial_errores[0] == {
+        "codigo": "PINYIN_INICIAL",
+        "caracter": "学",
+        "fecha": "2026-10-23T12:00:00+00:00",
+        "origen": "sesion",
+        "dominado": True,
+    }
+    assert progreso.historial_errores[1]["dominado"] is False
+    assert progreso.errores_por_codigo == {"PINYIN_INICIAL": 2}
+
+
+def test_un_fallo_sin_codigo_va_al_historial_pero_no_al_conteo():
+    progreso = Progreso()
+
+    reglas.anotar_error(progreso, "学", None, AHORA)
+
+    assert progreso.historial_errores[0]["codigo"] is None
+    assert progreso.errores_por_codigo == {}
+
+
+def test_el_historial_guarda_los_ultimos_50_de_cada_origen():
+    progreso = Progreso()
+    for i in range(55):
+        reglas.anotar_error(progreso, "学", "NO_SABE", AHORA + timedelta(minutes=i))
+    for i in range(52):
+        # Cada 3 minutos: no son reintentos.
+        reglas.anotar_error(
+            progreso, "人", "TRAZO_INVERTIDO", AHORA + timedelta(minutes=3 * i), origen="trazos"
+        )
+
+    de_sesion = [e for e in progreso.historial_errores if e["origen"] == "sesion"]
+    de_trazos = [e for e in progreso.historial_errores if e["origen"] == "trazos"]
+    assert (len(de_sesion), len(de_trazos)) == (50, 50)
+    # Se van los más viejos y el total acumulado no se recorta.
+    assert de_sesion[0]["fecha"] == (AHORA + timedelta(minutes=5)).isoformat()
+    assert de_trazos[0]["fecha"] == (AHORA + timedelta(minutes=6)).isoformat()
+    assert progreso.errores_por_codigo == {"NO_SABE": 55, "TRAZO_INVERTIDO": 52}
+
+
+def test_reintento_del_mismo_trazo_en_menos_de_dos_minutos_cuenta_una_vez():
+    progreso = Progreso()
+
+    assert reglas.anotar_error(progreso, "人", "TRAZO_INVERTIDO", AHORA, origen="trazos")
+    assert not reglas.anotar_error(
+        progreso, "人", "TRAZO_INVERTIDO", AHORA + timedelta(seconds=119), origen="trazos"
+    )
+    # Otro código, otro carácter o pasados los dos minutos: sí se anota.
+    assert reglas.anotar_error(progreso, "人", "TRAZO_CORTO", AHORA + timedelta(seconds=30), origen="trazos")
+    assert reglas.anotar_error(progreso, "大", "TRAZO_INVERTIDO", AHORA + timedelta(seconds=40), origen="trazos")
+    assert reglas.anotar_error(
+        progreso, "人", "TRAZO_INVERTIDO", AHORA + timedelta(seconds=120), origen="trazos"
+    )
+
+    assert len(progreso.historial_errores) == 4
+    assert progreso.errores_por_codigo == {"TRAZO_INVERTIDO": 3, "TRAZO_CORTO": 1}
+
+
+def test_en_sesion_dos_fallos_seguidos_se_anotan_los_dos():
+    progreso = Progreso()
+
+    assert reglas.anotar_error(progreso, "人", "NO_SABE", AHORA)
+    assert reglas.anotar_error(progreso, "人", "NO_SABE", AHORA + timedelta(seconds=5))
+
+    assert len(progreso.historial_errores) == 2

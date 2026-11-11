@@ -188,13 +188,17 @@ class ProgresoRemoto:
             logger.warning("Refuerzos no disponibles, la sesión va sin refuerzos: %s", error)
             return []
 
-    def registrar_respuesta(self, usuario_id, caracter, acerto):
-        """Devuelve el progreso actualizado, o None si progreso-flask no respondió."""
+    def registrar_respuesta(self, usuario_id, caracter, acerto, codigo_error=None):
+        """Devuelve el progreso actualizado, o None si progreso-flask no respondió.
+
+        `codigo_error` (RF-IA-01) solo viaja cuando existe: sin él, el cuerpo
+        es el de siempre.
+        """
+        cuerpo = {"caracter": caracter, "acerto": acerto}
+        if codigo_error is not None:
+            cuerpo["codigo_error"] = codigo_error
         try:
-            return self._cliente.post(
-                f"/api/v2/progreso/{usuario_id}/respuestas/",
-                {"caracter": caracter, "acerto": acerto},
-            )
+            return self._cliente.post(f"/api/v2/progreso/{usuario_id}/respuestas/", cuerpo)
         except ServicioNoDisponible as error:
             logger.warning("No se pudo registrar la respuesta en progreso: %s", error)
             return None

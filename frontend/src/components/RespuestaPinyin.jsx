@@ -38,6 +38,10 @@ function validarPinyin(texto) {
  *
  * Si algo falla, el texto escrito se conserva para reintentar, y no se puede
  * enviar dos veces mientras hay un envío en curso.
+ *
+ * RF-IA-01: "No lo sé" no pasa por la evaluación, así que avisa su tipo de
+ * error con `codigoError: 'NO_SABE'`. En una respuesta evaluada el tipo es
+ * `explicacion.codigo`.
  */
 export default function RespuestaPinyin({ caracter, onResponder }) {
   const { t } = useTranslation();
@@ -92,7 +96,7 @@ export default function RespuestaPinyin({ caracter, onResponder }) {
 
   function noLoSe() {
     setErrorCampo(null);
-    ejecutar(() => onResponder({ acerto: false, respuesta: null }));
+    ejecutar(() => onResponder({ acerto: false, respuesta: null, codigoError: 'NO_SABE' }));
   }
 
   const describidoPor = errorCampo ? 'pinyin-ayuda pinyin-error' : 'pinyin-ayuda';

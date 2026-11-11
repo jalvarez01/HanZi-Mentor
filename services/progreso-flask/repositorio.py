@@ -67,6 +67,10 @@ class ProgresoRepositorio:
             ],
         }
 
+    def obtener_entidad(self, usuario_id):
+        """La entidad para leerla, o None si el usuario no tiene progreso."""
+        return self._buscar(usuario_id)
+
     def caracteres_a_reforzar(self, usuario_id, limite=3) -> list:
         progreso = self._buscar(usuario_id)
         if progreso is None:

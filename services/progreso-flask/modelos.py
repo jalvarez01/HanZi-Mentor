@@ -8,12 +8,13 @@ foránea: los usuarios viven en otro servicio.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, Float, Integer, SmallInteger, Uuid
+from sqlalchemy import JSON, CheckConstraint, DateTime, Float, Integer, SmallInteger, Uuid, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import TypeDecorator
 
 from db import Base
 from dominio import progreso as reglas
+from dominio.patrones import detectar_patron_error
 from dominio.repaso import ahora
 
 
@@ -72,6 +73,16 @@ class ProgresoUsuario(Base):
     # Carácter -> fecha ISO del próximo repaso.
     agenda_repaso: Mapped[dict] = mapped_column(JSON, default=dict)
 
+    # RF-IA-01. Código de error -> total acumulado; no se descuenta al acertar.
+    errores_por_codigo: Mapped[dict] = mapped_column(
+        JSON, default=dict, server_default=text("'{}'")
+    )
+    # Últimos fallos: {codigo, caracter, fecha, origen, dominado}. De acá
+    # salen los patrones de error. El mismo default que migraciones.py.
+    historial_errores: Mapped[list] = mapped_column(
+        JSON, default=list, server_default=text("'[]'")
+    )
+
     # El más cercano de la agenda. Permite consultar sin abrir el JSON.
     proximo_repaso: Mapped[datetime | None] = mapped_column(FechaUTC)
     # Como auto_now de Django: se actualiza en cada guardado.
@@ -87,7 +98,13 @@ class ProgresoUsuario(Base):
         campos.setdefault("errores_frecuentes", {})
         campos.setdefault("aciertos_consecutivos", {})
         campos.setdefault("agenda_repaso", {})
+        campos.setdefault("errores_por_codigo", {})
+        campos.setdefault("historial_errores", [])
         super().__init__(**campos)
+
+    def detectar_patron_error(self, momento=None):
+        """Patrones de error del historial reciente (dominio/patrones.py)."""
+        return detectar_patron_error(self.historial_errores, momento or ahora())
 
     def registrar_error(self, caracter):
         reglas.registrar_error(self, caracter)

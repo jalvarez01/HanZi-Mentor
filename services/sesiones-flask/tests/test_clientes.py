@@ -210,3 +210,14 @@ def test_registrar_respuesta_manda_el_cuerpo_esperado():
     assert metodo == "POST"
     assert url.endswith(f"/api/v2/progreso/{USUARIO}/respuestas/")
     assert json.loads(cuerpo) == {"caracter": "学", "acerto": True}
+
+
+def test_registrar_respuesta_manda_el_codigo_error_si_existe():
+    transporte = TransporteFalso((200, {"tasa_acierto": 0.45}))
+    progreso = ProgresoRemoto(cliente(transporte)[0])
+
+    progreso.registrar_respuesta(USUARIO, "学", False, codigo_error="PINYIN_FINAL")
+
+    assert json.loads(transporte.llamadas[0][2]) == {
+        "caracter": "学", "acerto": False, "codigo_error": "PINYIN_FINAL",
+    }

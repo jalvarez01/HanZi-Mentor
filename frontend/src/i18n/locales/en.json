@@ -150,7 +150,9 @@
     "typePinyin": "Pinyin",
     "yourAnswer": "Your answer:",
     "correctAnswer": "The correct answer is:",
-    "strokeHint": "Review the direction and order of each stroke in Strokes."
+    "strokeHint": "Review the direction and order of each stroke in Strokes.",
+    "patternKicker": "For your next session",
+    "seePatterns": "See your patterns"
   },
   "feedback": {
     "why": "Why",
@@ -187,7 +189,17 @@
     "reviewNone": "No reviews scheduled.",
     "refresh": "Refresh",
     "newUser": "Start as a new user",
-    "userId": "id: {{id}}"
+    "userId": "id: {{id}}",
+    "patternsKicker": "Your mistakes",
+    "patternsTitle": "Your error patterns",
+    "patternsEmpty": "There are not enough answers yet to detect patterns.",
+    "patternsError": "Your error patterns could not be loaded.",
+    "patternsCharacters": "Characters involved",
+    "patternsTimes_one": "{{count}} time",
+    "patternsTimes_other": "{{count}} times",
+    "patternsLastTime": "Last time: {{cuando}}",
+    "patternsWindow_one": "Based on your misses from the last day.",
+    "patternsWindow_other": "Based on your misses from the last {{count}} days."
   },
   "report": {
     "kicker": "Report",

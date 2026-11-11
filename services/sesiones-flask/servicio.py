@@ -72,7 +72,9 @@ class ResponderEjercicioService:
         self._progreso = progreso
         self._reloj = reloj
 
-    def responder(self, sesion_db, ejercicio_id, acerto):
+    def responder(self, sesion_db, ejercicio_id, acerto, codigo_error=None):
+        """codigo_error (RF-IA-01): tipo de error de un fallo. No se guarda en
+        la sesión: se pasa a progreso-flask, que detecta los patrones."""
         repo = SesionesRepositorio(sesion_db)
         ejercicio = repo.obtener_ejercicio_para_responder(ejercicio_id)
         if ejercicio is None:
@@ -108,7 +110,9 @@ class ResponderEjercicioService:
             "tasa_acierto": None,
         }
 
-        progreso = self._progreso.registrar_respuesta(usuario_id, caracter, acerto)
+        progreso = self._progreso.registrar_respuesta(
+            usuario_id, caracter, acerto, codigo_error=None if acerto else codigo_error
+        )
         if progreso is None:
             resultado["aviso"] = AVISO_PROGRESO
             return resultado

@@ -5,7 +5,13 @@ from flask import Blueprint, jsonify, request
 import serializacion
 import servicio
 from db import obtener_sesion
-from validacion import validar_limite, validar_respuesta, validar_usuario_id
+from dominio.patrones import VENTANA_DIAS
+from validacion import (
+    validar_error_de_trazo,
+    validar_limite,
+    validar_respuesta,
+    validar_usuario_id,
+)
 
 progreso_bp = Blueprint("progreso", __name__)
 
@@ -22,9 +28,38 @@ def consultar(usuario_id):
 def registrar_respuesta(usuario_id):
     """Uso interno (flask_sesiones): registra un acierto o un error."""
     usuario_id = validar_usuario_id(usuario_id)
-    caracter, acerto = validar_respuesta(request.get_json(silent=True))
-    datos = servicio.registrar_respuesta(obtener_sesion(), usuario_id, caracter, acerto)
+    caracter, acerto, codigo_error = validar_respuesta(request.get_json(silent=True))
+    datos = servicio.registrar_respuesta(
+        obtener_sesion(), usuario_id, caracter, acerto, codigo_error=codigo_error
+    )
     return jsonify(serializacion.progreso(datos)), 200
+
+
+@progreso_bp.post("/api/v2/progreso/<usuario_id>/errores/")
+def registrar_error_de_trazo(usuario_id):
+    """Página Trazos: anota el tipo de error de un trazo fallado (RF-IA-01).
+
+    Solo alimenta los patrones: no cambia racha, dominados, tasa ni repaso.
+    `registrado` es false si era un reintento del mismo trazo.
+    """
+    usuario_id = validar_usuario_id(usuario_id)
+    caracter, codigo_error = validar_error_de_trazo(request.get_json(silent=True))
+    registrado = servicio.registrar_error_de_trazo(
+        obtener_sesion(), usuario_id, caracter, codigo_error
+    )
+    return jsonify({"usuario_id": str(usuario_id), "registrado": registrado}), 200
+
+
+@progreso_bp.get("/api/v2/progreso/<usuario_id>/patrones/")
+def patrones(usuario_id):
+    """Patrones de error del estudiante, del más relevante al menos relevante."""
+    usuario_id = validar_usuario_id(usuario_id)
+    detectados = servicio.detectar_patrones(obtener_sesion(), usuario_id)
+    return jsonify({
+        "usuario_id": str(usuario_id),
+        "ventana_dias": VENTANA_DIAS,
+        "patrones": [serializacion.patron(p) for p in detectados],
+    }), 200
 
 
 @progreso_bp.get("/api/v2/progreso/<usuario_id>/refuerzos/")

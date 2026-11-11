@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sesiones-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-25 21:53-0500\n"
+"POT-Creation-Date: 2026-11-09 22:06-0500\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: es\n"
@@ -37,40 +37,44 @@ msgid ""
 "progreso: el servicio de progreso no respondió."
 msgstr ""
 
-#: servicio.py:79
+#: servicio.py:81
 msgid "Ejercicio no encontrado."
 msgstr ""
 
-#: servicio.py:82
+#: servicio.py:84
 #, python-format
 msgid "El ejercicio %(id)s ya fue respondido."
 msgstr ""
 
-#: servicio.py:128
+#: servicio.py:132
 msgid "Sesión no encontrada."
 msgstr ""
 
-#: validacion.py:24
+#: validacion.py:25
 msgid "El cuerpo debe ser un objeto JSON"
 msgstr ""
 
-#: validacion.py:60 validacion.py:75 validacion.py:89
+#: validacion.py:61 validacion.py:76 validacion.py:88
 #, python-format
 msgid "El campo '%(campo)s' es obligatorio"
 msgstr ""
 
-#: validacion.py:65
+#: validacion.py:66
 #, python-format
 msgid "El campo '%(campo)s' debe ser un entero entre %(minimo)s y %(maximo)s"
 msgstr ""
 
-#: validacion.py:78
+#: validacion.py:79
 #, python-format
 msgid "El campo '%(campo)s' debe ser un UUID válido"
 msgstr ""
 
-#: validacion.py:99
+#: validacion.py:98
 msgid "El campo 'acerto' debe ser true o false"
+msgstr ""
+
+#: validacion.py:115
+msgid "El campo 'codigo_error' no es un código de error conocido"
 msgstr ""
 
 #: dominio/builder.py:83

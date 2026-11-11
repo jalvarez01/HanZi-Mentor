@@ -33,7 +33,9 @@ def detalle_sesion(sesion_id):
 
 @sesiones_bp.post("/api/v2/ejercicios/<int:ejercicio_id>/responder/")
 def responder_ejercicio(ejercicio_id):
-    acerto = validar_respuesta(request.get_json(silent=True))
+    acerto, codigo_error = validar_respuesta(request.get_json(silent=True))
     servicio = ResponderEjercicioService(_dependencias().progreso)
-    resultado = servicio.responder(obtener_sesion(), ejercicio_id, acerto)
+    resultado = servicio.responder(
+        obtener_sesion(), ejercicio_id, acerto, codigo_error=codigo_error
+    )
     return jsonify(serializacion.resultado_respuesta(resultado)), 200

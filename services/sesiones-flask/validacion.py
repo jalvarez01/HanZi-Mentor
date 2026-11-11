@@ -5,6 +5,7 @@ Cada error se lanza como ErrorDominio con 400 y código ENTRADA_INVALIDA.
 
 import uuid
 
+from dominio.codigos_error import CODIGOS_ERROR
 from errores import ErrorDominio
 from mensajes import N_
 
@@ -82,9 +83,7 @@ def validar_crear_sesion(datos):
     return usuario_id, nivel_hsk, duracion
 
 
-def validar_respuesta(datos):
-    """Devuelve `acerto` de POST /api/v2/ejercicios/<id>/responder/."""
-    datos = _cuerpo(datos)
+def _acerto(datos):
     if "acerto" not in datos:
         raise _invalida(N_("El campo '%(campo)s' es obligatorio"), campo="acerto")
     valor = datos["acerto"]
@@ -97,3 +96,21 @@ def validar_respuesta(datos):
         # Listas o dicts no se pueden buscar en un set.
         pass
     raise _invalida(N_("El campo 'acerto' debe ser true o false"))
+
+
+def validar_respuesta(datos):
+    """Devuelve (acerto, codigo_error) de POST /api/v2/ejercicios/<id>/responder/.
+
+    `codigo_error` es opcional (RF-IA-01): el tipo de error de una respuesta
+    fallada. Con un acierto se ignora sin revisarlo, para que un cliente que
+    lo manda de más no pierda la respuesta.
+    """
+    datos = _cuerpo(datos)
+    acerto = _acerto(datos)
+
+    codigo_error = None if acerto else datos.get("codigo_error")
+    if codigo_error is not None and (
+        not isinstance(codigo_error, str) or codigo_error not in CODIGOS_ERROR
+    ):
+        raise _invalida(N_("El campo 'codigo_error' no es un código de error conocido"))
+    return acerto, codigo_error

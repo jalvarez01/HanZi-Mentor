@@ -6,6 +6,8 @@ las fechas a ISO 8601 con Z. Acá se hace lo mismo a mano.
 
 from datetime import datetime, timezone
 
+from i18n import traducir
+
 
 def _fecha(valor):
     """Como el JSONEncoder de DRF con TIME_ZONE='UTC': ISO 8601 con Z."""
@@ -24,4 +26,18 @@ def progreso(datos):
     return {
         clave: _fecha(valor) if isinstance(valor, datetime) else valor
         for clave, valor in datos.items()
+    }
+
+
+def patron(p):
+    """Un patrón de error (RF-IA-01). `titulo` y `consejo` salen en el idioma
+    de la petición; `codigo` y `tipo` no cambian."""
+    return {
+        "codigo": p.codigo,
+        "tipo": p.tipo,
+        "frecuencia": p.frecuencia,
+        "caracteres": list(p.caracteres),
+        "ultima_vez": _fecha(p.ultima_vez),
+        "titulo": traducir(p.titulo),
+        "consejo": traducir(p.consejo),
     }
