@@ -99,10 +99,11 @@ def test_agrega_las_columnas_sin_tocar_los_datos(url_vieja):
     antes = filas(engine)
 
     assert migraciones.aplicar(engine) == [
-        "ejercicios.codigo_error", "sesiones.completada_en", "sesiones.duracion_seg", "sesiones.aciertos",
+        "ejercicios.codigo_error", "ejercicios.patron",
+        "sesiones.completada_en", "sesiones.duracion_seg", "sesiones.aciertos",
     ]
 
-    assert columnas(engine, "ejercicios")[-1] == "codigo_error"
+    assert columnas(engine, "ejercicios")[-2:] == ["codigo_error", "patron"]
     assert filas(engine) == antes == (SESIONES, EJERCICIOS)
     with engine.connect() as c:
         assert c.execute(text("SELECT codigo_error FROM ejercicios")).scalars().all() == [None, None, None]
@@ -220,3 +221,71 @@ def test_cerrar_una_sesion_vieja_registra_el_desempeno(url_vieja):
         ).one()
     assert completada_en is not None and duracion > 0 and aciertos == 1
     app.extensions["db"]["engine"].dispose()
+
+
+# ---------- RF-IA-03: ejercicios.patron sobre una base de RF-IA-02 ----------
+
+
+@pytest.fixture
+def url_rf_ia_02(url_vieja):
+    """La base como queda hoy después de RF-IA-02: ya tiene codigo_error."""
+    engine = create_engine(url_vieja)
+    with engine.begin() as c:
+        c.execute(text("ALTER TABLE ejercicios ADD COLUMN codigo_error VARCHAR(40)"))
+        c.execute(text("UPDATE ejercicios SET codigo_error = 'NO_SABE' WHERE id = 1"))
+    engine.dispose()
+    return url_vieja
+
+
+def test_sobre_una_base_de_rf_ia_02_agrega_patron_y_el_desempeno(url_rf_ia_02):
+    engine = create_engine(url_rf_ia_02)
+    antes = filas(engine)
+
+    assert migraciones.aplicar(engine) == ["ejercicios.patron"] + [f"sesiones.{c}" for c in DESEMPENO]
+
+    assert filas(engine) == antes
+    with engine.connect() as c:
+        assert c.execute(text("SELECT codigo_error FROM ejercicios ORDER BY id")).scalars().all() == ["NO_SABE", None, None]
+        assert c.execute(text("SELECT patron FROM ejercicios")).scalars().all() == [None, None, None]
+    assert migraciones.aplicar(engine) == []
+    engine.dispose()
+
+
+def test_patron_migrado_es_igual_al_de_una_base_nueva(url_rf_ia_02):
+    migrada = create_engine(url_rf_ia_02)
+    migraciones.aplicar(migrada)
+    nueva = crear("sqlite://").extensions["db"]["engine"]
+
+    def patron(engine):
+        (columna,) = [c for c in inspect(engine).get_columns("ejercicios") if c["name"] == "patron"]
+        return (columna["nullable"], columna["default"], str(columna["type"]))
+
+    assert patron(migrada) == patron(nueva) == (True, None, "VARCHAR(40)")
+    migrada.dispose()
+
+
+# ---------- RF-IA-05: sesiones sobre una base de RF-IA-03 ----------
+
+
+@pytest.fixture
+def url_rf_ia_03(url_rf_ia_02):
+    """La base como queda después de RF-IA-03: ya tiene patron."""
+    engine = create_engine(url_rf_ia_02)
+    with engine.begin() as c:
+        c.execute(text("ALTER TABLE ejercicios ADD COLUMN patron VARCHAR(40)"))
+        c.execute(text("UPDATE ejercicios SET patron = 'PATRON_PINYIN_FINAL' WHERE id = 2"))
+    engine.dispose()
+    return url_rf_ia_02
+
+
+def test_sobre_una_base_de_rf_ia_03_solo_agrega_el_desempeno(url_rf_ia_03):
+    engine = create_engine(url_rf_ia_03)
+    antes = (columnas(engine, "ejercicios"), filas(engine))
+
+    assert migraciones.aplicar(engine) == [f"sesiones.{c}" for c in DESEMPENO]
+
+    assert (columnas(engine, "ejercicios"), filas(engine)) == antes
+    with engine.connect() as c:
+        assert c.execute(text("SELECT patron FROM ejercicios ORDER BY id")).scalars().all() == [None, "PATRON_PINYIN_FINAL", None]
+    assert migraciones.aplicar(engine) == []
+    engine.dispose()

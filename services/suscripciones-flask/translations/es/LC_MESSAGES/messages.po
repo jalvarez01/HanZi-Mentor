@@ -1,0 +1,103 @@
+# Mensajes de suscripciones-flask en es.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: suscripciones-flask 1.0
+"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS
+"
+"POT-Creation-Date: 2026-11-11 00:00-0500
+"
+"PO-Revision-Date: 2026-11-11 00:00-0500
+"
+"Last-Translator: HanZi Mentor
+"
+"Language: es
+"
+"Language-Team: Español
+"
+"Plural-Forms: nplurals=2; plural=(n != 1);
+"
+"MIME-Version: 1.0
+"
+"Content-Type: text/plain; charset=utf-8
+"
+"Content-Transfer-Encoding: 8bit
+"
+"Generated-By: Babel 2.17.0
+"
+
+msgid "Solicitud incorrecta"
+msgstr ""
+
+msgid "Recurso no encontrado"
+msgstr ""
+
+msgid "Método no permitido"
+msgstr ""
+
+msgid "Error interno"
+msgstr ""
+
+msgid "Gratis"
+msgstr ""
+
+msgid "Practicá los niveles HSK 1 a 3."
+msgstr ""
+
+msgid "Premium"
+msgstr ""
+
+msgid "Todos los niveles, de HSK 1 a 6, por 30 días."
+msgstr ""
+
+msgid "Ya tenés Premium. Para extenderlo, renovalo."
+msgstr ""
+
+msgid "No tenés una suscripción Premium vigente."
+msgstr ""
+
+msgid "La suscripción ya está cancelada: Premium sigue hasta que venza."
+msgstr ""
+
+msgid "Solo se puede renovar cuando faltan %(dias)s días o menos para el vencimiento."
+msgstr ""
+
+msgid "El banco rechazó la tarjeta."
+msgstr ""
+
+msgid "La tarjeta no tiene fondos suficientes."
+msgstr ""
+
+msgid "La pasarela de pago no respondió. No se hizo ningún cobro."
+msgstr ""
+
+msgid "El usuario_id debe ser un UUID válido"
+msgstr ""
+
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr ""
+
+msgid "El campo 'pago' es obligatorio y debe ser un objeto"
+msgstr ""
+
+msgid "El número de tarjeta es obligatorio"
+msgstr ""
+
+msgid "El número de tarjeta no es válido"
+msgstr ""
+
+msgid "El nombre del titular debe tener entre %(minimo)s y %(maximo)s caracteres"
+msgstr ""
+
+msgid "El vencimiento debe tener el formato MM/AA"
+msgstr ""
+
+msgid "La tarjeta está vencida"
+msgstr ""
+
+msgid "El código de seguridad debe tener 3 o 4 dígitos"
+msgstr ""
+
+msgid "El campo 'plan' debe ser 'premium': Free es el plan por defecto y no se activa"
+msgstr ""

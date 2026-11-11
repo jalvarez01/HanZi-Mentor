@@ -14,6 +14,8 @@
  *                             (API de terceros detrás de un Adapter)
  *   - /api/v2/reportes/*   -> reportes-flask: reportes de progreso que genera
  *                             en segundo plano un worker de Celery
+ *   - /api/v2/suscripciones/* -> suscripciones-flask: planes Free y Premium
+ *                             con pago simulado (RF-USR-01)
  *
  * v2 responde los mismos campos que v1 (contenido y agente-tutor);
  * /api/v1/ sigue en el gateway solo como respaldo. La única diferencia es
@@ -38,6 +40,7 @@ const PROGRESO_URL = import.meta.env.VITE_PROGRESO_URL || '';
 const EVALUACION_URL = import.meta.env.VITE_EVALUACION_URL || '';
 const EJEMPLOS_URL = import.meta.env.VITE_EJEMPLOS_URL || '';
 const REPORTES_URL = import.meta.env.VITE_REPORTES_URL || '';
+const SUSCRIPCIONES_URL = import.meta.env.VITE_SUSCRIPCIONES_URL || '';
 
 const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
 const SESIONES_API = `${SESIONES_URL}/api/v2`;
@@ -45,6 +48,7 @@ const PROGRESO_API = `${PROGRESO_URL}/api/v2`;
 const EVALUACION_API = `${EVALUACION_URL}/api/v2`;
 const EJEMPLOS_API = `${EJEMPLOS_URL}/api/v2`;
 const REPORTES_API = `${REPORTES_URL}/api/v2`;
+const SUSCRIPCIONES_API = `${SUSCRIPCIONES_URL}/api/v2/suscripciones`;
 
 class ErrorApi extends Error {
   constructor(mensaje, status, cuerpo) {
@@ -203,6 +207,50 @@ export function crearReporte(usuarioId) {
  */
 export function obtenerReporte(taskId) {
   return pedir(`${REPORTES_API}/reportes/${encodeURIComponent(taskId)}/`);
+}
+
+// ----------------------------------------------------------- suscripciones
+
+/**
+ * Planes Free y Premium (RF-USR-01): { planes: [{ codigo, nombre,
+ * descripcion, precio, moneda, periodo_dias, nivel_maximo }], pasarela }.
+ */
+export function obtenerPlanes() {
+  return pedir(`${SUSCRIPCIONES_API}/planes/`);
+}
+
+/**
+ * Plan que rige hoy: { plan, nombre_plan, estado (activa | cancelada |
+ * vencida), vence_en, nivel_maximo, acciones }. `acciones` dice qué se puede
+ * hacer ahora (activar, renovar, cancelar). Un usuario nuevo tiene Free.
+ */
+export function obtenerSuscripcion(usuarioId) {
+  return pedir(`${SUSCRIPCIONES_API}/${usuarioId}/`);
+}
+
+/**
+ * Cobra y activa Premium. `pago` es { numero, titular, vencimiento (MM/AA),
+ * cvc }. Responde { suscripcion, pago } con el pago aprobado; un 402 es una
+ * tarjeta rechazada y un 503, que la pasarela no respondió (no se cobró).
+ */
+export function activarPremium(usuarioId, pago) {
+  return pedir(`${SUSCRIPCIONES_API}/${usuarioId}/activar/`, {
+    method: 'POST',
+    body: JSON.stringify({ plan: 'premium', pago }),
+  });
+}
+
+/** Cobra otro periodo de 30 días y lo suma al que queda. */
+export function renovarPremium(usuarioId, pago) {
+  return pedir(`${SUSCRIPCIONES_API}/${usuarioId}/renovar/`, {
+    method: 'POST',
+    body: JSON.stringify({ pago }),
+  });
+}
+
+/** Sin reembolso: Premium sigue hasta `vence_en` y después vuelve a Free. */
+export function cancelarPremium(usuarioId) {
+  return pedir(`${SUSCRIPCIONES_API}/${usuarioId}/cancelar/`, { method: 'POST' });
 }
 
 // --------------------------------------------------------------- contenido

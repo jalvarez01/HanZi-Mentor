@@ -136,6 +136,9 @@
     "seeProgress": "Ver mi progreso",
     "sessionBar": "HSK{{nivel}} · dificultad {{dificultad}}",
     "reinforcement": "refuerzo",
+    "adapted": "adaptado",
+    "adaptedFor": "Tu patrón:",
+    "adaptedGeneric": "un error frecuente",
     "question": "¿Lo respondiste bien?",
     "failed": "Fallé",
     "correct": "Acerté",
@@ -153,6 +156,11 @@
     "strokeHint": "Repasá la dirección y el orden de cada trazo en Trazos.",
     "patternKicker": "Para tu próxima sesión",
     "seePatterns": "Ver tus patrones",
+    "premiumTag": "Premium",
+    "premiumLevel": "HSK {{nivel}}: requiere Premium. Ver tu plan",
+    "premiumNote": "Con el plan Gratis practicás HSK 1 a 3. HSK 4 a 6 son parte de Premium.",
+    "premiumLink": "Ver planes",
+    "planUnknown": "No pudimos confirmar tu plan: por ahora están todos los niveles abiertos.",
     "performanceTitle": "Tu desempeño",
     "performanceTime": "Tiempo",
     "performanceOnTime": "dentro de los {{minutos}} min estimados",
@@ -232,6 +240,55 @@
     "again": "Generar otro",
     "retry": "Reintentar",
     "timeout": "El reporte tardó demasiado. Intentá de nuevo en unos segundos."
+  },
+  "plan": {
+    "kicker": "Plan",
+    "title": "Tu plan",
+    "loading": "Cargando tu plan…",
+    "error": "No se pudo cargar tu plan.",
+    "levels": "HSK 1 a {{maximo}}",
+    "name": {
+      "free": "Gratis",
+      "premium": "Premium"
+    },
+    "state": {
+      "free": {
+        "activa": "Practicás HSK 1 a 3. Con Premium se abren HSK 4 a 6.",
+        "vencida": "Tu Premium venció el {{fecha}}. Volviste al plan Gratis: HSK 1 a 3."
+      },
+      "premium": {
+        "activa": "Tenés todos los niveles abiertos. Se vence el {{fecha}}.",
+        "cancelada": "Cancelaste Premium: sigue hasta el {{fecha}} y después volvés al plan Gratis."
+      }
+    },
+    "activate": "Hacerme Premium",
+    "activateWithPrice": "Hacerme Premium · {{precio}} por 30 días",
+    "renew": "Renovar 30 días",
+    "renewWithPrice": "Renovar 30 días · {{precio}}",
+    "cancel": "Cancelar Premium",
+    "cancelConfirm": "¿Cancelar Premium? No se devuelve el pago: seguís con todos los niveles hasta el {{fecha}}.",
+    "cancelYes": "Sí, cancelar",
+    "cancelNo": "No, seguir con Premium",
+    "activated": "¡Listo! Premium activo hasta el {{fecha}}. Referencia del pago: {{referencia}}.",
+    "renewed": "Renovado: Premium sigue hasta el {{fecha}}. Referencia del pago: {{referencia}}.",
+    "cancelled": "Cancelado. Premium sigue hasta el {{fecha}}.",
+    "form": {
+      "simulated": "Pago simulado: no escribas una tarjeta real. Probá con 4242 4242 4242 4242; la 4000 0000 0000 0002 se rechaza.",
+      "titular": "Nombre del titular",
+      "numero": "Número de tarjeta",
+      "vencimiento": "Vencimiento",
+      "cvc": "CVC",
+      "expiryPlaceholder": "MM/AA",
+      "invalidName": "Escribí el nombre como aparece en la tarjeta (2 a 60 caracteres).",
+      "invalidNumber": "Revisá el número: no es una tarjeta válida.",
+      "invalidExpiry": "Usá el formato MM/AA, por ejemplo 08/29.",
+      "expired": "La tarjeta está vencida.",
+      "invalidCvc": "El CVC tiene 3 o 4 dígitos.",
+      "pay": "Pagar",
+      "payAmount": "Pagar {{precio}}",
+      "paying": "Procesando el pago…",
+      "back": "Volver"
+    }
   },
   "howItWorks": {
     "title": "Cómo funciona",

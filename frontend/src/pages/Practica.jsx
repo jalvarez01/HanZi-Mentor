@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import CuadriculaHanzi from '../components/CuadriculaHanzi';
+import { IconoCandado } from '../components/Iconos';
 import PorQue from '../components/PorQue';
 import RespuestaPinyin from '../components/RespuestaPinyin';
 import TopBar from '../components/TopBar';
+import { useSuscripcion } from '../hooks/useSuscripcion';
 import { useUsuario } from '../hooks/useUsuario';
 import { useFormato } from '../i18n/formato';
 import {
@@ -23,6 +25,8 @@ const NUMERALES = ['一', '二', '三', '四', '五', '六'];
 export default function Practica() {
   const { usuarioId } = useUsuario();
   const { t } = useTranslation();
+  // RF-USR-01: Free practica hasta HSK 3. Sin respuesta del servicio no se bloquea nada.
+  const { suscripcion, nivelMaximo, sinConfirmar } = useSuscripcion(usuarioId);
   const formato = useFormato();
 
   const [modo, setModo] = useState('sesion'); // 'sesion' (sesiones-flask) | 'leccion' (catalogo-flask)
@@ -35,6 +39,8 @@ export default function Practica() {
   const [terminada, setTerminada] = useState(false);
   // RF-IA-01: patrón principal del estudiante, para el aviso de fin de sesión.
   const [patronFinal, setPatronFinal] = useState(null);
+  // RF-IA-03: título de cada patrón de la sesión, por código, para los ejercicios adaptados.
+  const [titulosPatron, setTitulosPatron] = useState(null);
   // RF-IA-05: desempeño de la sesión terminada (duración, aciertos, ritmo).
   const [desempeno, setDesempeno] = useState(null);
 
@@ -65,12 +71,14 @@ export default function Practica() {
     setTerminada(false);
     setUltimoResultado(null);
     setPatronFinal(null);
+    setTitulosPatron(null);
     setDesempeno(null);
 
     try {
       const nueva = await crearSesion({ usuarioId, nivelHsk: nivel });
       setSesion(nueva);
       setIndice(0);
+      if (nueva?.ejercicios?.some((e) => e.patron)) cargarTitulosPatron(nueva.id);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -89,6 +97,17 @@ export default function Practica() {
       avisarPatron(sesion.id);
       mostrarDesempeno(sesion.id, resultado.desempeno);
     }
+  }
+
+  // RF-IA-03: la sesión trae ejercicios dirigidos a un patrón de error. Se
+  // busca el título traducido de cada patrón; si falla, queda el texto genérico.
+  function cargarTitulosPatron(sesionId) {
+    obtenerPatrones(usuarioId)
+      .then((r) => {
+        const porCodigo = Object.fromEntries((r?.patrones ?? []).map((p) => [p.codigo, p.titulo]));
+        setTitulosPatron({ sesionId, porCodigo });
+      })
+      .catch(() => {});
   }
 
   // RF-IA-05: la respuesta que cierra la sesión trae el desempeño. Si no
@@ -198,21 +217,46 @@ export default function Practica() {
             {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
             <div className="practica-niveles">
-              {NIVELES.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className="practica-nivel"
-                  disabled={cargando}
-                  onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
-                >
-                  <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
-                    {NUMERALES[n - 1]}
-                  </span>
-                  <span>HSK {n}</span>
-                </button>
-              ))}
+              {NIVELES.map((n) =>
+                nivelMaximo !== null && n > nivelMaximo ? (
+                  // Nivel de Premium: lleva al panel del plan en Progreso.
+                  <Link
+                    key={n}
+                    to="/progreso#plan"
+                    className="practica-nivel practica-nivel--premium"
+                    aria-label={t('practice.premiumLevel', { nivel: n })}
+                  >
+                    <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
+                      {NUMERALES[n - 1]}
+                    </span>
+                    <span>HSK {n}</span>
+                    <span className="practica-nivel__premium" aria-hidden="true">
+                      <IconoCandado /> {t('practice.premiumTag')}
+                    </span>
+                  </Link>
+                ) : (
+                  <button
+                    key={n}
+                    type="button"
+                    className="practica-nivel"
+                    disabled={cargando}
+                    onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
+                  >
+                    <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
+                      {NUMERALES[n - 1]}
+                    </span>
+                    <span>HSK {n}</span>
+                  </button>
+                ),
+              )}
             </div>
+
+            {suscripcion && suscripcion.nivel_maximo < NIVELES.length && (
+              <p className="practica-nota">
+                {t('practice.premiumNote')} <Link to="/progreso#plan">{t('practice.premiumLink')}</Link>
+              </p>
+            )}
+            {sinConfirmar && <p className="practica-nota">{t('practice.planUnknown')}</p>}
 
             {cargando && (
               <p className="hm-status hm-status--loading" role="status">
@@ -380,10 +424,23 @@ export default function Practica() {
 
       <main className="hm-page practica">
         <Avance actual={indice} total={sesion.ejercicios.length}>
-          {ejercicio?.es_refuerzo && (
-            <span className="practica-refuerzo">{t('practice.reinforcement')}</span>
+          {ejercicio?.patron ? (
+            <span className="practica-refuerzo">{t('practice.adapted')}</span>
+          ) : (
+            ejercicio?.es_refuerzo && <span className="practica-refuerzo">{t('practice.reinforcement')}</span>
           )}
         </Avance>
+
+        {/* RF-IA-03: el ejercicio apunta a un patrón de error del estudiante. */}
+        {ejercicio?.patron && (
+          <p className="practica-adaptado">
+            {t('practice.adaptedFor')}{' '}
+            <strong>
+              {(titulosPatron?.sesionId === sesion.id && titulosPatron.porCodigo[ejercicio.patron]) ||
+                t('practice.adaptedGeneric')}
+            </strong>
+          </p>
+        )}
 
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 

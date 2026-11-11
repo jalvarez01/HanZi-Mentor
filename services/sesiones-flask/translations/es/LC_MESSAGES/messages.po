@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sesiones-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 23:07-0500\n"
+"POT-Creation-Date: 2026-11-11 13:29-0500\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: es\n"
@@ -31,27 +31,27 @@ msgstr ""
 msgid "Error interno"
 msgstr ""
 
-#: servicio.py:34
+#: servicio.py:37
 msgid ""
 "La respuesta quedó guardada en la sesión, pero no se pudo actualizar el "
 "progreso: el servicio de progreso no respondió."
 msgstr ""
 
-#: servicio.py:117
+#: servicio.py:136
 msgid "Ejercicio no encontrado."
 msgstr ""
 
-#: servicio.py:120
+#: servicio.py:139
 #, python-format
 msgid "El ejercicio %(id)s ya fue respondido."
 msgstr ""
 
-#: servicio.py:211
+#: servicio.py:230
 #, python-format
 msgid "La sesión %(id)s todavía no terminó: no tiene desempeño."
 msgstr ""
 
-#: servicio.py:227
+#: servicio.py:246
 msgid "Sesión no encontrada."
 msgstr ""
 
@@ -82,30 +82,30 @@ msgstr ""
 msgid "El campo 'codigo_error' no es un código de error conocido"
 msgstr ""
 
-#: dominio/builder.py:107
+#: dominio/builder.py:116
 msgid "La sesión requiere un usuario."
 msgstr ""
 
-#: dominio/builder.py:110
+#: dominio/builder.py:119
 #, python-format
 msgid "Nivel HSK inválido: %(nivel)s."
 msgstr ""
 
-#: dominio/builder.py:114
+#: dominio/builder.py:123
 #, python-format
 msgid "HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s)."
 msgstr ""
 
-#: dominio/builder.py:120
+#: dominio/builder.py:129
 msgid "La sesión requiere una dificultad."
 msgstr ""
 
-#: dominio/builder.py:124
+#: dominio/builder.py:133
 #, python-format
 msgid "Una sesión necesita al menos %(minimo)s ejercicios."
 msgstr ""
 
-#: dominio/builder.py:129
+#: dominio/builder.py:138
 #, python-format
 msgid "Una sesión no puede exceder %(maximo)s ejercicios."
 msgstr ""

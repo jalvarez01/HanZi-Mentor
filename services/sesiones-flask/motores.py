@@ -1,5 +1,6 @@
 """
-Motor del tutor: decide la dificultad y qué caracteres nuevos practicar.
+Motor del tutor: decide la dificultad, qué caracteres nuevos practicar y, desde
+RF-IA-03, qué ejercicios dirigidos arma para un patrón de error.
 
 Port de MotorTutor y MotorTutorMock de agente-tutor/tutor/infra/motores.py.
 El motor no guarda su propia lista de caracteres: los pide al catálogo que
@@ -10,6 +11,8 @@ porta: depende del agente y de sus credenciales. fabricas.py solo arma MOCK.
 """
 
 from abc import ABC, abstractmethod
+
+from dominio.adaptacion import generar_ejercicio_adaptado
 
 UMBRAL_ALTO = 0.85
 UMBRAL_MEDIO = 0.6
@@ -25,6 +28,16 @@ class MotorTutor(ABC):
     @abstractmethod
     def seleccionar_caracteres_nuevos(self, progreso: dict, cantidad: int) -> list:
         """Devuelve los caracteres nuevos a practicar."""
+
+    def generar_ejercicio_adaptado(self, patron: dict, dificultad: int, cantidad: int, excluir=()) -> list:
+        """generarEjercicioAdaptado(p) de RF-IA-03: ejercicios dirigidos a un
+        patrón de error de progreso-flask (dominio/adaptacion.py).
+
+        No es abstracto: la regla es la misma para todo motor. Un motor que
+        quiera generar otro contenido (por ejemplo, con un modelo de lenguaje)
+        puede redefinirlo.
+        """
+        return generar_ejercicio_adaptado(patron, dificultad, cantidad, excluir=excluir)
 
 
 class MotorTutorMock(MotorTutor):

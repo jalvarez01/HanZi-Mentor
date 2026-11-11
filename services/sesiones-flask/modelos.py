@@ -122,6 +122,9 @@ class Ejercicio(Base):
     # si acertó o si el fallo no trae código. Lo agrega migraciones.py en
     # una base que ya existía.
     codigo_error: Mapped[str | None] = mapped_column(String(40))
+    # RF-IA-03. Patrón de error que originó un ejercicio adaptado
+    # (dominio/adaptacion.py); NULL en el resto. Lo agrega migraciones.py.
+    patron: Mapped[str | None] = mapped_column(String(40))
 
     sesion: Mapped[SesionEstudio] = relationship(back_populates="ejercicios")
 

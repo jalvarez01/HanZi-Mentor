@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PatronesError from '../components/PatronesError';
+import PlanSuscripcion from '../components/PlanSuscripcion';
 import ProximosRepasos from '../components/ProximosRepasos';
 import ReporteProgreso from '../components/ReporteProgreso';
 import TopBar from '../components/TopBar';
@@ -120,6 +121,9 @@ export default function Progreso() {
 
             {/* key: al empezar como usuario nuevo, el reporte del anterior se descarta */}
             <ReporteProgreso key={usuarioId} usuarioId={usuarioId} />
+
+            {/* RF-USR-01: plan Free o Premium; Practicar enlaza acá desde HSK 4 a 6 */}
+            <PlanSuscripcion key={usuarioId} usuarioId={usuarioId} />
 
             <div className="progreso-acciones">
               <button type="button" className="hm-btn hm-btn--block" onClick={actualizar}>

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sesiones-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-10 23:07-0500\n"
+"POT-Creation-Date: 2026-11-11 13:29-0500\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: en\n"
@@ -31,7 +31,7 @@ msgstr "Method not allowed"
 msgid "Error interno"
 msgstr "Internal error"
 
-#: servicio.py:34
+#: servicio.py:37
 msgid ""
 "La respuesta quedó guardada en la sesión, pero no se pudo actualizar el "
 "progreso: el servicio de progreso no respondió."
@@ -39,21 +39,21 @@ msgstr ""
 "The answer was saved in the session, but the progress could not be "
 "updated: the progress service did not respond."
 
-#: servicio.py:117
+#: servicio.py:136
 msgid "Ejercicio no encontrado."
 msgstr "Exercise not found."
 
-#: servicio.py:120
+#: servicio.py:139
 #, python-format
 msgid "El ejercicio %(id)s ya fue respondido."
 msgstr "Exercise %(id)s has already been answered."
 
-#: servicio.py:211
+#: servicio.py:230
 #, python-format
 msgid "La sesión %(id)s todavía no terminó: no tiene desempeño."
 msgstr "Session %(id)s has not finished yet: it has no performance."
 
-#: servicio.py:227
+#: servicio.py:246
 msgid "Sesión no encontrada."
 msgstr "Session not found."
 
@@ -84,30 +84,30 @@ msgstr "The field 'acerto' must be true or false"
 msgid "El campo 'codigo_error' no es un código de error conocido"
 msgstr "The field 'codigo_error' is not a known error code"
 
-#: dominio/builder.py:107
+#: dominio/builder.py:116
 msgid "La sesión requiere un usuario."
 msgstr "The session requires a user."
 
-#: dominio/builder.py:110
+#: dominio/builder.py:119
 #, python-format
 msgid "Nivel HSK inválido: %(nivel)s."
 msgstr "Invalid HSK level: %(nivel)s."
 
-#: dominio/builder.py:114
+#: dominio/builder.py:123
 #, python-format
 msgid "HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s)."
 msgstr "HSK%(nivel)s is not unlocked yet (current maximum: HSK%(maximo)s)."
 
-#: dominio/builder.py:120
+#: dominio/builder.py:129
 msgid "La sesión requiere una dificultad."
 msgstr "The session requires a difficulty."
 
-#: dominio/builder.py:124
+#: dominio/builder.py:133
 #, python-format
 msgid "Una sesión necesita al menos %(minimo)s ejercicios."
 msgstr "A session needs at least %(minimo)s exercises."
 
-#: dominio/builder.py:129
+#: dominio/builder.py:138
 #, python-format
 msgid "Una sesión no puede exceder %(maximo)s ejercicios."
 msgstr "A session cannot exceed %(maximo)s exercises."
