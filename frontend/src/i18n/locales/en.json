@@ -152,7 +152,12 @@
     "correctAnswer": "The correct answer is:",
     "strokeHint": "Review the direction and order of each stroke in Strokes.",
     "patternKicker": "For your next session",
-    "seePatterns": "See your patterns"
+    "seePatterns": "See your patterns",
+    "premiumTag": "Premium",
+    "premiumLevel": "HSK {{nivel}}: requires Premium. See your plan",
+    "premiumNote": "With the Free plan you practice HSK 1 to 3. HSK 4 to 6 are part of Premium.",
+    "premiumLink": "See plans",
+    "planUnknown": "We could not confirm your plan: all levels are open for now."
   },
   "feedback": {
     "why": "Why",
@@ -224,6 +229,55 @@
     "again": "Generate another",
     "retry": "Try again",
     "timeout": "The report took too long. Try again in a few seconds."
+  },
+  "plan": {
+    "kicker": "Plan",
+    "title": "Your plan",
+    "loading": "Loading your plan…",
+    "error": "Your plan could not be loaded.",
+    "levels": "HSK 1 to {{maximo}}",
+    "name": {
+      "free": "Free",
+      "premium": "Premium"
+    },
+    "state": {
+      "free": {
+        "activa": "You practice HSK 1 to 3. Premium opens HSK 4 to 6.",
+        "vencida": "Your Premium expired on {{fecha}}. You are back on the Free plan: HSK 1 to 3."
+      },
+      "premium": {
+        "activa": "All levels are open. It expires on {{fecha}}.",
+        "cancelada": "You cancelled Premium: it stays until {{fecha}} and then you go back to Free."
+      }
+    },
+    "activate": "Go Premium",
+    "activateWithPrice": "Go Premium · {{precio}} for 30 days",
+    "renew": "Renew 30 days",
+    "renewWithPrice": "Renew 30 days · {{precio}}",
+    "cancel": "Cancel Premium",
+    "cancelConfirm": "Cancel Premium? The payment is not refunded: you keep all levels until {{fecha}}.",
+    "cancelYes": "Yes, cancel",
+    "cancelNo": "No, keep Premium",
+    "activated": "Done! Premium is active until {{fecha}}. Payment reference: {{referencia}}.",
+    "renewed": "Renewed: Premium stays until {{fecha}}. Payment reference: {{referencia}}.",
+    "cancelled": "Cancelled. Premium stays until {{fecha}}.",
+    "form": {
+      "simulated": "Simulated payment: do not enter a real card. Try 4242 4242 4242 4242; 4000 0000 0000 0002 is declined.",
+      "titular": "Cardholder name",
+      "numero": "Card number",
+      "vencimiento": "Expiry date",
+      "cvc": "CVC",
+      "expiryPlaceholder": "MM/YY",
+      "invalidName": "Enter the name as it appears on the card (2 to 60 characters).",
+      "invalidNumber": "Check the number: it is not a valid card.",
+      "invalidExpiry": "Use the format MM/YY, for example 08/29.",
+      "expired": "The card has expired.",
+      "invalidCvc": "The CVC has 3 or 4 digits.",
+      "pay": "Pay",
+      "payAmount": "Pay {{precio}}",
+      "paying": "Processing the payment…",
+      "back": "Back"
+    }
   },
   "howItWorks": {
     "title": "How it works",

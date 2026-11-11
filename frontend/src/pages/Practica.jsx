@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import CuadriculaHanzi from '../components/CuadriculaHanzi';
+import { IconoCandado } from '../components/Iconos';
 import PorQue from '../components/PorQue';
 import RespuestaPinyin from '../components/RespuestaPinyin';
 import TopBar from '../components/TopBar';
+import { useSuscripcion } from '../hooks/useSuscripcion';
 import { useUsuario } from '../hooks/useUsuario';
 import { useFormato } from '../i18n/formato';
 import {
@@ -22,6 +24,8 @@ const NUMERALES = ['一', '二', '三', '四', '五', '六'];
 export default function Practica() {
   const { usuarioId } = useUsuario();
   const { t } = useTranslation();
+  // RF-USR-01: Free practica hasta HSK 3. Sin respuesta del servicio no se bloquea nada.
+  const { suscripcion, nivelMaximo, sinConfirmar } = useSuscripcion(usuarioId);
   const formato = useFormato();
 
   const [modo, setModo] = useState('sesion'); // 'sesion' (sesiones-flask) | 'leccion' (catalogo-flask)
@@ -181,21 +185,46 @@ export default function Practica() {
             {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
             <div className="practica-niveles">
-              {NIVELES.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className="practica-nivel"
-                  disabled={cargando}
-                  onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
-                >
-                  <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
-                    {NUMERALES[n - 1]}
-                  </span>
-                  <span>HSK {n}</span>
-                </button>
-              ))}
+              {NIVELES.map((n) =>
+                nivelMaximo !== null && n > nivelMaximo ? (
+                  // Nivel de Premium: lleva al panel del plan en Progreso.
+                  <Link
+                    key={n}
+                    to="/progreso#plan"
+                    className="practica-nivel practica-nivel--premium"
+                    aria-label={t('practice.premiumLevel', { nivel: n })}
+                  >
+                    <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
+                      {NUMERALES[n - 1]}
+                    </span>
+                    <span>HSK {n}</span>
+                    <span className="practica-nivel__premium" aria-hidden="true">
+                      <IconoCandado /> {t('practice.premiumTag')}
+                    </span>
+                  </Link>
+                ) : (
+                  <button
+                    key={n}
+                    type="button"
+                    className="practica-nivel"
+                    disabled={cargando}
+                    onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
+                  >
+                    <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
+                      {NUMERALES[n - 1]}
+                    </span>
+                    <span>HSK {n}</span>
+                  </button>
+                ),
+              )}
             </div>
+
+            {suscripcion && suscripcion.nivel_maximo < NIVELES.length && (
+              <p className="practica-nota">
+                {t('practice.premiumNote')} <Link to="/progreso#plan">{t('practice.premiumLink')}</Link>
+              </p>
+            )}
+            {sinConfirmar && <p className="practica-nota">{t('practice.planUnknown')}</p>}
 
             {cargando && (
               <p className="hm-status hm-status--loading" role="status">
