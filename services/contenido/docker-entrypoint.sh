@@ -1,7 +1,8 @@
 #!/bin/sh
 # Arranque del contenedor de `contenido`: aplica migraciones, carga los
 # caracteres si la base está vacía y deja corriendo el comando recibido
-# (gunicorn, ver Dockerfile).
+# (gunicorn, ver Dockerfile). Si migrate falla el arranque se detiene; si
+# falla la descarga o la carga del dataset, queda un AVISO y Django arranca.
 set -e
 
 python manage.py migrate --noinput
@@ -17,13 +18,23 @@ for ruta in /datos /datos/makemeahanzi; do
     fi
 done
 
+# Sin volumen (p. ej. una instancia nueva): se descarga del repositorio
+# público, solo si la base está vacía.
+if [ -z "$DATOS" ]; then
+    python descargar_datos.py --destino /tmp/makemeahanzi
+    if [ -f /tmp/makemeahanzi/dictionary.txt ] && [ -f /tmp/makemeahanzi/graphics.txt ]; then
+        DATOS=/tmp/makemeahanzi
+    fi
+fi
+
 if [ -n "$DATOS" ]; then
     # El shell termina con código 0 solo si todavía no hay caracteres.
     if python manage.py shell -c "import sys; from caracteres.models import Caracter; sys.exit(Caracter.objects.exists())"; then
-        python manage.py cargar_hanzi --ruta "$DATOS" --nivel 1 2 3 4 5 6
+        python manage.py cargar_hanzi --ruta "$DATOS" --nivel 1 2 3 4 5 6 \
+            || echo "AVISO: falló la carga del dataset; contenido arranca con el catálogo vacío o incompleto."
     fi
 else
-    echo "AVISO: no se encontró el dataset en /datos; la base queda sin caracteres."
+    echo "Sin dataset en /datos ni descargado: no se importan caracteres."
 fi
 
 exec "$@"

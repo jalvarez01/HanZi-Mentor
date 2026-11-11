@@ -1,0 +1,33 @@
+# Mensajes de flask-base en en.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: flask-base 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-25 21:49-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:44
+msgid "Solicitud incorrecta"
+msgstr "Bad request"
+
+#: errores.py:48
+msgid "Recurso no encontrado"
+msgstr "Resource not found"
+
+#: errores.py:52
+msgid "Método no permitido"
+msgstr "Method not allowed"
+
+#: errores.py:56 errores.py:66
+msgid "Error interno"
+msgstr "Internal error"
+

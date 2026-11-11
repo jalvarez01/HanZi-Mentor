@@ -1,0 +1,572 @@
+{
+  "version": "antes",
+  "base": "http://localhost:5173",
+  "fecha": "2026-10-28T15:49:51.256Z",
+  "contraste": [
+    {
+      "ancho": 375,
+      "ruta": "/practica",
+      "selector": ".niveles:nth-child(1) > button:nth-child(1)",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "11.3pt (15px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/practica",
+      "selector": ".nota",
+      "texto": "#736f6a",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 4.15,
+      "fondoReal": "#ecece4",
+      "ratioReal": 4.2,
+      "requerido": 4.5,
+      "fuente": "9.0pt (12px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/practica",
+      "selector": "a[href=\"/\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/practica",
+      "selector": "a[href$=\"trazos\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/practica",
+      "selector": "a[href$=\"progreso\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/progreso",
+      "selector": ".abierto",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/progreso",
+      "selector": ".id-usuario",
+      "texto": "#8c8881",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.93,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.97,
+      "requerido": 4.5,
+      "fuente": "7.5pt (10px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/progreso",
+      "selector": "a[href=\"/\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/progreso",
+      "selector": "a[href$=\"trazos\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/progreso",
+      "selector": "a[href$=\"practica\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/como-funciona",
+      "selector": "#progreso > .step-mark > span",
+      "texto": "#a98b4f",
+      "fondoAxe": "#f6f3ee",
+      "ratioAxe": 2.92,
+      "fondoReal": "#f4f4ec",
+      "ratioReal": 2.93,
+      "requerido": 4.5,
+      "fuente": "9.4pt (12.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/como-funciona",
+      "selector": ".active.level:nth-child(1)",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "8.6pt (11.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/como-funciona",
+      "selector": ".active.level:nth-child(2)",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "8.6pt (11.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/como-funciona",
+      "selector": "a[href$=\"trazos\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 375,
+      "ruta": "/como-funciona",
+      "selector": "a[href$=\"practica\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/",
+      "selector": ".tab[href$=\"trazos\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ececdc",
+      "ratioReal": 2.66,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/",
+      "selector": "a[href$=\"practica\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ececdc",
+      "ratioReal": 2.66,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/",
+      "selector": ".tab[href$=\"progreso\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/trazos",
+      "selector": "a[href=\"/\"] > .tab-label",
+      "texto": "#94908a",
+      "fondoAxe": "#efebe1",
+      "ratioAxe": 2.66,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.67,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/trazos",
+      "selector": "a[href$=\"progreso\"] > .tab-label",
+      "texto": "#94908a",
+      "fondoAxe": "#efebe1",
+      "ratioAxe": 2.66,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.67,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/practica",
+      "selector": ".niveles:nth-child(1) > button:nth-child(1)",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "11.3pt (15px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/practica",
+      "selector": ".nota",
+      "texto": "#736f6a",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 4.15,
+      "fondoReal": "#ecece4",
+      "ratioReal": 4.2,
+      "requerido": 4.5,
+      "fuente": "9.0pt (12px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/practica",
+      "selector": "a[href=\"/\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/practica",
+      "selector": "a[href$=\"trazos\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/practica",
+      "selector": "a[href$=\"progreso\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/progreso",
+      "selector": ".abierto",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/progreso",
+      "selector": ".id-usuario",
+      "texto": "#8c8881",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.93,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.97,
+      "requerido": 4.5,
+      "fuente": "7.5pt (10px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/progreso",
+      "selector": "a[href=\"/\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/progreso",
+      "selector": "a[href$=\"trazos\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/progreso",
+      "selector": "a[href$=\"practica\"] > .tab-label",
+      "texto": "#949089",
+      "fondoAxe": "#eeeae0",
+      "ratioAxe": 2.64,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.68,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "selector": "#progreso > .step-mark > span",
+      "texto": "#a98b4f",
+      "fondoAxe": "#f6f3ee",
+      "ratioAxe": 2.92,
+      "fondoReal": "#f4f4ec",
+      "ratioReal": 2.93,
+      "requerido": 4.5,
+      "fuente": "9.4pt (12.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "selector": ".active.level:nth-child(1)",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "8.6pt (11.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "selector": ".active.level:nth-child(2)",
+      "texto": "#eeeae0",
+      "fondoAxe": "#a98b4f",
+      "ratioAxe": 2.69,
+      "fondoReal": "#ac8c4c",
+      "ratioReal": 2.64,
+      "requerido": 4.5,
+      "fuente": "8.6pt (11.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "selector": "a[href=\"/\"] > .tab-label",
+      "texto": "#94908a",
+      "fondoAxe": "#eeebe1",
+      "ratioAxe": 2.66,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.67,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "selector": "a[href$=\"trazos\"] > .tab-label",
+      "texto": "#94908a",
+      "fondoAxe": "#eeebe1",
+      "ratioAxe": 2.66,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.67,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "selector": "a[href$=\"practica\"] > .tab-label",
+      "texto": "#94908a",
+      "fondoAxe": "#eeebe1",
+      "ratioAxe": 2.66,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.67,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "selector": "a[href$=\"progreso\"] > .tab-label",
+      "texto": "#94908a",
+      "fondoAxe": "#eeebe1",
+      "ratioAxe": 2.66,
+      "fondoReal": "#ecece4",
+      "ratioReal": 2.67,
+      "requerido": 4.5,
+      "fuente": "7.9pt (10.5px)"
+    }
+  ],
+  "barra": [
+    {
+      "ancho": 375,
+      "ruta": "/",
+      "finDePagina": {
+        "barraTop": 750,
+        "tapados": []
+      },
+      "focoTapado": [
+        "Empezar a practicar",
+        "Ver cómo funciona"
+      ]
+    },
+    {
+      "ancho": 375,
+      "ruta": "/trazos",
+      "finDePagina": {
+        "barraTop": 750,
+        "tapados": []
+      },
+      "focoTapado": [
+        "你",
+        "做",
+        "八",
+        "六",
+        "写",
+        "冷",
+        "几",
+        "十",
+        "去",
+        "叫",
+        "吃"
+      ]
+    },
+    {
+      "ancho": 375,
+      "ruta": "/practica",
+      "finDePagina": {
+        "barraTop": 750,
+        "tapados": []
+      },
+      "focoTapado": []
+    },
+    {
+      "ancho": 375,
+      "ruta": "/progreso",
+      "finDePagina": {
+        "barraTop": 750,
+        "tapados": []
+      },
+      "focoTapado": []
+    },
+    {
+      "ancho": 375,
+      "ruta": "/como-funciona",
+      "finDePagina": {
+        "barraTop": 750,
+        "tapados": []
+      },
+      "focoTapado": []
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/",
+      "finDePagina": {
+        "barraTop": 738,
+        "tapados": []
+      },
+      "focoTapado": [
+        "Ver cómo funciona"
+      ]
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/trazos",
+      "finDePagina": {
+        "barraTop": 738,
+        "tapados": []
+      },
+      "focoTapado": [
+        "个",
+        "九",
+        "书",
+        "买",
+        "了",
+        "二"
+      ]
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/practica",
+      "finDePagina": {
+        "barraTop": 738,
+        "tapados": []
+      },
+      "focoTapado": []
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/progreso",
+      "finDePagina": {
+        "barraTop": 738,
+        "tapados": []
+      },
+      "focoTapado": []
+    },
+    {
+      "ancho": 1280,
+      "ruta": "/como-funciona",
+      "finDePagina": {
+        "barraTop": 738,
+        "tapados": []
+      },
+      "focoTapado": []
+    }
+  ],
+  "resumen": {
+    "nodosAxe": 37,
+    "fallasReales": 37,
+    "sinMedir": 0
+  }
+}

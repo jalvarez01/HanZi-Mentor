@@ -1,16 +1,35 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import CuadriculaHanzi from '../components/CuadriculaHanzi';
+import { IconoCandado } from '../components/Iconos';
+import PorQue from '../components/PorQue';
+import RespuestaPinyin from '../components/RespuestaPinyin';
 import TopBar from '../components/TopBar';
+import { useSuscripcion } from '../hooks/useSuscripcion';
 import { useUsuario } from '../hooks/useUsuario';
-import { crearSesion, responderEjercicio, generarLeccion } from '../services/api';
+import { useFormato } from '../i18n/formato';
+import {
+  crearSesion,
+  generarLeccion,
+  obtenerCaracter,
+  obtenerDesempeno,
+  obtenerPatrones,
+  responderEjercicio,
+} from '../services/api';
 import './Practica.css';
 
 const NIVELES = [1, 2, 3, 4, 5, 6];
+const NUMERALES = ['一', '二', '三', '四', '五', '六'];
 
 export default function Practica() {
   const { usuarioId } = useUsuario();
+  const { t } = useTranslation();
+  // RF-USR-01: Free practica hasta HSK 3. Sin respuesta del servicio no se bloquea nada.
+  const { suscripcion, nivelMaximo, sinConfirmar } = useSuscripcion(usuarioId);
+  const formato = useFormato();
 
-  const [modo, setModo] = useState('sesion'); // 'sesion' (agente-tutor) | 'leccion' (contenido)
+  const [modo, setModo] = useState('sesion'); // 'sesion' (sesiones-flask) | 'leccion' (catalogo-flask)
 
   const [sesion, setSesion] = useState(null);
   const [indice, setIndice] = useState(0);
@@ -18,6 +37,12 @@ export default function Practica() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
   const [terminada, setTerminada] = useState(false);
+  // RF-IA-01: patrón principal del estudiante, para el aviso de fin de sesión.
+  const [patronFinal, setPatronFinal] = useState(null);
+  // RF-IA-03: título de cada patrón de la sesión, por código, para los ejercicios adaptados.
+  const [titulosPatron, setTitulosPatron] = useState(null);
+  // RF-IA-05: desempeño de la sesión terminada (duración, aciertos, ritmo).
+  const [desempeno, setDesempeno] = useState(null);
 
   const [leccion, setLeccion] = useState(null);
   const [indiceLeccion, setIndiceLeccion] = useState(0);
@@ -25,7 +50,7 @@ export default function Practica() {
   const ejercicio = sesion?.ejercicios?.[indice];
   const ejercicioLeccion = leccion?.ejercicios?.[indiceLeccion];
 
-    async function empezarLeccion(nivel) {
+  async function empezarLeccion(nivel) {
     setCargando(true);
     setError(null);
 
@@ -40,17 +65,20 @@ export default function Practica() {
     }
   }
 
-
   async function empezar(nivel) {
     setCargando(true);
     setError(null);
     setTerminada(false);
     setUltimoResultado(null);
+    setPatronFinal(null);
+    setTitulosPatron(null);
+    setDesempeno(null);
 
     try {
       const nueva = await crearSesion({ usuarioId, nivelHsk: nivel });
       setSesion(nueva);
       setIndice(0);
+      if (nueva?.ejercicios?.some((e) => e.patron)) cargarTitulosPatron(nueva.id);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -58,21 +86,82 @@ export default function Practica() {
     }
   }
 
+  // Registra la respuesta en sesiones-flask. Lanza si falla: quien llama decide cómo mostrarlo.
+  // `codigoError` (RF-IA-01) es el tipo de error de un fallo, si se conoce.
+  async function registrar(acerto, extra = {}, codigoError) {
+    const resultado = await responderEjercicio(ejercicio.id, acerto, codigoError);
+    setUltimoResultado({ ...resultado, acerto, ejercicioId: ejercicio.id, ...extra });
+
+    if (resultado.sesion_completada) {
+      setTerminada(true);
+      avisarPatron(sesion.id);
+      mostrarDesempeno(sesion.id, resultado.desempeno);
+    }
+  }
+
+  // RF-IA-03: la sesión trae ejercicios dirigidos a un patrón de error. Se
+  // busca el título traducido de cada patrón; si falla, queda el texto genérico.
+  function cargarTitulosPatron(sesionId) {
+    obtenerPatrones(usuarioId)
+      .then((r) => {
+        const porCodigo = Object.fromEntries((r?.patrones ?? []).map((p) => [p.codigo, p.titulo]));
+        setTitulosPatron({ sesionId, porCodigo });
+      })
+      .catch(() => {});
+  }
+
+  // RF-IA-05: la respuesta que cierra la sesión trae el desempeño. Si no
+  // vino, se pide aparte; si eso también falla, el cierre queda como estaba.
+  function mostrarDesempeno(sesionId, desdeRespuesta) {
+    if (desdeRespuesta) {
+      setDesempeno(desdeRespuesta);
+      return;
+    }
+    obtenerDesempeno(sesionId)
+      .then(setDesempeno)
+      .catch(() => {});
+  }
+
+  // Al cerrar la sesión se busca el patrón principal para el aviso final. Es
+  // un extra: sin patrones, o si la petición falla, el cierre queda como estaba.
+  function avisarPatron(sesionId) {
+    obtenerPatrones(usuarioId)
+      .then((r) => {
+        const principal = r?.patrones?.[0];
+        if (principal) setPatronFinal({ ...principal, sesionId });
+      })
+      .catch(() => {});
+  }
+
+  // Ejercicios de trazo: el estudiante se califica con "Fallé" o "Acerté".
   async function responder(acerto) {
     setCargando(true);
     setError(null);
 
     try {
-      const resultado = await responderEjercicio(ejercicio.id, acerto);
-      setUltimoResultado({ ...resultado, acerto });
-
-      if (resultado.sesion_completada) {
-        setTerminada(true);
-      }
+      await registrar(acerto, {}, acerto ? undefined : 'TRAZO_AUTOCALIFICADO');
     } catch (e) {
       setError(e.message);
     } finally {
       setCargando(false);
+    }
+  }
+
+  // Ejercicios de pinyin (T25): RespuestaPinyin muestra el error y conserva lo escrito si esto falla.
+  // El tipo de error es el código de la explicación; "No lo sé" trae el suyo.
+  // Sin explicación (el explicador falló) no se manda ninguno.
+  async function responderPinyin({ acerto, respuesta, explicacion, nota, codigoError }) {
+    const ejercicioId = ejercicio.id;
+    await registrar(acerto, { respuesta, explicacion, nota }, codigoError ?? explicacion?.codigo);
+
+    // Si falló, se muestra la respuesta correcta. Si el catálogo no responde,
+    // el aviso de acierto o fallo ya está y basta con eso.
+    if (!acerto) {
+      obtenerCaracter(ejercicio.caracter)
+        .then((c) =>
+          setUltimoResultado((r) => (r?.ejercicioId === ejercicioId ? { ...r, pinyinCorrecto: c.pinyin } : r)),
+        )
+        .catch(() => {});
     }
   }
 
@@ -81,117 +170,163 @@ export default function Practica() {
     setIndice((i) => i + 1);
   }
 
+  // Sin progreso (respuesta con `aviso`) la tasa llega en null: no se pinta como 0 %.
+  const tasaAcierto = (tasa) => (tasa == null ? t('practice.notAvailable') : formato.porcentaje(tasa));
+
+  const tipoEjercicio = (tipo) =>
+    tipo === 'trazo' ? t('practice.typeStrokes') : t('practice.typeMeaning');
+
   // ---------------------------------------------------------- sin sesión
 
   if (!sesion && !leccion) {
     return (
       <>
-        <TopBar title="Practicar" />
-        <div className="screen-pad practica">
-          <div className="niveles" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: 20 }}>
+        <TopBar title={t('practice.title')} />
+        <main className="hm-page practica">
+          <div className="practica-modos" role="group" aria-label={t('practice.modeLabel')}>
             <button
-              className="nivel-btn"
-              style={modo === 'sesion' ? { background: 'var(--gold)', color: 'var(--paper)' } : undefined}
+              type="button"
+              className="practica-modo"
+              aria-pressed={modo === 'sesion'}
               onClick={() => setModo('sesion')}
             >
-              Sesión adaptativa
+              {t('practice.modeSession')}
             </button>
             <button
-              className="nivel-btn"
-              style={modo === 'leccion' ? { background: 'var(--gold)', color: 'var(--paper)' } : undefined}
+              type="button"
+              className="practica-modo"
+              aria-pressed={modo === 'leccion'}
               onClick={() => setModo('leccion')}
             >
-              Lección por nivel
+              {t('practice.modeLesson')}
             </button>
           </div>
 
-          <p className="intro">
-            {modo === 'sesion'
-              ? 'Elegí un nivel. El tutor arma la sesión priorizando lo que venís fallando.'
-              : 'Elegí un nivel. Se genera una lección con caracteres y ejercicios de ese HSK.'}
-          </p>
+          <section className="hm-panel practica-panel" aria-labelledby="practica-niveles-titulo">
+            <div className="hm-section-head">
+              <div>
+                <span className="hm-kicker">{t('practice.levelKicker')}</span>
+                <h2 id="practica-niveles-titulo">{t('practice.levelTitle')}</h2>
+              </div>
+            </div>
 
-          {error && <p className="error">{error}</p>}
-
-          <div className="niveles">
-            {NIVELES.map((n) => (
-              <button
-                key={n}
-                className="nivel-btn"
-                disabled={cargando}
-                onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
-              >
-                HSK{n}
-              </button>
-            ))}
-          </div>
-
-          {cargando && <p className="cargando">Armando tu {modo === 'sesion' ? 'sesión' : 'lección'}…</p>}
-
-          {modo === 'sesion' && (
-            <p className="nota">
-              Si un nivel no está desbloqueado, el servidor lo rechaza — es la regla
-              que valida el builder.
+            <p className="practica-intro">
+              {modo === 'sesion' ? t('practice.introSession') : t('practice.introLesson')}
             </p>
-          )}
-        </div>
+
+            {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
+
+            <div className="practica-niveles">
+              {NIVELES.map((n) =>
+                nivelMaximo !== null && n > nivelMaximo ? (
+                  // Nivel de Premium: lleva al panel del plan en Progreso.
+                  <Link
+                    key={n}
+                    to="/progreso#plan"
+                    className="practica-nivel practica-nivel--premium"
+                    aria-label={t('practice.premiumLevel', { nivel: n })}
+                  >
+                    <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
+                      {NUMERALES[n - 1]}
+                    </span>
+                    <span>HSK {n}</span>
+                    <span className="practica-nivel__premium" aria-hidden="true">
+                      <IconoCandado /> {t('practice.premiumTag')}
+                    </span>
+                  </Link>
+                ) : (
+                  <button
+                    key={n}
+                    type="button"
+                    className="practica-nivel"
+                    disabled={cargando}
+                    onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
+                  >
+                    <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
+                      {NUMERALES[n - 1]}
+                    </span>
+                    <span>HSK {n}</span>
+                  </button>
+                ),
+              )}
+            </div>
+
+            {suscripcion && suscripcion.nivel_maximo < NIVELES.length && (
+              <p className="practica-nota">
+                {t('practice.premiumNote')} <Link to="/progreso#plan">{t('practice.premiumLink')}</Link>
+              </p>
+            )}
+            {sinConfirmar && <p className="practica-nota">{t('practice.planUnknown')}</p>}
+
+            {cargando && (
+              <p className="hm-status hm-status--loading" role="status">
+                {modo === 'sesion' ? t('practice.buildingSession') : t('practice.buildingLesson')}
+              </p>
+            )}
+
+            {modo === 'sesion' && <p className="practica-nota">{t('practice.lockedNote')}</p>}
+          </section>
+        </main>
       </>
     );
   }
 
-   // -------------------------------------------------------------- lección
+  // -------------------------------------------------------------- lección
 
   if (leccion) {
     if (!ejercicioLeccion) {
       return (
         <>
-          <TopBar title="Lección completa" />
-          <div className="screen-pad practica resumen">
-            <div className="sello-grande">完</div>
-            <h2>Terminaste la lección</h2>
-            <p className="intro">
-              Revisaste los {leccion.ejercicios.length} ejercicios de nivel HSK{leccion.nivel_hsk}.
+          <TopBar title={t('practice.lessonDoneBar')} />
+          <main className="hm-page practica practica-resumen">
+            <span className="hm-seal hm-seal--lg" aria-hidden="true">完</span>
+            <h2>{t('practice.lessonDoneTitle')}</h2>
+            <p className="practica-intro">
+              {t('practice.lessonDoneText', {
+                count: leccion.ejercicios.length,
+                nivel: leccion.nivel_hsk,
+              })}
             </p>
-            <button className="btn-principal" onClick={() => { setLeccion(null); setIndiceLeccion(0); }}>
-              Otra lección
+            <button
+              type="button"
+              className="hm-btn"
+              onClick={() => { setLeccion(null); setIndiceLeccion(0); }}
+            >
+              {t('practice.anotherLesson')}
             </button>
-          </div>
+          </main>
         </>
       );
     }
 
     return (
       <>
-        <TopBar title={`HSK${leccion.nivel_hsk} · Lección`} />
-        <div className="screen-pad practica">
-          <div className="barra-avance">
-            <div
-              className="barra-relleno"
-              style={{ width: `${(indiceLeccion / leccion.ejercicios.length) * 100}%` }}
-            />
-          </div>
-          <p className="contador">
-            {indiceLeccion + 1} de {leccion.ejercicios.length}
-          </p>
+        <TopBar title={t('practice.lessonBar', { nivel: leccion.nivel_hsk })} />
+        <main className="hm-page practica">
+          <Avance actual={indiceLeccion} total={leccion.ejercicios.length} />
 
-          <div className="tarjeta-ejercicio">
-            <div className="hanzi-grande">{ejercicioLeccion.caracter.hanzi}</div>
-            <p className="tipo">
-              {ejercicioLeccion.tipo === 'trazo' ? 'Orden de trazos' : 'Significado'}
+          <article className="hm-card practica-tarjeta cuadricula-hanzi">
+            <span className="hm-kicker">{tipoEjercicio(ejercicioLeccion.tipo)}</span>
+            <CuadriculaHanzi hanzi={ejercicioLeccion.caracter.hanzi} />
+            <p className="practica-dato">
+              {ejercicioLeccion.caracter.pinyin} · {ejercicioLeccion.caracter.definicion}
             </p>
-            <p className="dato">{ejercicioLeccion.caracter.pinyin} · {ejercicioLeccion.caracter.definicion}</p>
-          </div>
+          </article>
 
           {ejercicioLeccion.tipo === 'trazo' && (
-            <Link to={`/trazos?caracter=${ejercicioLeccion.caracter.hanzi}`} className="btn-texto">
-              Ver el orden de trazos
+            <Link to={`/trazos?caracter=${ejercicioLeccion.caracter.hanzi}`} className="practica-enlace">
+              {t('practice.seeStrokes')}
             </Link>
           )}
 
-          <button className="btn-principal" onClick={() => setIndiceLeccion((i) => i + 1)}>
-            Siguiente
+          <button
+            type="button"
+            className="hm-btn hm-btn--block practica-siguiente"
+            onClick={() => setIndiceLeccion((i) => i + 1)}
+          >
+            {t('practice.next')}
           </button>
-        </div>
+        </main>
       </>
     );
   }
@@ -202,25 +337,79 @@ export default function Practica() {
     const correctas = sesion.ejercicios.length;
     return (
       <>
-        <TopBar title="Sesión completa" />
-        <div className="screen-pad practica resumen">
-          <div className="sello-grande">完</div>
-          <h2>Terminaste la sesión</h2>
-          <p className="intro">
-            Respondiste los {correctas} ejercicios de nivel HSK{sesion.nivel_hsk}.
+        <TopBar title={t('practice.sessionDoneBar')} />
+        <main className="hm-page practica practica-resumen">
+          <span className="hm-seal hm-seal--lg" aria-hidden="true">完</span>
+          <h2>{t('practice.sessionDoneTitle')}</h2>
+          <p className="practica-intro">
+            {t('practice.sessionDoneText', { count: correctas, nivel: sesion.nivel_hsk })}
           </p>
 
+          {ultimoResultado?.aviso && (
+            <p className="hm-status hm-status--empty" role="status">{t('practice.progressNotSaved')}</p>
+          )}
+
+          {/* RF-IA-05: lo que quedó registrado de esta sesión. */}
+          {desempeno?.sesion_id === sesion.id && (
+            <section className="hm-card practica-desempeno" aria-labelledby="practica-desempeno-titulo">
+              <h3 id="practica-desempeno-titulo" className="hm-kicker">{t('practice.performanceTitle')}</h3>
+              <dl>
+                <div>
+                  <dt>{t('practice.performanceTime')}</dt>
+                  <dd>
+                    <strong>{formato.duracion(desempeno.duracion_seg)}</strong>
+                    <span>
+                      {t(desempeno.dentro_del_tiempo ? 'practice.performanceOnTime' : 'practice.performanceOverTime', {
+                        minutos: desempeno.duracion_estimada_min,
+                      })}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t('practice.performanceCorrect')}</dt>
+                  <dd>
+                    <strong>
+                      {t('practice.performanceCorrectValue', { aciertos: desempeno.aciertos, total: desempeno.total })}
+                    </strong>
+                    <span>{formato.porcentaje(desempeno.tasa_acierto)}</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t('practice.performancePace')}</dt>
+                  <dd>
+                    <strong>
+                      {t('practice.performancePaceValue', { tiempo: formato.duracion(desempeno.segundos_por_ejercicio) })}
+                    </strong>
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          )}
+
           {ultimoResultado && (
-            <p className="dato">
-              Tasa de acierto actual: <strong>{Math.round(ultimoResultado.tasa_acierto * 100)}%</strong>
+            <p className="practica-dato">
+              {t('practice.currentAccuracy')}{' '}
+              <strong>{tasaAcierto(ultimoResultado.tasa_acierto)}</strong>
             </p>
           )}
 
-          <button className="btn-principal" onClick={() => setSesion(null)}>
-            Otra sesión
+          {/* RF-IA-01: una nota, no un error. Solo si hay algún patrón. */}
+          {patronFinal?.sesionId === sesion.id && (
+            <div className="practica-patron" role="status">
+              <p className="hm-kicker practica-patron__etiqueta">{t('practice.patternKicker')}</p>
+              <p className="practica-patron__titulo">{patronFinal.titulo}</p>
+              <p className="practica-patron__consejo">{patronFinal.consejo}</p>
+              <Link to="/progreso" className="practica-patron__enlace">
+                {t('practice.seePatterns')}
+              </Link>
+            </div>
+          )}
+
+          <button type="button" className="hm-btn" onClick={() => setSesion(null)}>
+            {t('practice.anotherSession')}
           </button>
-          <Link to="/progreso" className="btn-texto">Ver mi progreso</Link>
-        </div>
+          <Link to="/progreso" className="practica-enlace">{t('practice.seeProgress')}</Link>
+        </main>
       </>
     );
   }
@@ -229,83 +418,140 @@ export default function Practica() {
 
   return (
     <>
-      <TopBar title={`HSK${sesion.nivel_hsk} · dificultad ${sesion.dificultad}`} />
+      <TopBar
+        title={t('practice.sessionBar', { nivel: sesion.nivel_hsk, dificultad: sesion.dificultad })}
+      />
 
-      <div className="screen-pad practica">
-        <div className="barra-avance">
-          <div
-            className="barra-relleno"
-            style={{ width: `${(indice / sesion.ejercicios.length) * 100}%` }}
-          />
-        </div>
-        <p className="contador">
-          {indice + 1} de {sesion.ejercicios.length}
-          {ejercicio?.es_refuerzo && <span className="etiqueta-refuerzo">refuerzo</span>}
-        </p>
+      <main className="hm-page practica">
+        <Avance actual={indice} total={sesion.ejercicios.length}>
+          {ejercicio?.patron ? (
+            <span className="practica-refuerzo">{t('practice.adapted')}</span>
+          ) : (
+            ejercicio?.es_refuerzo && <span className="practica-refuerzo">{t('practice.reinforcement')}</span>
+          )}
+        </Avance>
 
-        {error && <p className="error">{error}</p>}
-
-        <div className="tarjeta-ejercicio">
-          <div className="hanzi-grande">{ejercicio?.caracter}</div>
-          <p className="tipo">
-            {ejercicio?.tipo === 'trazo' ? 'Orden de trazos' : 'Significado'}
+        {/* RF-IA-03: el ejercicio apunta a un patrón de error del estudiante. */}
+        {ejercicio?.patron && (
+          <p className="practica-adaptado">
+            {t('practice.adaptedFor')}{' '}
+            <strong>
+              {(titulosPatron?.sesionId === sesion.id && titulosPatron.porCodigo[ejercicio.patron]) ||
+                t('practice.adaptedGeneric')}
+            </strong>
           </p>
-        </div>
+        )}
 
-        {!ultimoResultado ? (
+        {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
+
+        <article className="hm-card practica-tarjeta cuadricula-hanzi">
+          <span className="hm-kicker">
+            {ejercicio?.tipo === 'trazo' ? t('practice.typeStrokes') : t('practice.typePinyin')}
+          </span>
+          <CuadriculaHanzi hanzi={ejercicio?.caracter} />
+        </article>
+
+        {!ultimoResultado && ejercicio?.tipo !== 'trazo' ? (
+          // key: un formulario nuevo (vacío) por ejercicio.
+          <RespuestaPinyin key={ejercicio?.id} caracter={ejercicio?.caracter} onResponder={responderPinyin} />
+        ) : !ultimoResultado ? (
           <>
-            <p className="pregunta">¿Lo respondiste bien?</p>
-            <div className="acciones">
+            <p className="practica-pregunta">{t('practice.question')}</p>
+            <div className="practica-acciones">
               <button
-                className="btn-mal"
+                type="button"
+                className="hm-btn"
                 disabled={cargando}
                 onClick={() => responder(false)}
               >
-                Fallé
+                {t('practice.failed')}
               </button>
               <button
-                className="btn-bien"
+                type="button"
+                className="hm-btn hm-btn--jade"
                 disabled={cargando}
                 onClick={() => responder(true)}
               >
-                Acerté
+                {t('practice.correct')}
               </button>
             </div>
             {ejercicio?.tipo === 'trazo' && (
-              <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="btn-texto">
-                Ver el orden de trazos
+              <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="practica-enlace">
+                {t('practice.seeStrokes')}
               </Link>
             )}
           </>
         ) : (
-          <div className="feedback">
-            <p className={ultimoResultado.acerto ? 'ok' : 'fallo'}>
-              {ultimoResultado.acerto ? 'Sumado a tu racha' : 'Vuelve pronto al repaso'}
+          <div className="hm-panel practica-feedback" role="status">
+            <p className={ultimoResultado.acerto ? 'practica-ok' : 'practica-fallo'}>
+              {ultimoResultado.acerto ? t('practice.feedbackCorrect') : t('practice.feedbackFailed')}
             </p>
-            <p className="dato">
-              Próximo repaso:{' '}
-              <strong>{formatearFecha(ultimoResultado.proximo_repaso)}</strong>
+            {ultimoResultado.acerto && ultimoResultado.nota && (
+              <p className="practica-nota">{ultimoResultado.nota.texto}</p>
+            )}
+            {ultimoResultado.respuesta && (
+              <p className="practica-dato">
+                {t('practice.yourAnswer')} <strong>{ultimoResultado.respuesta}</strong>
+              </p>
+            )}
+            {ultimoResultado.pinyinCorrecto && (
+              <p className="practica-dato">
+                {t('practice.correctAnswer')} <strong>{ultimoResultado.pinyinCorrecto}</strong>
+              </p>
+            )}
+            {!ultimoResultado.acerto && ultimoResultado.explicacion && (
+              <PorQue explicacion={ultimoResultado.explicacion} />
+            )}
+            {/* Trazo autocalificado: no hay veredicto del servicio, la pista es fija. */}
+            {!ultimoResultado.acerto && ejercicio?.tipo === 'trazo' && (
+              <PorQue pista={t('practice.strokeHint')}>
+                <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="practica-enlace">
+                  {t('practice.seeStrokes')}
+                </Link>
+              </PorQue>
+            )}
+            {ultimoResultado.aviso && (
+              <p className="hm-status hm-status--empty">{t('practice.progressNotSaved')}</p>
+            )}
+            <p className="practica-dato">
+              {t('practice.nextReview')}{' '}
+              <strong>{formato.relativo(ultimoResultado.proximo_repaso) ?? t('practice.notAvailable')}</strong>
             </p>
-            <p className="dato">
-              Tasa de acierto: <strong>{Math.round(ultimoResultado.tasa_acierto * 100)}%</strong>
+            <p className="practica-dato">
+              {t('practice.accuracy')}{' '}
+              <strong>{tasaAcierto(ultimoResultado.tasa_acierto)}</strong>
             </p>
 
-            <button className="btn-principal" onClick={siguiente}>
-              Siguiente
+            <button type="button" className="hm-btn hm-btn--block practica-siguiente" onClick={siguiente}>
+              {t('practice.next')}
             </button>
           </div>
         )}
-      </div>
+      </main>
     </>
   );
 }
 
-function formatearFecha(iso) {
-  if (!iso) return '—';
+/** Barra de avance y contador "n de m" (con contenido extra opcional, p. ej. la etiqueta de refuerzo). */
+function Avance({ actual, total, children }) {
+  const { t } = useTranslation();
 
-  const fecha = new Date(iso);
-  const horas = Math.round((fecha - new Date()) / 36e5);
-
-  if (horas < 24) return `en ${horas} h`;
-  return `en ${Math.round(horas / 24)} días`;
+  return (
+    <>
+      <div
+        className="practica-barra"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={actual}
+        aria-label={t('practice.progressLabel')}
+      >
+        <div className="practica-barra__relleno" style={{ width: `${(actual / total) * 100}%` }} />
+      </div>
+      <p className="practica-contador">
+        {t('practice.counter', { actual: actual + 1, total })}
+        {children}
+      </p>
+    </>
+  );
 }

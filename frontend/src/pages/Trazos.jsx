@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import EjemplosCaracter from '../components/EjemplosCaracter';
+import PorQue from '../components/PorQue';
 import TopBar from '../components/TopBar';
-import { listarCaracteres, obtenerCaracter, validarTrazo } from '../services/api';
+import { useUsuario } from '../hooks/useUsuario';
+import { evaluar, listarCaracteres, obtenerCaracter, registrarErrorDeTrazo } from '../services/api';
 import './Trazos.css';
 
 // Make Me a Hanzi usa un lienzo de 1024x1024 con el eje Y invertido:
@@ -9,9 +13,22 @@ import './Trazos.css';
 const VIEWBOX = 1024;
 const TRANSFORM = 'scale(1, -1) translate(0, -900)';
 
+// Errores en los que el trazo no se pudo evaluar: no es un trazo mal hecho.
+// DEPENDENCIA_NO_DISPONIBLE viene de evaluacion-flask (catálogo o trazos
+// caídos); los otros tres son del gateway (infra/nginx/nginx.conf) cuando el
+// propio servicio de evaluación no responde.
+const NO_EVALUADO = new Set([
+  'DEPENDENCIA_NO_DISPONIBLE',
+  'SERVICIO_NO_DISPONIBLE',
+  'SERVICIO_SATURADO',
+  'TIEMPO_AGOTADO',
+]);
+
 export default function Trazos() {
   const [params] = useSearchParams();
   const pedido = params.get('caracter');
+  const { t } = useTranslation();
+  const { usuarioId } = useUsuario();
 
   const [lista, setLista] = useState([]);
   const [caracter, setCaracter] = useState(null);
@@ -59,80 +76,93 @@ export default function Trazos() {
 
   return (
     <>
-      <TopBar title="Trazos" />
+      <TopBar title={t('strokes.title')} />
 
-      <div className="screen-pad trazos">
-        {error && <p className="error">{error}</p>}
+      <main className="hm-page trazos">
+        {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
         {caracter && (
-          <div className="ficha">
-            <span className="ficha-hanzi">{caracter.hanzi}</span>
+          <div className="hm-card trazos-ficha">
+            <span className="trazos-ficha__hanzi" lang="zh-Hans">{caracter.hanzi}</span>
             <div>
-              <p className="ficha-pinyin">{caracter.pinyin || '—'}</p>
-              <p className="ficha-def">{caracter.definicion || 'sin definición'}</p>
+              <span className="hm-kicker">{t('strokes.cardKicker')}</span>
+              <p className="trazos-ficha__pinyin">{caracter.pinyin || '—'}</p>
+              <p className="trazos-ficha__def">{caracter.definicion || t('strokes.noDefinition')}</p>
             </div>
           </div>
         )}
 
         {sinTrazos ? (
-          <p className="aviso">
-            Este carácter todavía no tiene datos de trazos cargados. Corré
-            <code> cargar_hanzi </code> en el servicio de contenido.
-          </p>
+          <p className="hm-status hm-status--empty">{t('strokes.noStrokeData')}</p>
         ) : (
           <>
             <LienzoTrazos
               trazos={trazos}
               hasta={trazoActual}
               hanzi={caracter?.hanzi}
+              usuarioId={usuarioId}
               onAprobado={() => setTrazoActual((n) => Math.min(trazos.length, n + 1))}
               key={caracter?.hanzi}
             />
 
             {trazos.length > 0 && (
-              <div className="controles">
+              <div className="trazos-controles">
                 <button
+                  type="button"
+                  className="trazos-control"
                   onClick={() => setTrazoActual((n) => Math.max(0, n - 1))}
                   disabled={trazoActual === 0}
                 >
-                  Anterior
+                  {t('strokes.previous')}
                 </button>
-                <span className="paso">
-                  trazo {trazoActual} de {trazos.length}
+                <span className="trazos-paso" aria-live="polite">
+                  {t('strokes.step', { actual: trazoActual, total: trazos.length })}
                 </span>
                 <button
+                  type="button"
+                  className="trazos-control"
                   onClick={() => setTrazoActual((n) => Math.min(trazos.length, n + 1))}
                   disabled={trazoActual === trazos.length}
                 >
-                  Siguiente
+                  {t('strokes.next')}
                 </button>
               </div>
             )}
           </>
         )}
 
-        {cargando && <p className="cargando">Cargando…</p>}
+        {cargando && <p className="hm-status hm-status--loading" role="status">{t('strokes.loading')}</p>}
 
-        <h3 className="titulo-lista">Elegí un carácter</h3>
-        <div className="grilla">
-          {lista.map((c) => (
-            <button
-              key={c.hanzi}
-              className={`celda ${caracter?.hanzi === c.hanzi ? 'activa' : ''}`}
-              onClick={() => elegir(c.hanzi)}
-            >
-              {c.hanzi}
-            </button>
-          ))}
-        </div>
+        {caracter && <EjemplosCaracter hanzi={caracter.hanzi} />}
 
-        {!cargando && lista.length === 0 && (
-          <p className="aviso">
-            No hay caracteres cargados. Levantá el servicio de contenido en el
-            puerto 8002 y cargá datos.
-          </p>
-        )}
-      </div>
+        <section className="hm-panel trazos-lista" aria-labelledby="trazos-lista-titulo">
+          <div className="hm-section-head">
+            <div>
+              <span className="hm-kicker">{t('strokes.listKicker')}</span>
+              <h2 id="trazos-lista-titulo">{t('strokes.listTitle')}</h2>
+            </div>
+          </div>
+
+          <div className="trazos-grilla">
+            {lista.map((c) => (
+              <button
+                key={c.hanzi}
+                type="button"
+                lang="zh-Hans"
+                className={`trazos-celda ${caracter?.hanzi === c.hanzi ? 'is-activa' : ''}`}
+                aria-pressed={caracter?.hanzi === c.hanzi}
+                onClick={() => elegir(c.hanzi)}
+              >
+                {c.hanzi}
+              </button>
+            ))}
+          </div>
+
+          {!cargando && lista.length === 0 && (
+            <p className="hm-status hm-status--empty">{t('strokes.listEmpty')}</p>
+          )}
+        </section>
+      </main>
     </>
   );
 }
@@ -141,16 +171,25 @@ export default function Trazos() {
  * Muestra los trazos hasta el índice indicado y deja dibujar encima.
  *
  * El SVG de fondo pinta el trazo correcto; el canvas de arriba captura el
- * dedo o el mouse. Al soltar, el trazo capturado se manda a validar
- * (RF-APR-01) y, si se aprueba, se avanza solo al trazo siguiente.
+ * dedo o el mouse. Al soltar, el trazo capturado se manda a evaluar
+ * (RF-APR-01) y, si se aprueba, se avanza solo al trazo siguiente. Si el
+ * aprobado trae una nota de mejora (RF-IA-04), no se avanza solo: la nota
+ * queda a la vista y se sigue con "Siguiente".
+ *
+ * RF-IA-01: un trazo fallado que el servicio pudo explicar anota su tipo de
+ * error en el progreso, sin esperar la respuesta. Solo alimenta los patrones
+ * de error; si falla, acá no cambia nada.
  */
-function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
+function LienzoTrazos({ trazos, hasta, hanzi, usuarioId, onAprobado }) {
+  const { t } = useTranslation();
   const canvasRef = useRef(null);
   const dibujando = useRef(false);
   const puntosRef = useRef([]);
   const [tieneDibujo, setTieneDibujo] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [validando, setValidando] = useState(false);
+  // No se pudo evaluar (servicio caído o sin red): no es un trazo mal hecho.
+  const [sinEvaluar, setSinEvaluar] = useState(false);
 
   const trazoActual = trazos[hasta];
 
@@ -171,12 +210,14 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
     ctx.lineWidth = 8;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#B23A2E';
+    // El color sale de --trazo-usuario (vía `color` en .lienzo-canvas), no del JS.
+    ctx.strokeStyle = getComputedStyle(canvas).color;
 
     // Nuevo trazo: se limpia el lienzo anterior y su veredicto.
     puntosRef.current = [];
     setTieneDibujo(false);
     setResultado(null);
+    setSinEvaluar(false);
   }, [hasta]);
 
   function posicion(evento) {
@@ -193,6 +234,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
     dibujando.current = true;
     setTieneDibujo(true);
     setResultado(null);
+    setSinEvaluar(false);
 
     const { x, y } = posicion(evento);
     puntosRef.current = [{ x, y }];
@@ -225,19 +267,36 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
 
     setValidando(true);
     try {
-      const veredicto = await validarTrazo({
-        mediana: trazoActual.mediana,
-        puntos,
-        ancho: Math.round(rect.width),
-        alto: Math.round(rect.height),
+      // evaluacion-flask busca la mediana en el catálogo y compara con trazos-flask.
+      const veredicto = await evaluar({
+        tipo: 'trazo',
+        caracter: hanzi,
+        respuesta: {
+          secuencia: trazoActual.secuencia,
+          puntos,
+          ancho: Math.round(rect.width),
+          alto: Math.round(rect.height),
+        },
       });
       setResultado(veredicto);
 
-      if (veredicto.aprobado) {
+      if (!veredicto.aprobado && veredicto.explicacion?.codigo && usuarioId) {
+        registrarErrorDeTrazo(usuarioId, {
+          caracter: hanzi,
+          codigoError: veredicto.explicacion.codigo,
+        }).catch(() => {});
+      }
+
+      if (veredicto.aprobado && !veredicto.nota) {
         setTimeout(() => onAprobado?.(), 900);
       }
     } catch (e) {
-      setResultado({ aprobado: false, invertido: false, detalle: e.message });
+      // Sin status: no llegó respuesta (sin red o servidor inalcanzable).
+      if (NO_EVALUADO.has(e.codigo) || !e.status) {
+        setSinEvaluar(true);
+      } else {
+        setResultado({ aprobado: false, invertido: false, detalle: e.message });
+      }
     } finally {
       setValidando(false);
     }
@@ -250,20 +309,21 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
     puntosRef.current = [];
     setTieneDibujo(false);
     setResultado(null);
+    setSinEvaluar(false);
   }
 
   return (
     <>
       <div className="lienzo-wrap">
-        <svg className="lienzo-svg" viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}>
+        <svg className="lienzo-svg" viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`} aria-hidden="true">
           <line x1="512" y1="0" x2="512" y2="1024" className="guia" />
           <line x1="0" y1="512" x2="1024" y2="512" className="guia" />
 
           <g transform={TRANSFORM}>
-            {trazos.map((t, i) => (
+            {trazos.map((trazo, i) => (
               <path
-                key={t.secuencia}
-                d={t.path_svg}
+                key={trazo.secuencia}
+                d={trazo.path_svg}
                 className={i < hasta ? 'trazo-hecho' : 'trazo-pendiente'}
               />
             ))}
@@ -273,6 +333,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
         <canvas
           ref={canvasRef}
           className="lienzo-canvas"
+          aria-label={t('strokes.canvasLabel')}
           onMouseDown={empezar}
           onMouseMove={mover}
           onMouseUp={terminar}
@@ -283,16 +344,21 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
         />
 
         {tieneDibujo && (
-          <button className="limpiar" onClick={limpiar}>
-            Borrar
+          <button type="button" className="limpiar" onClick={limpiar}>
+            {t('strokes.clear')}
           </button>
         )}
       </div>
 
-      {validando && <p className="validando">Comprobando…</p>}
+      {validando && <p className="validando" role="status">{t('strokes.checking')}</p>}
+
+      {sinEvaluar && (
+        <p className="hm-status hm-status--empty" role="status">{t('strokes.unavailable')}</p>
+      )}
 
       {resultado && (
         <div
+          role="status"
           className={`resultado ${
             resultado.aprobado ? 'aprobado' : resultado.invertido ? 'invertido' : 'fallado'
           }`}
@@ -301,8 +367,20 @@ function LienzoTrazos({ trazos, hasta, hanzi, onAprobado }) {
             <span className="resultado-puntaje">{resultado.puntaje}</span>
           )}
           <p className="resultado-detalle">{resultado.detalle}</p>
-          {resultado.invertido && <span className="resultado-tag">sentido invertido</span>}
+          {resultado.invertido && <span className="resultado-tag">{t('strokes.reversed')}</span>}
         </div>
+      )}
+
+      {/* RF-IA-04: un aprobado "aceptable" dice dónde mejorar. */}
+      {resultado?.aprobado && resultado.nota && (
+        <p className="trazos-nota" role="status">
+          {resultado.nota.texto} <span className="trazos-nota__seguir">{t('strokes.noteNext')}</span>
+        </p>
+      )}
+
+      {/* RF-IA-04: solo con un trazo fallado que el servicio pudo explicar. */}
+      {resultado && !resultado.aprobado && resultado.explicacion && (
+        <PorQue explicacion={resultado.explicacion} anunciar />
       )}
     </>
   );

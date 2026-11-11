@@ -19,6 +19,16 @@ puras sobre listas de puntos, lo que las hace testeables sin migraciones.
 import math
 from dataclasses import dataclass, field
 
+
+def gettext_noop(texto):
+    """Marca el texto para makemessages sin traducirlo ni importar Django.
+
+    El detalle sale en español y la vista (ValidarTrazoView) lo traduce al
+    idioma de la petición (T21).
+    """
+    return texto
+
+
 # Make Me a Hanzi trabaja en un lienzo de 1024x1024 cuyo eje Y crece hacia
 # arriba, con el contenido ubicado aproximadamente entre -124 y 900.
 LIENZO = 1024
@@ -239,14 +249,14 @@ def comparar_trazo(puntos_usuario, mediana, ancho_lienzo, alto_lienzo):
         return ResultadoComparacion(
             aprobado=False, puntaje=0, motivo="vacio",
             distancia_media=float("inf"), razon_longitud=0.0,
-            detalle="El carácter no tiene datos de trazo para comparar.",
+            detalle=gettext_noop("El carácter no tiene datos de trazo para comparar."),
         )
 
     if not puntos_usuario or len(puntos_usuario) < 2:
         return ResultadoComparacion(
             aprobado=False, puntaje=0, motivo="vacio",
             distancia_media=float("inf"), razon_longitud=0.0,
-            detalle="No se registró ningún trazo.",
+            detalle=gettext_noop("No se registró ningún trazo."),
         )
 
     esperado = [tuple(map(float, p)) for p in mediana]
@@ -288,7 +298,7 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=False, puntaje=min(puntaje, 40), motivo="invertido",
             distancia_media=distancia, razon_longitud=razon, invertido=True,
-            detalle=(
+            detalle=gettext_noop(
                 "La forma es correcta, pero lo trazaste en sentido contrario. "
                 "Revisá por dónde empieza el trazo."
             ),
@@ -299,7 +309,7 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=False, puntaje=min(puntaje, 45), motivo="incompleto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="El trazo quedó corto. Recorré el trazo completo.",
+            detalle=gettext_noop("El trazo quedó corto. Recorré el trazo completo."),
             puntos_lejanos=lejanos,
         )
 
@@ -307,7 +317,7 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=False, puntaje=min(puntaje, 45), motivo="incompleto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="El trazo se pasó de largo respecto del esperado.",
+            detalle=gettext_noop("El trazo se pasó de largo respecto del esperado."),
             puntos_lejanos=lejanos,
         )
 
@@ -315,21 +325,21 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=True, puntaje=puntaje, motivo="correcto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="Trazo correcto.",
+            detalle=gettext_noop("Trazo correcto."),
         )
 
     if distancia <= UMBRAL_ACEPTABLE:
         return ResultadoComparacion(
             aprobado=True, puntaje=puntaje, motivo="correcto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="Trazo aceptable. Con más precisión quedaría perfecto.",
+            detalle=gettext_noop("Trazo aceptable. Con más precisión quedaría perfecto."),
             puntos_lejanos=lejanos,
         )
 
     return ResultadoComparacion(
         aprobado=False, puntaje=puntaje, motivo="impreciso",
         distancia_media=distancia, razon_longitud=razon,
-        detalle="El trazo se alejó bastante del recorrido esperado.",
+        detalle=gettext_noop("El trazo se alejó bastante del recorrido esperado."),
         puntos_lejanos=lejanos,
     )
 

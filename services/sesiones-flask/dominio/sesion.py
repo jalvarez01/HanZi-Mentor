@@ -1,0 +1,33 @@
+"""
+Reglas sobre el ciclo de vida de una sesión de estudio: cuándo se considera
+completa. Port de agente-tutor/tutor/domain/sesion_logic.py.
+
+El modelo solo persiste el estado; estas funciones deciden cuándo cambia y
+nunca guardan: el commit lo hace el servicio.
+"""
+
+
+def total_ejercicios(sesion):
+    return len(sesion.ejercicios)
+
+
+def ejercicios_pendientes(sesion):
+    return sum(1 for ejercicio in sesion.ejercicios if not ejercicio.respondido)
+
+
+def esta_pendiente(ejercicio):
+    return not ejercicio.respondido
+
+
+def cerrar_si_completa(sesion, momento=None):
+    """Marca la sesión como completada cuando ya no quedan pendientes.
+
+    `momento` (RF-IA-05) es la fecha de la última respuesta: queda como
+    `completada_en` para calcular el desempeño.
+    """
+    if ejercicios_pendientes(sesion) == 0 and sesion.estado != "completada":
+        sesion.estado = "completada"
+        if momento is not None:
+            sesion.completada_en = momento
+        return True
+    return False

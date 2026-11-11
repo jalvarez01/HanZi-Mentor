@@ -1,0 +1,31 @@
+/* Bloque "Por qué" (RF-IA-04): el acento ocre del error conceptual, como el trazo invertido */
+
+.por-que {
+  margin: 0 0 14px;
+  padding: 10px 13px;
+  border-left: 3px solid var(--ochre);
+  background: linear-gradient(var(--ochre-tint), var(--ochre-tint)), var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  text-align: left;
+}
+
+.por-que__etiqueta { margin: 0 0 4px; }
+
+.por-que__titulo {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font: 700 var(--fs-base)/1.35 var(--font-ui);
+}
+
+.por-que__texto {
+  margin: 0 0 6px;
+  color: var(--ink-muted);
+  font: var(--fs-md)/1.45 var(--font-ui);
+}
+
+.por-que__pista {
+  margin: 0;
+  color: var(--ink);
+  font: var(--fs-md)/1.45 var(--font-ui);
+}

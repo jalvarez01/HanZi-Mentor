@@ -1,0 +1,183 @@
+# Mensajes de progreso-flask en es.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: progreso-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-10 20:18-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: es\n"
+"Language-Team: Español\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:44
+msgid "Solicitud incorrecta"
+msgstr ""
+
+#: errores.py:48
+msgid "Recurso no encontrado"
+msgstr ""
+
+#: errores.py:52
+msgid "Método no permitido"
+msgstr ""
+
+#: errores.py:56 errores.py:66
+msgid "Error interno"
+msgstr ""
+
+#: validacion.py:37
+msgid "El usuario_id debe ser un UUID válido"
+msgstr ""
+
+#: validacion.py:43 validacion.py:153
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr ""
+
+#: validacion.py:47
+msgid "El campo 'caracter' es obligatorio y debe ser texto"
+msgstr ""
+
+#: validacion.py:51
+#, python-format
+msgid "El campo 'caracter' admite hasta %(maximo)s caracteres"
+msgstr ""
+
+#: validacion.py:62
+msgid "El campo 'codigo_error' no es un código de error conocido"
+msgstr ""
+
+#: validacion.py:77 validacion.py:139
+msgid "El campo 'acerto' es obligatorio y debe ser true o false"
+msgstr ""
+
+#: validacion.py:91
+msgid "El campo 'codigo_error' es obligatorio"
+msgstr ""
+
+#: validacion.py:93
+msgid "El campo 'codigo_error' debe ser un código de error de trazo"
+msgstr ""
+
+#: validacion.py:104
+#, python-format
+msgid "El límite debe ser un entero entre 1 y %(maximo)s"
+msgstr ""
+
+#: validacion.py:117
+#, python-format
+msgid "El campo 'dias' debe ser un entero entre 1 y %(maximo)s"
+msgstr ""
+
+#: validacion.py:135
+msgid "Cada respuesta debe ser un objeto con 'caracter' y 'acerto'"
+msgstr ""
+
+#: validacion.py:157
+msgid "El campo 'sesion_id' debe ser un entero positivo"
+msgstr ""
+
+#: validacion.py:161
+msgid "El campo 'cerrada_en' debe ser una fecha ISO 8601 con zona horaria"
+msgstr ""
+
+#: validacion.py:166
+#, python-format
+msgid "El campo 'respuestas' debe ser una lista de 1 a %(maximo)s respuestas"
+msgstr ""
+
+#: dominio/patrones.py:72
+msgid "Trazos al revés"
+msgstr ""
+
+#: dominio/patrones.py:74
+msgid ""
+"Antes de trazar, mirá dónde empieza el modelo: casi siempre es de arriba "
+"hacia abajo y de izquierda a derecha."
+msgstr ""
+
+#: dominio/patrones.py:80
+msgid "Largo del trazo"
+msgstr ""
+
+#: dominio/patrones.py:81
+msgid "Seguí el modelo hasta la punta y levantá el dedo recién ahí."
+msgstr ""
+
+#: dominio/patrones.py:85
+msgid "Trazos fuera de lugar"
+msgstr ""
+
+#: dominio/patrones.py:86
+msgid "Usá la cruz punteada para ubicar dónde empieza cada trazo."
+msgstr ""
+
+#: dominio/patrones.py:90
+msgid "Forma del trazo"
+msgstr ""
+
+#: dominio/patrones.py:91
+msgid "Trazá más despacio y seguí la guía de punta a punta."
+msgstr ""
+
+#: dominio/patrones.py:97
+msgid "Primer sonido del pinyin"
+msgstr ""
+
+#: dominio/patrones.py:98
+msgid "Decí la sílaba en voz alta y prestá atención a cómo empieza."
+msgstr ""
+
+#: dominio/patrones.py:102
+msgid "Terminación del pinyin"
+msgstr ""
+
+#: dominio/patrones.py:103
+msgid "Decí la sílaba en voz alta y prestá atención a cómo termina."
+msgstr ""
+
+#: dominio/patrones.py:107
+msgid "Lecturas confundidas"
+msgstr ""
+
+#: dominio/patrones.py:108
+msgid "Leé estos caracteres en voz alta antes de tu próxima sesión."
+msgstr ""
+
+#: dominio/patrones.py:112
+msgid "Caracteres que todavía no conocés"
+msgstr ""
+
+#: dominio/patrones.py:113
+msgid "Mirá primero su ficha en Trazos y después volvé a practicarlos."
+msgstr ""
+
+#: dominio/patrones.py:119
+msgid "Significados"
+msgstr ""
+
+#: dominio/patrones.py:120
+msgid "Asociá cada carácter con una sola palabra y respondé con esa."
+msgstr ""
+
+#: dominio/patrones.py:127
+msgid "Caracteres que se repiten en tus fallos"
+msgstr ""
+
+#: dominio/patrones.py:128
+msgid "Practicalos en Trazos antes de tu próxima sesión."
+msgstr ""
+
+#: dominio/patrones.py:132
+msgid "Caracteres que ya dominabas"
+msgstr ""
+
+#: dominio/patrones.py:133
+msgid "Volvé a repasarlos: lo que no se practica seguido se olvida."
+msgstr ""
+

@@ -5,8 +5,9 @@ Dos implementaciones bajo el mismo contrato:
 
 - `CatalogoLocal`: lista fija en memoria. Sirve para tests y para levantar
   el servicio sin depender de que `contenido` esté arriba.
-- `CatalogoRemoto`: consulta al servicio `contenido`, que a su vez sirve
-  los datos importados de Make Me a Hanzi.
+- `CatalogoRemoto`: consulta por HTTP los datos importados de Make Me a
+  Hanzi. Listado y detalle van a catalogo-flask (`/api/v2/caracteres/`);
+  la validación de trazos sigue en `contenido` (v1).
 
 El remoto cae al local si la petición falla. Un servicio caído no debería
 dejar al estudiante sin sesión.
@@ -45,10 +46,14 @@ class CatalogoLocal(Catalogo):
 
 
 class CatalogoRemoto(Catalogo):
-    """Consulta el servicio de contenido por HTTP."""
+    """Consulta el catálogo (catalogo-flask) y, para trazos, `contenido`."""
 
-    def __init__(self, base_url, respaldo=None):
+    def __init__(self, base_url, contenido_url=None, respaldo=None):
+        # base_url: catalogo-flask (listado y detalle, v2).
+        # contenido_url: contenido (validación de trazos, v1). Sin él se usa
+        # base_url, como antes de separar los dos servicios.
         self._base_url = base_url.rstrip("/")
+        self._contenido_url = (contenido_url or base_url).rstrip("/")
         self._respaldo = respaldo or CatalogoLocal()
 
     def caracteres_de_nivel(self, nivel, excluir=None, cantidad=4) -> list:
@@ -58,7 +63,7 @@ class CatalogoRemoto(Catalogo):
             import requests
 
             respuesta = requests.get(
-                f"{self._base_url}/api/caracteres/",
+                f"{self._base_url}/api/v2/caracteres/",
                 params={
                     "nivel": nivel,
                     "excluir": ",".join(omitir),
@@ -74,10 +79,10 @@ class CatalogoRemoto(Catalogo):
             if hanzi:
                 return hanzi[:cantidad]
 
-            logger.warning("El servicio de contenido no devolvió caracteres de HSK%s", nivel)
+            logger.warning("El catálogo no devolvió caracteres de HSK%s", nivel)
 
         except Exception as error:
-            logger.warning("Falló la consulta al servicio de contenido: %s", error)
+            logger.warning("Falló la consulta al catálogo: %s", error)
 
         return self._respaldo.caracteres_de_nivel(nivel, omitir, cantidad)
 
@@ -87,14 +92,14 @@ class CatalogoRemoto(Catalogo):
             import requests
 
             respuesta = requests.get(
-                f"{self._base_url}/api/caracteres/{hanzi}/",
+                f"{self._base_url}/api/v2/caracteres/{hanzi}/",
                 timeout=TIMEOUT_SEGUNDOS,
             )
             respuesta.raise_for_status()
             return respuesta.json()
 
         except Exception as error:
-            logger.warning("Falló la consulta de detalle al servicio de contenido: %s", error)
+            logger.warning("Falló la consulta de detalle al catálogo: %s", error)
             return {}
 
     def comparar_trazo(self, hanzi, secuencia, puntos, ancho, alto) -> dict:
@@ -107,7 +112,7 @@ class CatalogoRemoto(Catalogo):
             import requests
 
             respuesta = requests.post(
-                f"{self._base_url}/api/caracteres/{hanzi}/trazos/{secuencia}/validar/",
+                f"{self._contenido_url}/api/caracteres/{hanzi}/trazos/{secuencia}/validar/",
                 json={"puntos": puntos, "ancho": ancho, "alto": alto},
                 timeout=TIMEOUT_SEGUNDOS,
             )

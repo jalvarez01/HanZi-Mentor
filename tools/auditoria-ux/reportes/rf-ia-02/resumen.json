@@ -1,0 +1,124 @@
+{
+  "base": "http://localhost",
+  "fecha": "2026-11-11T02:04:58.570Z",
+  "usuario": "cccccccc-0002-4000-8000-000000000001",
+  "zonaHoraria": "UTC",
+  "axe": {
+    "progreso-repasos-375": [],
+    "progreso-vacio-375": [],
+    "progreso-error-375": [],
+    "practica-vencido-375": []
+  },
+  "comprobaciones": {
+    "progreso 375: grupos en orden Vencidos, Hoy, Próximos": true,
+    "progreso 375: vencidos dicen \"vencido\" y el tiempo de hace()": true,
+    "progreso 375: hoy dice \"hoy\"": true,
+    "progreso 375: próximos dicen \"mañana\" o \"en N días\"": true,
+    "progreso 375: cada carácter con lang=\"zh\"": true,
+    "progreso 375: el bloque anterior \"Próximo repaso\" ya no está": true,
+    "progreso-repasos-375: sin desborde horizontal": true,
+    "progreso: \"Actualizar\" vuelve a pedir repasos/": true,
+    "progreso 375: estado vacío con su texto": true,
+    "progreso-vacio-375: sin desborde horizontal": true,
+    "progreso 375: error con \"Reintentar\" dentro de la sección": true,
+    "progreso 375: el resto de la página sigue": true,
+    "progreso-error-375: sin desborde horizontal": true,
+    "progreso: \"Reintentar\" recupera la lista": true,
+    "progreso 1280: grupos en orden Vencidos, Hoy, Próximos": true,
+    "progreso 1280: vencidos dicen \"vencido\" y el tiempo de hace()": true,
+    "progreso 1280: hoy dice \"hoy\"": true,
+    "progreso 1280: próximos dicen \"mañana\" o \"en N días\"": true,
+    "progreso 1280: cada carácter con lang=\"zh\"": true,
+    "progreso 1280: el bloque anterior \"Próximo repaso\" ya no está": true,
+    "progreso 1280: estado vacío con su texto": true,
+    "progreso 1280: error con \"Reintentar\" dentro de la sección": true,
+    "progreso 1280: el resto de la página sigue": true,
+    "práctica: los primeros ejercicios son los vencidos, en orden": true,
+    "práctica: el primero es repaso (es_refuerzo) de tipo significado": true,
+    "práctica: sin caracteres repetidos": true,
+    "práctica: la tarjeta muestra el vencido y la etiqueta de refuerzo": true,
+    "practica-vencido-375: sin desborde horizontal": true
+  },
+  "capturas": [
+    {
+      "archivo": "progreso-repasos-375.png",
+      "bytes": 92843
+    },
+    {
+      "archivo": "progreso-vacio-375.png",
+      "bytes": 95540
+    },
+    {
+      "archivo": "progreso-error-375.png",
+      "bytes": 96031
+    },
+    {
+      "archivo": "progreso-repasos-1280.png",
+      "bytes": 126809
+    },
+    {
+      "archivo": "progreso-vacio-1280.png",
+      "bytes": 122552
+    },
+    {
+      "archivo": "progreso-error-1280.png",
+      "bytes": 119030
+    },
+    {
+      "archivo": "practica-vencido-375.png",
+      "bytes": 84450
+    },
+    {
+      "archivo": "practica-vencido-1280.png",
+      "bytes": 93284
+    }
+  ],
+  "textos-375": {
+    "vencidos": [
+      "vencido hace 3 días",
+      "vencido anteayer"
+    ],
+    "hoy": [
+      "hoy"
+    ],
+    "proximos": [
+      "mañana",
+      "mañana",
+      "mañana",
+      "mañana"
+    ]
+  },
+  "textos-1280": {
+    "vencidos": [
+      "vencido hace 3 días",
+      "vencido anteayer"
+    ],
+    "hoy": [
+      "hoy"
+    ],
+    "proximos": [
+      "mañana",
+      "mañana",
+      "mañana",
+      "mañana"
+    ]
+  },
+  "sesionPractica": {
+    "id": 92,
+    "ejercicios": [
+      "三",
+      "一",
+      "七",
+      "九",
+      "书",
+      "买",
+      "了"
+    ],
+    "vencidosAntes": [
+      "三",
+      "一"
+    ]
+  },
+  "violacionesAxe": 0,
+  "bytesCapturas": 830539
+}

@@ -1,0 +1,39 @@
+{
+  "version": "despues",
+  "base": "http://localhost",
+  "fecha": "2026-10-28T16:17:15.352Z",
+  "chrome": "155.0.8059.85",
+  "playwright": "1.64.1",
+  "axeCore": null,
+  "etiquetas": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa"
+  ],
+  "paginas": {},
+  "estados": {
+    "error": {
+      "pagina": "progreso",
+      "alertas": [
+        "El servicio no está disponible."
+      ],
+      "textoError": [
+        "El servicio no está disponible."
+      ],
+      "botones": [
+        "ES",
+        "EN",
+        "Actualizar"
+      ],
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "bytes": 198440
+    }
+  }
+}

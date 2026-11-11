@@ -1,0 +1,3 @@
+# Se generan con pybabel (Docker) o al correr las pruebas.
+messages.pot
+translations/*/LC_MESSAGES/*.mo

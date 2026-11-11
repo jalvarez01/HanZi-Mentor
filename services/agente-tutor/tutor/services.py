@@ -10,6 +10,7 @@ import os
 
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext
 
 from .domain import progreso_logic, sesion_logic
 from .domain.builders import SesionEstudioBuilder
@@ -74,7 +75,7 @@ class ResponderEjercicioService:
 
         if ejercicio.respondido:
             raise EjercicioYaRespondidoError(
-                f"El ejercicio {ejercicio_id} ya fue respondido."
+                gettext("El ejercicio %(id)s ya fue respondido.") % {"id": ejercicio_id}
             )
 
         ahora = self._reloj()
@@ -115,7 +116,8 @@ class EvaluarEjercicioService:
 
     def __init__(self, catalogo=None):
         self._catalogo = catalogo or CatalogoRemoto(
-            base_url=os.getenv("CONTENIDO_URL", "http://localhost:8002")
+            base_url=os.getenv("CATALOGO_URL", "http://localhost:5000"),
+            contenido_url=os.getenv("CONTENIDO_URL", "http://localhost:8002"),
         )
 
     def evaluar(self, ejercicio_id, respuesta_usuario):
@@ -123,7 +125,7 @@ class EvaluarEjercicioService:
             ejercicio = Ejercicio.objects.get(pk=ejercicio_id)
         except Ejercicio.DoesNotExist:
             raise EjercicioNoEncontradoError(
-                f"No existe un ejercicio con id={ejercicio_id}."
+                gettext("No existe un ejercicio con id=%(id)s.") % {"id": ejercicio_id}
             )
 
         if ejercicio.tipo == "trazo":

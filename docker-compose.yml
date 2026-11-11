@@ -1,15 +1,33 @@
 # Topología del taller 02 (Strangler Pattern): el monolito Django `contenido`
 # y el microservicio Flask `flask_trazos` coexisten detrás de Nginx.
 #
+#   /api/v1/tutor/*   -> agente_tutor  (Django, sesiones y progreso)
 #   /api/v1/*         -> contenido     (Django, rutas antiguas)
 #   /api/v2/trazos/*  -> flask_trazos  (Flask, funcionalidad estrangulada)
+#   /api/v2/caracteres/*, /api/v2/lecciones/* -> flask_catalogo (Flask)
+#   /api/v2/publico/* -> flask_catalogo (resumen para el equipo aliado)
+#   /api/v2/ejemplos/* -> flask_ejemplos (Flask, API de terceros)
+#   /api/v2/progreso/* -> flask_progreso (Flask, progreso y repaso)
+#   /api/v2/sesiones/*, /api/v2/ejercicios/* -> flask_sesiones (Flask)
+#   /api/v2/evaluacion/* -> flask_evaluacion (Flask, sin base)
+#   /api/v2/reportes/* -> flask_reportes (Flask, encola en Redis; `worker` ejecuta)
+#   /api/v2/suscripciones/* -> flask_suscripciones (Flask, planes Free y Premium)
+#   /*                -> frontend      (PWA estática)
+#
+# Bases de datos: un solo PostgreSQL (`db`) con una base por servicio:
+# `contenido` (Django), `db_catalogo`, `db_progreso`, `db_sesiones` y
+# `db_suscripciones` (las
+# bases de los servicios Flask, que crea el arranque de cada uno).
+#
+# Tareas asíncronas (T18): `redis` es el broker de Celery y guarda los
+# resultados; `worker` las ejecuta con la misma imagen que flask_reportes.
 #
 # Uso, desde la raíz del repo:
 #   docker compose up -d --build
 #   docker compose ps
 #
-# Solo Nginx publica un puerto en el host; Django, Flask y la base de datos
-# quedan accesibles únicamente dentro de la red de Docker.
+# Solo Nginx publica un puerto en el host; el frontend, Django, Flask y la
+# base de datos quedan accesibles únicamente dentro de la red de Docker.
 
 services:
   db:
@@ -35,6 +53,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-hanzimentor}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hanzimentor}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      # DEBUG apagado si la variable falta. La clave no lleva valor por
+      # defecto: si falta, Compose avisa y pasa un valor vacío; Django usa
+      # entonces una clave de desarrollo con DJANGO_DEBUG=1 o se niega a
+      # arrancar con DJANGO_DEBUG=0 (ver config/settings.py).
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_SECRET_KEY: ${CONTENIDO_SECRET_KEY}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
     volumes:
       # Dataset de Make Me a Hanzi (fuera del repo): se usa para la carga
       # inicial de caracteres cuando la base está vacía.
@@ -60,18 +85,312 @@ services:
       retries: 5
     restart: unless-stopped
 
+  flask_catalogo:
+    build: ./services/catalogo-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_catalogo
+      GUNICORN_WORKERS: ${CATALOGO_WORKERS:-2}
+    volumes:
+      # Mismo dataset que contenido. Si la carpeta no existe (instancia
+      # nueva), el arranque lo descarga de GitHub cuando la base está vacía.
+      - ./services/contenido/data_hanzi:/datos:ro
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      # La primera vez descarga y carga el dataset antes de abrir el puerto.
+      start_period: 180s
+      retries: 5
+    restart: unless-stopped
+
+  flask_ejemplos:
+    build: ./services/ejemplos-flask
+    environment:
+      PROVEEDOR_EJEMPLOS: ${PROVEEDOR_EJEMPLOS:-tatoeba}
+      TATOEBA_TIMEOUT: ${TATOEBA_TIMEOUT:-3}
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  flask_progreso:
+    build: ./services/progreso-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_progreso
+      GUNICORN_WORKERS: ${PROGRESO_WORKERS:-2}
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      # No carga datos al arrancar: solo crea la base y las tablas.
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  flask_suscripciones:
+    build: ./services/suscripciones-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_suscripciones
+      GUNICORN_WORKERS: ${SUSCRIPCIONES_WORKERS:-2}
+      # Adaptador de pagos (RF-USR-01): hoy solo "simulada", que no mueve
+      # dinero ni sale a internet.
+      PASARELA_PAGO: ${PASARELA_PAGO:-simulada}
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  flask_sesiones:
+    build: ./services/sesiones-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_sesiones
+      GUNICORN_WORKERS: ${SESIONES_WORKERS:-2}
+      # Fijos a propósito: nombres de la red de Docker, URL base sin /api/v2.
+      CATALOGO_URL: http://flask_catalogo:5000
+      PROGRESO_URL: http://flask_progreso:5000
+      HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
+      TUTOR_ENGINE: MOCK
+      # Fijo a propósito, sin leer NOTIFICADOR del .env: ese valor es el de
+      # agente_tutor (CONSOLE | EMAIL). `cola` publica notificar_sesion_lista
+      # en Redis para el worker; si Redis no responde, la sesión se crea igual.
+      NOTIFICADOR: cola
+      REDIS_URL: redis://redis:6379/0
+    expose:
+      - "5000"
+    # Solo ordenan el arranque: si catálogo o progreso se caen después,
+    # sesiones sigue en modo degradado (lista local, progreso inicial y
+    # `aviso` en las respuestas). Redis tampoco es obligatorio: sin él solo
+    # se pierde la notificación.
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      flask_catalogo:
+        condition: service_healthy
+      flask_progreso:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  flask_evaluacion:
+    build: ./services/evaluacion-flask
+    environment:
+      # Sin base: no guarda estado. Fijos a propósito: nombres de la red de
+      # Docker, URL base sin /api/v2.
+      CATALOGO_URL: http://flask_catalogo:5000
+      TRAZOS_URL: http://flask_trazos:5000
+      HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
+      GUNICORN_WORKERS: ${EVALUACION_WORKERS:-2}
+      # Adaptador que explica los errores (RF-IA-04): hoy solo "reglas".
+      EXPLICADOR_ERRORES: ${EXPLICADOR_ERRORES:-reglas}
+    expose:
+      - "5000"
+    depends_on:
+      flask_catalogo:
+        condition: service_healthy
+      flask_trazos:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # Sin persistencia: la cola y los resultados se pueden perder al
+    # reiniciar. Con volatile-lru solo se expulsan claves con caducidad
+    # (resultados y notificaciones); la cola no caduca y nunca se expulsa.
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - volatile-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  flask_reportes:
+    build: ./services/reportes-flask
+    # Nombre fijo: worker reutiliza esta imagen.
+    image: hanzi-mentor-reportes:local
+    environment:
+      # Fijo a propósito: nombre de la red de Docker.
+      REDIS_URL: redis://redis:6379/0
+      GUNICORN_WORKERS: ${REPORTES_WORKERS:-2}
+    expose:
+      - "5000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # /health responde 503 si Redis no contesta.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    build: ./services/reportes-flask
+    image: hanzi-mentor-reportes:local
+    # Un solo proceso hijo: alcanza para estas tareas y cuida la RAM de la
+    # t3.medium.
+    command: ["celery", "-A", "tareas", "worker", "--loglevel=info", "--concurrency=1"]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      # El reporte consulta progreso por HTTP. Sin reintentos HTTP: los hace
+      # Celery (3, a los 1, 2 y 4 s). Con HTTP_TIMEOUT=3, un progreso caído
+      # da "error" en unos 23 s (menos de 30); un timeout mayor lo alarga.
+      PROGRESO_URL: http://flask_progreso:5000
+      HTTP_TIMEOUT: ${HTTP_TIMEOUT:-3}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Reemplaza el de la imagen (/health no existe en el worker). Pregunta
+      # solo a su propio nodo: celery@<hostname del contenedor>.
+      test: ["CMD-SHELL", "celery -A tareas inspect ping -d celery@$$HOSTNAME --timeout 5"]
+      interval: 30s
+      timeout: 15s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+
+  agente_tutor:
+    build: ./services/agente-tutor
+    environment:
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      # Igual que en contenido: DEBUG apagado por defecto y clave sin valor
+      # por defecto (Compose avisa si falta).
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_SECRET_KEY: ${TUTOR_SECRET_KEY}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
+      # Catálogo remoto: pide los caracteres a contenido y, si no responde,
+      # usa su lista local.
+      CATALOGO: ${CATALOGO:-REMOTO}
+      # Fijos a propósito (sin interpolar): son los nombres de la red de
+      # Docker; los valores localhost del .env son para local.
+      # Listado y detalle de caracteres: catálogo v2 (Flask).
+      CATALOGO_URL: http://flask_catalogo:5000
+      # Validación de trazos: sigue en contenido v1.
+      CONTENIDO_URL: http://contenido:8002
+      TUTOR_ENGINE: ${TUTOR_ENGINE:-MOCK}
+      NOTIFICADOR: ${NOTIFICADOR:-CONSOLE}
+    volumes:
+      # settings.py usa SQLite en /app/db.sqlite3, que en la imagen es un
+      # enlace a /app/data/db.sqlite3: la base persiste en este volumen.
+      - agente_tutor_db:/app/data
+    expose:
+      - "8003"
+    depends_on:
+      contenido:
+        condition: service_started
+      flask_catalogo:
+        condition: service_healthy
+    healthcheck:
+      # Sin endpoint /health: se consulta el progreso de un UUID inexistente,
+      # que responde 200 con valores por defecto y no escribe en la base.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/api/progreso/00000000-0000-0000-0000-000000000000/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    expose:
+      - "80"
+    healthcheck:
+      # 127.0.0.1 y no localhost: en alpine localhost resuelve primero a ::1 y nginx escucha en IPv4.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   nginx:
     image: nginx:1.27-alpine
     ports:
       - "${GATEWAY_PORT:-80}:80"
     volumes:
       - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    # Nginx resuelve cada servicio por DNS en cada petición (ver nginx.conf):
+    # no necesita que estén sanos para arrancar. depends_on solo ordena el
+    # arranque; un servicio que no responde da 502 JSON solo en sus rutas.
     depends_on:
       contenido:
         condition: service_started
       flask_trazos:
-        condition: service_healthy
+        condition: service_started
+      flask_catalogo:
+        condition: service_started
+      flask_ejemplos:
+        condition: service_started
+      flask_progreso:
+        condition: service_started
+      flask_sesiones:
+        condition: service_started
+      flask_evaluacion:
+        condition: service_started
+      flask_reportes:
+        condition: service_started
+      flask_suscripciones:
+        condition: service_started
+      agente_tutor:
+        condition: service_started
+      frontend:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
   contenido_db:
+  agente_tutor_db:

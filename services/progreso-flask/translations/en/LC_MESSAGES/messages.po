@@ -1,0 +1,185 @@
+# Mensajes de progreso-flask en en.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: progreso-flask 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-10 20:18-0500\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: errores.py:44
+msgid "Solicitud incorrecta"
+msgstr "Bad request"
+
+#: errores.py:48
+msgid "Recurso no encontrado"
+msgstr "Resource not found"
+
+#: errores.py:52
+msgid "Método no permitido"
+msgstr "Method not allowed"
+
+#: errores.py:56 errores.py:66
+msgid "Error interno"
+msgstr "Internal error"
+
+#: validacion.py:37
+msgid "El usuario_id debe ser un UUID válido"
+msgstr "The usuario_id must be a valid UUID"
+
+#: validacion.py:43 validacion.py:153
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr "The body must be a JSON object"
+
+#: validacion.py:47
+msgid "El campo 'caracter' es obligatorio y debe ser texto"
+msgstr "The field 'caracter' is required and must be text"
+
+#: validacion.py:51
+#, python-format
+msgid "El campo 'caracter' admite hasta %(maximo)s caracteres"
+msgstr "The field 'caracter' allows up to %(maximo)s characters"
+
+#: validacion.py:62
+msgid "El campo 'codigo_error' no es un código de error conocido"
+msgstr "The field 'codigo_error' is not a known error code"
+
+#: validacion.py:77 validacion.py:139
+msgid "El campo 'acerto' es obligatorio y debe ser true o false"
+msgstr "The field 'acerto' is required and must be true or false"
+
+#: validacion.py:91
+msgid "El campo 'codigo_error' es obligatorio"
+msgstr "The field 'codigo_error' is required"
+
+#: validacion.py:93
+msgid "El campo 'codigo_error' debe ser un código de error de trazo"
+msgstr "The field 'codigo_error' must be a stroke error code"
+
+#: validacion.py:104
+#, python-format
+msgid "El límite debe ser un entero entre 1 y %(maximo)s"
+msgstr "The limit must be an integer between 1 and %(maximo)s"
+
+#: validacion.py:117
+#, python-format
+msgid "El campo 'dias' debe ser un entero entre 1 y %(maximo)s"
+msgstr "The field 'dias' must be an integer between 1 and %(maximo)s"
+
+#: validacion.py:135
+msgid "Cada respuesta debe ser un objeto con 'caracter' y 'acerto'"
+msgstr "Each answer must be an object with 'caracter' and 'acerto'"
+
+#: validacion.py:157
+msgid "El campo 'sesion_id' debe ser un entero positivo"
+msgstr "The field 'sesion_id' must be a positive integer"
+
+#: validacion.py:161
+msgid "El campo 'cerrada_en' debe ser una fecha ISO 8601 con zona horaria"
+msgstr "The field 'cerrada_en' must be an ISO 8601 date with a time zone"
+
+#: validacion.py:166
+#, python-format
+msgid "El campo 'respuestas' debe ser una lista de 1 a %(maximo)s respuestas"
+msgstr "The field 'respuestas' must be a list of 1 to %(maximo)s answers"
+
+#: dominio/patrones.py:72
+msgid "Trazos al revés"
+msgstr "Strokes written backwards"
+
+#: dominio/patrones.py:74
+msgid ""
+"Antes de trazar, mirá dónde empieza el modelo: casi siempre es de arriba "
+"hacia abajo y de izquierda a derecha."
+msgstr ""
+"Before you draw, look at where the model starts: almost always top to "
+"bottom and left to right."
+
+#: dominio/patrones.py:80
+msgid "Largo del trazo"
+msgstr "Stroke length"
+
+#: dominio/patrones.py:81
+msgid "Seguí el modelo hasta la punta y levantá el dedo recién ahí."
+msgstr "Follow the model to its tip and only then lift your finger."
+
+#: dominio/patrones.py:85
+msgid "Trazos fuera de lugar"
+msgstr "Strokes out of place"
+
+#: dominio/patrones.py:86
+msgid "Usá la cruz punteada para ubicar dónde empieza cada trazo."
+msgstr "Use the dotted cross to find where each stroke starts."
+
+#: dominio/patrones.py:90
+msgid "Forma del trazo"
+msgstr "Stroke shape"
+
+#: dominio/patrones.py:91
+msgid "Trazá más despacio y seguí la guía de punta a punta."
+msgstr "Draw more slowly and follow the guide from end to end."
+
+#: dominio/patrones.py:97
+msgid "Primer sonido del pinyin"
+msgstr "First sound of the pinyin"
+
+#: dominio/patrones.py:98
+msgid "Decí la sílaba en voz alta y prestá atención a cómo empieza."
+msgstr "Say the syllable out loud and pay attention to how it starts."
+
+#: dominio/patrones.py:102
+msgid "Terminación del pinyin"
+msgstr "Ending of the pinyin"
+
+#: dominio/patrones.py:103
+msgid "Decí la sílaba en voz alta y prestá atención a cómo termina."
+msgstr "Say the syllable out loud and pay attention to how it ends."
+
+#: dominio/patrones.py:107
+msgid "Lecturas confundidas"
+msgstr "Mixed-up readings"
+
+#: dominio/patrones.py:108
+msgid "Leé estos caracteres en voz alta antes de tu próxima sesión."
+msgstr "Read these characters out loud before your next session."
+
+#: dominio/patrones.py:112
+msgid "Caracteres que todavía no conocés"
+msgstr "Characters you do not know yet"
+
+#: dominio/patrones.py:113
+msgid "Mirá primero su ficha en Trazos y después volvé a practicarlos."
+msgstr "Look at their card in Strokes first, then practice them again."
+
+#: dominio/patrones.py:119
+msgid "Significados"
+msgstr "Meanings"
+
+#: dominio/patrones.py:120
+msgid "Asociá cada carácter con una sola palabra y respondé con esa."
+msgstr "Link each character to a single word and answer with that one."
+
+#: dominio/patrones.py:127
+msgid "Caracteres que se repiten en tus fallos"
+msgstr "Characters that keep coming up in your mistakes"
+
+#: dominio/patrones.py:128
+msgid "Practicalos en Trazos antes de tu próxima sesión."
+msgstr "Practice them in Strokes before your next session."
+
+#: dominio/patrones.py:132
+msgid "Caracteres que ya dominabas"
+msgstr "Characters you had already mastered"
+
+#: dominio/patrones.py:133
+msgid "Volvé a repasarlos: lo que no se practica seguido se olvida."
+msgstr "Review them again: what is not practiced often is forgotten."
+

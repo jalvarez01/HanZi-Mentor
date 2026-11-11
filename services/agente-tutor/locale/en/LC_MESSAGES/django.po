@@ -1,0 +1,76 @@
+# Mensajes de agente-tutor en en.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: agente-tutor 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-26 02:45+0000\n"
+"PO-Revision-Date: 2026-10-25 00:00+0000\n"
+"Last-Translator: HanZi Mentor\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: tutor/domain/builders.py:79
+msgid "La sesión requiere un usuario."
+msgstr "The session requires a user."
+
+#: tutor/domain/builders.py:83
+#, python-format
+msgid "Nivel HSK inválido: %(nivel)s."
+msgstr "Invalid HSK level: %(nivel)s."
+
+#: tutor/domain/builders.py:88
+#, python-format
+msgid "HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s)."
+msgstr "HSK%(nivel)s is not unlocked yet (current maximum: HSK%(maximo)s)."
+
+#: tutor/domain/builders.py:93
+msgid "La sesión requiere una dificultad."
+msgstr "The session requires a difficulty."
+
+#: tutor/domain/builders.py:97
+#, python-format
+msgid "Una sesión necesita al menos %(minimo)s ejercicios."
+msgstr "A session needs at least %(minimo)s exercises."
+
+#: tutor/domain/builders.py:103
+#, python-format
+msgid "Una sesión no puede exceder %(maximo)s ejercicios."
+msgstr "A session cannot exceed %(maximo)s exercises."
+
+#: tutor/infra/notificadores.py:43
+msgid "Tu sesión de práctica está lista"
+msgstr "Your practice session is ready"
+
+#: tutor/infra/notificadores.py:45
+#, python-format
+msgid ""
+"Preparamos %(total)s ejercicios de nivel HSK%(nivel)s. Duración estimada: "
+"%(minutos)s minutos."
+msgstr ""
+"We prepared %(total)s HSK%(nivel)s exercises. Estimated time: %(minutos)s "
+"minutes."
+
+#: tutor/services.py:78
+#, python-format
+msgid "El ejercicio %(id)s ya fue respondido."
+msgstr "Exercise %(id)s has already been answered."
+
+#: tutor/services.py:128
+#, python-format
+msgid "No existe un ejercicio con id=%(id)s."
+msgstr "There is no exercise with id=%(id)s."
+
+#: tutor/views.py:51
+msgid "Ejercicio no encontrado."
+msgstr "Exercise not found."
+
+#: tutor/views.py:74
+msgid "Sesión no encontrada."
+msgstr "Session not found."
+

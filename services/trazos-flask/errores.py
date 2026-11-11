@@ -3,6 +3,8 @@
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
 
+from i18n import traducir
+from mensajes import N_
 from validacion import EntradaInvalida
 
 _CODIGOS_HTTP = {
@@ -20,23 +22,23 @@ def _error(mensaje, codigo, estado):
 def registrar_manejadores(app):
     @app.errorhandler(EntradaInvalida)
     def entrada_invalida(exc):
-        return _error(str(exc), "ENTRADA_INVALIDA", 400)
+        return _error(traducir(exc.plantilla, exc.params), "ENTRADA_INVALIDA", 400)
 
     @app.errorhandler(400)
     def solicitud_incorrecta(exc):
-        return _error("Solicitud incorrecta", "ENTRADA_INVALIDA", 400)
+        return _error(traducir(N_("Solicitud incorrecta")), "ENTRADA_INVALIDA", 400)
 
     @app.errorhandler(404)
     def no_encontrado(exc):
-        return _error("Recurso no encontrado", "NO_ENCONTRADO", 404)
+        return _error(traducir(N_("Recurso no encontrado")), "NO_ENCONTRADO", 404)
 
     @app.errorhandler(405)
     def metodo_no_permitido(exc):
-        return _error("Método no permitido", "METODO_NO_PERMITIDO", 405)
+        return _error(traducir(N_("Método no permitido")), "METODO_NO_PERMITIDO", 405)
 
     @app.errorhandler(500)
     def error_interno(exc):
-        return _error("Error interno", "ERROR_INTERNO", 500)
+        return _error(traducir(N_("Error interno")), "ERROR_INTERNO", 500)
 
     @app.errorhandler(Exception)
     def inesperado(exc):
@@ -46,4 +48,4 @@ def registrar_manejadores(app):
             return _error(exc.name, codigo, exc.code)
         # El detalle va al log del servidor, nunca al cliente.
         app.logger.exception("Error inesperado")
-        return _error("Error interno", "ERROR_INTERNO", 500)
+        return _error(traducir(N_("Error interno")), "ERROR_INTERNO", 500)

@@ -1,0 +1,66 @@
+[
+  {
+    "caso": "progreso 375: con repasos",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": 200
+  },
+  {
+    "caso": "progreso 375: Actualizar",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": 200
+  },
+  {
+    "caso": "progreso 375: vacío (simulado)",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": 200
+  },
+  {
+    "caso": "progreso 375: error (simulado)",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": "cortada en el navegador"
+  },
+  {
+    "caso": "progreso 375: Reintentar",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": 200
+  },
+  {
+    "caso": "progreso 1280: con repasos",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": 200
+  },
+  {
+    "caso": "progreso 1280: vacío (simulado)",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": 200
+  },
+  {
+    "caso": "progreso 1280: error (simulado)",
+    "metodo": "GET",
+    "ruta": "/api/v2/progreso/<usuario>/repasos/?dias=7&limite=20",
+    "estado": "cortada en el navegador"
+  },
+  {
+    "caso": "práctica: empezar sesión",
+    "metodo": "POST",
+    "ruta": "/api/v2/sesiones/",
+    "estado": 201,
+    "sesion_id": 92,
+    "ejercicios": [
+      "三 significado refuerzo",
+      "一 significado refuerzo",
+      "七 trazo refuerzo",
+      "九 significado",
+      "书 significado",
+      "买 significado",
+      "了 significado"
+    ]
+  }
+]

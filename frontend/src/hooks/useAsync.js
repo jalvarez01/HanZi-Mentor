@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import i18n from '../i18n';
 
 /**
  * Ejecuta una función asíncrona y expone su estado.
@@ -18,7 +19,7 @@ export function useAsync(funcion, dependencias = [], activo = true) {
     try {
       setDatos(await funcion());
     } catch (e) {
-      setError(e.message || 'Algo salió mal');
+      setError(e.message || i18n.t('common.genericError'));
     } finally {
       setCargando(false);
     }

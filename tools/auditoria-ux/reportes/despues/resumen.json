@@ -1,0 +1,732 @@
+{
+  "version": "despues",
+  "base": "http://localhost",
+  "fecha": "2026-10-28T16:15:17.958Z",
+  "chrome": "155.0.8059.85",
+  "playwright": "1.64.1",
+  "axeCore": "4.14.0",
+  "etiquetas": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa"
+  ],
+  "paginas": {
+    "inicio-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": true,
+        "h1": [
+          "Escribítrazo atrazo."
+        ],
+        "pestanaActiva": "Inicio",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Ver cómo funciona",
+            "ancho": 146,
+            "alto": 35
+          },
+          {
+            "texto": "Comenzar",
+            "ancho": 101,
+            "alto": 35
+          },
+          {
+            "texto": "Ver tu progreso",
+            "ancho": 32,
+            "alto": 32
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 88,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 156138
+    },
+    "inicio-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 9,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Escribítrazo atrazo."
+        ],
+        "pestanaActiva": "Inicio",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Ver cómo funciona",
+            "ancho": 146,
+            "alto": 35
+          },
+          {
+            "texto": "Comenzar",
+            "ancho": 101,
+            "alto": 35
+          },
+          {
+            "texto": "Ver tu progreso",
+            "ancho": 32,
+            "alto": 32
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 234038
+    },
+    "trazos-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": true,
+        "h1": [
+          "Trazos"
+        ],
+        "pestanaActiva": "Trazos",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Anterior",
+            "ancho": 89,
+            "alto": 34
+          },
+          {
+            "texto": "Siguiente",
+            "ancho": 92,
+            "alto": 34
+          },
+          {
+            "texto": "Oraciones de Tatoeba.org (CC B",
+            "ancho": 188,
+            "alto": 11
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 88,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 103692
+    },
+    "trazos-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 12,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Trazos"
+        ],
+        "pestanaActiva": "Trazos",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Anterior",
+            "ancho": 89,
+            "alto": 34
+          },
+          {
+            "texto": "Siguiente",
+            "ancho": 92,
+            "alto": 34
+          },
+          {
+            "texto": "Oraciones de Tatoeba.org (CC B",
+            "ancho": 188,
+            "alto": 11
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 70133
+    },
+    "practica-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": true,
+        "h1": [
+          "Practicar"
+        ],
+        "pestanaActiva": "Practicar",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Sesión adaptativa",
+            "ancho": 170,
+            "alto": 36
+          },
+          {
+            "texto": "Lección por nivel",
+            "ancho": 170,
+            "alto": 36
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 88,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 183670
+    },
+    "practica-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 5,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Practicar"
+        ],
+        "pestanaActiva": "Practicar",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Sesión adaptativa",
+            "ancho": 257,
+            "alto": 36
+          },
+          {
+            "texto": "Lección por nivel",
+            "ancho": 257,
+            "alto": 36
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 238476
+    },
+    "progreso-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": true,
+        "h1": [
+          "Progreso"
+        ],
+        "pestanaActiva": "Progreso",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Empezar como usuario nuevo",
+            "ancho": 341,
+            "alto": 38
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 88,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 174520
+    },
+    "progreso-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 14,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Progreso"
+        ],
+        "pestanaActiva": "Progreso",
+        "objetivosPequenos": [
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Empezar como usuario nuevo",
+            "ancho": 516,
+            "alto": 38
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 211957
+    },
+    "como-funciona-375": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "tieneMain": true,
+        "h1": [
+          "Cómo funciona"
+        ],
+        "pestanaActiva": null,
+        "objetivosPequenos": [
+          {
+            "texto": "Volver",
+            "ancho": 38,
+            "alto": 38
+          },
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 88,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 88,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 163448
+    },
+    "como-funciona-1280": {
+      "porImpacto": {
+        "critical": 0,
+        "serious": 1,
+        "moderate": 0,
+        "minor": 0
+      },
+      "reglas": [
+        {
+          "id": "color-contrast",
+          "impacto": "serious",
+          "nodos": 7,
+          "ayuda": "Elements must meet minimum color contrast ratio thresholds"
+        }
+      ],
+      "chequeos": {
+        "lang": "es",
+        "titulo": "HanziMentor",
+        "desbordeHorizontal": false,
+        "scrollWidth": 1280,
+        "innerWidth": 1280,
+        "tieneMain": true,
+        "h1": [
+          "Cómo funciona"
+        ],
+        "pestanaActiva": null,
+        "objetivosPequenos": [
+          {
+            "texto": "Volver",
+            "ancho": 38,
+            "alto": 38
+          },
+          {
+            "texto": "ES",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "EN",
+            "ancho": 32,
+            "alto": 30
+          },
+          {
+            "texto": "Inicio",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Trazos",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Practicar",
+            "ancho": 134,
+            "alto": 37
+          },
+          {
+            "texto": "Progreso",
+            "ancho": 134,
+            "alto": 37
+          }
+        ]
+      },
+      "bytes": 179186
+    }
+  },
+  "estados": {
+    "carga": {
+      "pagina": "trazos",
+      "anunciosAccesibles": [
+        "Cargando…"
+      ],
+      "bytes": 124526
+    },
+    "focoTabbar": {
+      "alcanzado": true,
+      "bytes": 160940
+    },
+    "focoTrazos": {
+      "alcanzado": true,
+      "bytes": 136523
+    },
+    "idioma": {
+      "inicio": {
+        "lang": "en",
+        "porImpacto": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 0,
+          "minor": 0
+        },
+        "reglas": [],
+        "bytes": 157162
+      },
+      "progreso": {
+        "lang": "en",
+        "porImpacto": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 0,
+          "minor": 0
+        },
+        "reglas": [],
+        "bytes": 168428
+      }
+    }
+  }
+}

@@ -19,6 +19,8 @@ puras sobre listas de puntos, lo que las hace testeables sin migraciones.
 import math
 from dataclasses import dataclass, field
 
+from mensajes import N_
+
 # Make Me a Hanzi trabaja en un lienzo de 1024x1024 cuyo eje Y crece hacia
 # arriba, con el contenido ubicado aproximadamente entre -124 y 900.
 LIENZO = 1024
@@ -50,6 +52,27 @@ LONGITUD_MAXIMA = 1.80
 # se hizo al revés, y no que simplemente quedó impreciso.
 MARGEN_INVERSION = 1.35
 
+# Lejanía: de la distancia de cada punto dibujado al recorrido esperado
+# (punto a segmento), el percentil 90, como fracción del lienzo. No depende
+# del largo ni del sentido, así que un trazo corto o largo hecho en su lugar
+# queda cerca; el percentil 90 ignora un par de puntos sueltos del final.
+# Por encima del umbral el trazo está en otra parte del carácter y no se
+# juzga su sentido ni su largo.
+#
+# Calibrado con 85 trazos reales de 20 caracteres HSK 1, lienzo de 300 px:
+# - correcto con temblor de hasta 6 px: máximo 0.063;
+# - corto (25 y 40 %) o largo (ida, vuelta e ida) en su lugar: máximo 0.033;
+# - correcto desplazado un 6 % del lienzo: máximo 0.096 (sigue impreciso);
+# - el trazo más lejano del mismo carácter: mínimo 0.143;
+# - línea horizontal en el centro contra el trazo 1 de 人: 0.222.
+# 0.12 queda en el hueco entre 0.096 y 0.143. El punto de partida, el doble
+# de UMBRAL_ACEPTABLE (0.18), dejaba pasar trazos de otra zona. Con
+# min(directa, inversa) no hay hueco: un trazo corto en su lugar llega a
+# 0.39 y una línea en el centro baja a 0.03. Con la media en vez del
+# percentil 90, la línea en el centro de 人 da 0.115 y no se detecta.
+UMBRAL_FUERA_DE_LUGAR = 0.12
+PERCENTIL_LEJANIA = 0.9
+
 
 @dataclass
 class ResultadoComparacion:
@@ -57,7 +80,7 @@ class ResultadoComparacion:
 
     aprobado: bool
     puntaje: int                      # 0 a 100
-    motivo: str                       # correcto | invertido | impreciso | incompleto | vacio
+    motivo: str                       # correcto | fuera_de_lugar | invertido | impreciso | incompleto | vacio
     distancia_media: float            # fracción del lienzo
     razon_longitud: float             # largo del usuario / largo esperado
     invertido: bool = False
@@ -227,6 +250,31 @@ def _distancia_media(muestra_a, muestra_b):
     return (suma / len(muestra_a)) / LIENZO
 
 
+def _distancia_punto_segmento(p, a, b):
+    ax, ay = b[0] - a[0], b[1] - a[1]
+    largo2 = ax * ax + ay * ay
+    if largo2 == 0:
+        return _distancia(p, a)
+    f = ((p[0] - a[0]) * ax + (p[1] - a[1]) * ay) / largo2
+    f = max(0.0, min(1.0, f))
+    return math.hypot(p[0] - (a[0] + f * ax), p[1] - (a[1] + f * ay))
+
+
+def _distancia_al_recorrido(muestra_dibujada, muestra_esperada):
+    """Percentil 90 de la distancia de cada punto dibujado al tramo más
+    cercano del recorrido esperado, normalizado. Mide si el trazo está en
+    su lugar."""
+    if not muestra_dibujada or len(muestra_esperada) < 2:
+        return float("inf")
+
+    segmentos = list(zip(muestra_esperada, muestra_esperada[1:]))
+    distancias = sorted(
+        min(_distancia_punto_segmento(p, a, b) for a, b in segmentos)
+        for p in muestra_dibujada
+    )
+    return distancias[int(PERCENTIL_LEJANIA * (len(distancias) - 1))] / LIENZO
+
+
 def comparar_trazo(puntos_usuario, mediana, ancho_lienzo, alto_lienzo):
     """
     Compara el trazo dibujado contra la mediana esperada.
@@ -239,14 +287,14 @@ def comparar_trazo(puntos_usuario, mediana, ancho_lienzo, alto_lienzo):
         return ResultadoComparacion(
             aprobado=False, puntaje=0, motivo="vacio",
             distancia_media=float("inf"), razon_longitud=0.0,
-            detalle="El carácter no tiene datos de trazo para comparar.",
+            detalle=N_("El carácter no tiene datos de trazo para comparar."),
         )
 
     if not puntos_usuario or len(puntos_usuario) < 2:
         return ResultadoComparacion(
             aprobado=False, puntaje=0, motivo="vacio",
             distancia_media=float("inf"), razon_longitud=0.0,
-            detalle="No se registró ningún trazo.",
+            detalle=N_("No se registró ningún trazo."),
         )
 
     esperado = [tuple(map(float, p)) for p in mediana]
@@ -270,17 +318,30 @@ def comparar_trazo(puntos_usuario, mediana, ancho_lienzo, alto_lienzo):
 
     directa = _distancia_media(muestra_dibujada, muestra_esperada)
     inversa = _distancia_media(muestra_dibujada, list(reversed(muestra_esperada)))
+    lejania = _distancia_al_recorrido(muestra_dibujada, muestra_esperada)
 
-    # Si al invertir el trazo esperado la coincidencia mejora de forma clara,
-    # el usuario recorrió el trazo en sentido contrario.
-    invertido = inversa * MARGEN_INVERSION < directa
-    distancia = min(directa, inversa) if invertido else directa
-
-    return _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
+    return _dictaminar(directa, inversa, lejania, razon, muestra_dibujada, muestra_esperada)
 
 
-def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada):
-    """Traduce las métricas a un veredicto con mensaje para el estudiante."""
+def _dictaminar(directa, inversa, lejania, razon, muestra_dibujada, muestra_esperada):
+    """Traduce las métricas a un veredicto con mensaje para el estudiante.
+
+    Orden: primero si el trazo está en su lugar; después el sentido, el
+    largo y la precisión. Así un trazo dibujado en otra parte no recibe
+    "la forma es correcta" ni "quedó corto".
+    """
+    if lejania > UMBRAL_FUERA_DE_LUGAR:
+        distancia = min(directa, inversa)
+        return ResultadoComparacion(
+            aprobado=False, puntaje=min(_calcular_puntaje(distancia, razon), 20),
+            motivo="fuera_de_lugar", distancia_media=distancia, razon_longitud=razon,
+            detalle=N_("Trazo fuera de lugar. Intentá de nuevo."),
+        )
+
+    # Al revés solo si la comparación invertida es buena de verdad y,
+    # además, claramente mejor que la directa.
+    invertido = inversa <= UMBRAL_ACEPTABLE and inversa * MARGEN_INVERSION < directa
+    distancia = inversa if invertido else directa
     puntaje = _calcular_puntaje(distancia, razon)
     lejanos = _indices_lejanos(muestra_dibujada, muestra_esperada)
 
@@ -288,7 +349,7 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=False, puntaje=min(puntaje, 40), motivo="invertido",
             distancia_media=distancia, razon_longitud=razon, invertido=True,
-            detalle=(
+            detalle=N_(
                 "La forma es correcta, pero lo trazaste en sentido contrario. "
                 "Revisá por dónde empieza el trazo."
             ),
@@ -299,7 +360,7 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=False, puntaje=min(puntaje, 45), motivo="incompleto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="El trazo quedó corto. Recorré el trazo completo.",
+            detalle=N_("El trazo quedó corto. Recorré el trazo completo."),
             puntos_lejanos=lejanos,
         )
 
@@ -307,7 +368,7 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=False, puntaje=min(puntaje, 45), motivo="incompleto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="El trazo se pasó de largo respecto del esperado.",
+            detalle=N_("El trazo se pasó de largo respecto del esperado."),
             puntos_lejanos=lejanos,
         )
 
@@ -315,21 +376,21 @@ def _dictaminar(distancia, razon, invertido, muestra_dibujada, muestra_esperada)
         return ResultadoComparacion(
             aprobado=True, puntaje=puntaje, motivo="correcto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="Trazo correcto.",
+            detalle=N_("Trazo correcto."),
         )
 
     if distancia <= UMBRAL_ACEPTABLE:
         return ResultadoComparacion(
             aprobado=True, puntaje=puntaje, motivo="correcto",
             distancia_media=distancia, razon_longitud=razon,
-            detalle="Trazo aceptable. Con más precisión quedaría perfecto.",
+            detalle=N_("Trazo aceptable. Con más precisión quedaría perfecto."),
             puntos_lejanos=lejanos,
         )
 
     return ResultadoComparacion(
         aprobado=False, puntaje=puntaje, motivo="impreciso",
         distancia_media=distancia, razon_longitud=razon,
-        detalle="El trazo se alejó bastante del recorrido esperado.",
+        detalle=N_("El trazo se alejó bastante del recorrido esperado."),
         puntos_lejanos=lejanos,
     )
 

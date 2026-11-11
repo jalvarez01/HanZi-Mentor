@@ -35,14 +35,20 @@ class NotificadorEmail(Notificador):
 
     def sesion_lista(self, usuario_id, sesion) -> None:
         from django.core.mail import send_mail
+        from django.utils.translation import gettext
 
+        # Se envía dentro de la petición que creó la sesión: sale en el idioma
+        # de esa petición (Accept-Language).
         send_mail(
-            subject="Tu sesión de práctica está lista",
-            message=(
-                f"Preparamos {sesion_logic.total_ejercicios(sesion)} ejercicios de nivel "
-                f"HSK{sesion.nivel_hsk}. Duración estimada: "
-                f"{sesion.duracion_estimada_min} minutos."
-            ),
+            subject=gettext("Tu sesión de práctica está lista"),
+            message=gettext(
+                "Preparamos %(total)s ejercicios de nivel HSK%(nivel)s. "
+                "Duración estimada: %(minutos)s minutos."
+            ) % {
+                "total": sesion_logic.total_ejercicios(sesion),
+                "nivel": sesion.nivel_hsk,
+                "minutos": sesion.duracion_estimada_min,
+            },
             from_email=self._remitente,
             recipient_list=[self._resolver_email(usuario_id)],
             fail_silently=False,

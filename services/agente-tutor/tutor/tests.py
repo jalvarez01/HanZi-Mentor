@@ -250,6 +250,129 @@ class CatalogoTest(TestCase):
         self.assertEqual(len(resultado), 2)
 
 
+import os
+from unittest import mock
+
+import requests
+
+from .infra.factories import CatalogoFactory
+
+CATALOGO = "http://flask_catalogo:5000"
+CONTENIDO = "http://contenido:8002"
+
+
+def _respuesta(datos=None, estado=200):
+    """Respuesta HTTP falsa con la interfaz de requests que usa CatalogoRemoto."""
+    respuesta = mock.Mock(status_code=estado)
+    respuesta.json.return_value = datos
+    if estado >= 400:
+        respuesta.raise_for_status.side_effect = requests.HTTPError(f"{estado}")
+    return respuesta
+
+
+class CatalogoRemotoRutasTest(TestCase):
+    """Listado y detalle van a catalogo-flask (v2); los trazos, a contenido (v1)."""
+
+    def setUp(self):
+        self.catalogo = CatalogoRemoto(base_url=CATALOGO + "/", contenido_url=CONTENIDO)
+
+    @mock.patch("requests.get")
+    def test_el_listado_usa_la_ruta_v2_del_catalogo(self, get):
+        get.return_value = _respuesta({"caracteres": [{"hanzi": "学"}, {"hanzi": "校"}]})
+
+        resultado = self.catalogo.caracteres_de_nivel(2, excluir=["老"], cantidad=2)
+
+        self.assertEqual(resultado, ["学", "校"])
+        url = get.call_args.args[0]
+        self.assertEqual(url, f"{CATALOGO}/api/v2/caracteres/")
+        self.assertEqual(
+            get.call_args.kwargs["params"], {"nivel": 2, "excluir": "老", "limite": 2}
+        )
+
+    @mock.patch("requests.get")
+    def test_el_detalle_usa_la_ruta_v2_del_catalogo(self, get):
+        get.return_value = _respuesta({"hanzi": "学", "pinyin": "xué"})
+
+        detalle = self.catalogo.obtener_detalle("学")
+
+        self.assertEqual(detalle["pinyin"], "xué")
+        self.assertEqual(get.call_args.args[0], f"{CATALOGO}/api/v2/caracteres/学/")
+
+    @mock.patch("requests.post")
+    def test_comparar_trazo_usa_contenido_v1(self, post):
+        post.return_value = _respuesta({"aprobado": True, "puntaje": 90})
+
+        resultado = self.catalogo.comparar_trazo("学", 1, [[0, 0], [1, 1]], 300, 300)
+
+        self.assertTrue(resultado["aprobado"])
+        self.assertEqual(
+            post.call_args.args[0], f"{CONTENIDO}/api/caracteres/学/trazos/1/validar/"
+        )
+
+    @mock.patch("requests.post")
+    def test_sin_contenido_url_los_trazos_usan_base_url(self, post):
+        post.return_value = _respuesta({"aprobado": True})
+
+        CatalogoRemoto(base_url=CATALOGO).comparar_trazo("学", 1, [[0, 0], [1, 1]], 300, 300)
+
+        self.assertEqual(
+            post.call_args.args[0], f"{CATALOGO}/api/caracteres/学/trazos/1/validar/"
+        )
+
+
+class CatalogoRemotoRespaldoTest(TestCase):
+    """Si el catálogo falla, el estudiante igual recibe caracteres del local."""
+
+    def setUp(self):
+        self.catalogo = CatalogoRemoto(base_url=CATALOGO, contenido_url=CONTENIDO)
+        self.esperado = CatalogoLocal().caracteres_de_nivel(1, [], 3)
+
+    @mock.patch("requests.get")
+    def test_cae_al_local_si_el_catalogo_responde_error(self, get):
+        get.return_value = _respuesta({"error": "x", "codigo": "SERVICIO_NO_DISPONIBLE"}, 502)
+
+        self.assertEqual(self.catalogo.caracteres_de_nivel(1, cantidad=3), self.esperado)
+
+    @mock.patch("requests.get", side_effect=requests.ConnectionError("rechazada"))
+    def test_cae_al_local_si_el_catalogo_no_responde(self, get):
+        self.assertEqual(self.catalogo.caracteres_de_nivel(1, cantidad=3), self.esperado)
+
+    @mock.patch("requests.get")
+    def test_cae_al_local_si_el_catalogo_viene_vacio(self, get):
+        get.return_value = _respuesta({"caracteres": []})
+
+        self.assertEqual(self.catalogo.caracteres_de_nivel(1, cantidad=3), self.esperado)
+
+    @mock.patch("requests.get", side_effect=requests.Timeout("lento"))
+    def test_el_detalle_devuelve_vacio_si_el_catalogo_falla(self, get):
+        self.assertEqual(self.catalogo.obtener_detalle("学"), {})
+
+
+class CatalogoConfiguracionTest(TestCase):
+    """CATALOGO_URL y CONTENIDO_URL llegan a CatalogoRemoto desde el entorno."""
+
+    @mock.patch.dict(
+        os.environ,
+        {"CATALOGO": "REMOTO", "CATALOGO_URL": CATALOGO, "CONTENIDO_URL": CONTENIDO},
+    )
+    def test_la_factory_lee_las_dos_urls(self):
+        catalogo = CatalogoFactory.crear()
+
+        self.assertIsInstance(catalogo, CatalogoRemoto)
+        self.assertEqual(catalogo._base_url, CATALOGO)
+        self.assertEqual(catalogo._contenido_url, CONTENIDO)
+
+    @mock.patch.dict(os.environ, {"CATALOGO": "REMOTO"})
+    def test_la_factory_usa_los_valores_por_defecto(self):
+        os.environ.pop("CATALOGO_URL", None)
+        os.environ.pop("CONTENIDO_URL", None)
+
+        catalogo = CatalogoFactory.crear()
+
+        self.assertEqual(catalogo._base_url, "http://localhost:5000")
+        self.assertEqual(catalogo._contenido_url, "http://localhost:8002")
+
+
 # ---------------------------------------------------------------------------
 # Agente
 # ---------------------------------------------------------------------------
@@ -463,3 +586,74 @@ class EvaluarEjercicioServiceTest(TestCase):
 
         with self.assertRaises(EjercicioNoEncontradoError):
             service.evaluar(999999, "cualquier respuesta")
+
+    @mock.patch.dict(os.environ, {"CATALOGO_URL": CATALOGO, "CONTENIDO_URL": CONTENIDO})
+    def test_el_catalogo_por_defecto_lee_las_dos_urls(self):
+        catalogo = EvaluarEjercicioService()._catalogo
+
+        self.assertEqual(catalogo._base_url, CATALOGO)
+        self.assertEqual(catalogo._contenido_url, CONTENIDO)
+
+
+# ---------------------------------------------------------------------------
+# Idioma de los mensajes (T21)
+# ---------------------------------------------------------------------------
+
+
+class IdiomaDeLosMensajesTest(APITestCase):
+    """Accept-Language elige el idioma del mensaje; las claves y el status no
+    cambian. Sin cabecera, o con un idioma que no está, en español."""
+
+    def setUp(self):
+        sesion = SesionEstudio.objects.create(
+            usuario_id=uuid.uuid4(), nivel_hsk=2, dificultad=3, estado="activa"
+        )
+        self.ejercicio = Ejercicio.objects.create(
+            sesion=sesion, caracter="学", tipo="trazo", dificultad=3
+        )
+        self.url = reverse("responder-ejercicio", kwargs={"ejercicio_id": self.ejercicio.pk})
+
+    def test_sesion_inexistente_en_espanol_y_en_ingles(self):
+        url = reverse("detalle-sesion", kwargs={"sesion_id": 9999})
+
+        es = self.client.get(url, HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.get(url, HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9")
+        fr = self.client.get(url, HTTP_ACCEPT_LANGUAGE="fr")
+
+        self.assertEqual({es.status_code, en.status_code, fr.status_code}, {404})
+        self.assertEqual(es.json(), {"error": "Sesión no encontrada."})
+        self.assertEqual(en.json(), {"error": "Session not found."})
+        self.assertEqual(fr.json(), {"error": "Sesión no encontrada."})
+
+    def test_ejercicio_ya_respondido_con_parametro(self):
+        self.client.post(self.url, {"acerto": True}, format="json")
+
+        es = self.client.post(self.url, {"acerto": True}, format="json", HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.post(self.url, {"acerto": True}, format="json", HTTP_ACCEPT_LANGUAGE="en")
+
+        self.assertEqual((es.status_code, en.status_code), (409, 409))
+        self.assertEqual(es.json()["error"], f"El ejercicio {self.ejercicio.pk} ya fue respondido.")
+        self.assertEqual(en.json()["error"], f"Exercise {self.ejercicio.pk} has already been answered.")
+
+    def test_mensajes_de_drf_tambien_siguen_el_idioma(self):
+        es = self.client.post(self.url, {}, format="json", HTTP_ACCEPT_LANGUAGE="es")
+        en = self.client.post(self.url, {}, format="json", HTTP_ACCEPT_LANGUAGE="en")
+
+        self.assertEqual(list(es.json()), ["acerto"])
+        self.assertEqual(list(en.json()), ["acerto"])
+        self.assertEqual(en.json()["acerto"], ["This field is required."])
+        self.assertNotEqual(es.json()["acerto"], en.json()["acerto"])
+
+    def test_reglas_del_builder_en_ingles(self):
+        from django.utils import translation
+
+        builder = (
+            SesionEstudioBuilder()
+            .para_usuario(uuid.uuid4(), nivel_max_desbloqueado=1)
+            .en_nivel(3)
+        )
+        with translation.override("en"):
+            with self.assertRaises(NivelNoPermitidoError) as error:
+                builder.con_dificultad(2).build()
+
+        self.assertEqual(str(error.exception), "HSK3 is not unlocked yet (current maximum: HSK1).")

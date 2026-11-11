@@ -1,0 +1,8 @@
+# La imagen instala sus propias dependencias (npm ci) y genera su propio build.
+node_modules/
+dist/
+dev-dist/
+.env
+.env.local
+*.local
+npm-debug.log*
