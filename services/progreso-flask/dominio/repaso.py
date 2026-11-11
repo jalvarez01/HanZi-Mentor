@@ -1,50 +1,24 @@
 """
-Repaso espaciado: decide cuándo volver a mostrar un carácter.
+Repaso espaciado: utilidades que quedan del port de
+services/agente-tutor/tutor/domain/repaso.py.
 
-Port de services/agente-tutor/tutor/domain/repaso.py. El único cambio es
-que `django.utils.timezone.now()` pasa a ser `datetime.now(timezone.utc)`.
-
-Basado en SM-2 (el algoritmo de Anki), simplificado: en vez de guardar un
-factor de facilidad por carácter, el intervalo sale del número de aciertos
-consecutivos. Si algo se acierta seguido, el próximo repaso se aleja; si se
-falla, vuelve a tocar en unas horas.
+Desde RF-IA-02 las fechas de repaso las calcula la curva de olvido
+(dominio/curva_olvido.py, SM-2 con factor de facilidad) al cerrar cada
+sesión. Se retiraron calcular_proximo_repaso(), el agendado por respuesta
+con intervalos fijos, y esta_pendiente(), que no se usaba: los repasos
+vencidos los lista dominio/progreso.listar_repasos(). Queda INTERVALOS_DIAS porque la curva lo usa para el
+estado inicial de un carácter que ya se había agendado con ese algoritmo.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
-# Días de espera según cuántas veces seguidas se acertó.
+# Días de espera que daba el algoritmo anterior según los aciertos seguidos.
 # Índice 0 = primer acierto, índice 1 = segundo, y así.
 INTERVALOS_DIAS = [1, 3, 7, 16, 35, 90]
-
-INTERVALO_TRAS_FALLO_HORAS = 12
 
 
 def ahora():
     return datetime.now(timezone.utc)
-
-
-def calcular_proximo_repaso(aciertos_consecutivos, acerto, desde=None):
-    """
-    Devuelve el datetime del próximo repaso.
-
-    aciertos_consecutivos: cuántas veces seguidas se acertó ANTES de esta respuesta.
-    acerto: si la respuesta actual fue correcta.
-    desde: momento base (por defecto, ahora).
-    """
-    base = desde or ahora()
-
-    if not acerto:
-        return base + timedelta(hours=INTERVALO_TRAS_FALLO_HORAS)
-
-    indice = min(aciertos_consecutivos, len(INTERVALOS_DIAS) - 1)
-    return base + timedelta(days=INTERVALOS_DIAS[indice])
-
-
-def esta_pendiente(proximo_repaso, momento=None):
-    """True si ya toca repasar (o si nunca se agendó)."""
-    if proximo_repaso is None:
-        return True
-    return proximo_repaso <= (momento or ahora())
 
 
 def actualizar_tasa_acierto(tasa_actual, acerto, peso=0.1):

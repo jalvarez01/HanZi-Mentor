@@ -26,6 +26,10 @@ def fecha(texto):
     return datetime.fromisoformat(texto.replace("Z", "+00:00"))
 
 
+def entidad(sesion):
+    return sesion.scalars(select(ProgresoUsuario)).one()
+
+
 # ---------- GET /progreso/<usuario_id>/ ----------
 
 
@@ -105,15 +109,16 @@ def test_uuid_invalido_devuelve_400(client, usuario):
 # ---------- POST /progreso/<usuario_id>/respuestas/ ----------
 
 
-def test_acertar_crea_el_progreso_y_agenda_repaso(responder, sesion):
-    antes = datetime.now(timezone.utc)
-
+def test_acertar_crea_el_progreso_sin_agendar_repaso(responder, sesion):
+    """RF-IA-02: responder ya no agenda. El repaso se agenda al cerrar la
+    sesión (POST .../curva-olvido/)."""
     datos = responder("学", True)
 
     assert contar(sesion) == 1
-    assert datos["proximo_repaso"] is not None
-    assert fecha(datos["proximo_repaso"]) >= antes + timedelta(days=1)
+    assert datos["proximo_repaso"] is None
+    assert datos["aciertos_consecutivos"] == {"学": 1}
     assert datos["actualizado_en"] is not None
+    assert entidad(sesion).agenda_repaso == {}
 
 
 def test_fallar_suma_a_errores_frecuentes(responder):
@@ -155,12 +160,22 @@ def test_dos_fallos_necesitan_dos_aciertos(responder):
 
 
 def test_la_agenda_guarda_una_fecha_por_caracter(sesion):
+    """RF-IA-02: la agenda la escribe la curva al cerrar la sesión, no cada
+    respuesta. Mismas fechas que antes para un acierto (1 día) y un fallo
+    (12 horas) de un carácter nuevo."""
     momento = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
+    usuario = uuid.UUID(USUARIO)
 
-    servicio.registrar_respuesta(sesion, uuid.UUID(USUARIO), "学", True, momento=momento)
-    servicio.registrar_respuesta(sesion, uuid.UUID(USUARIO), "校", False, momento=momento)
+    servicio.registrar_respuesta(sesion, usuario, "学", True, momento=momento)
+    servicio.registrar_respuesta(sesion, usuario, "校", False, momento=momento)
+    assert entidad(sesion).agenda_repaso == {}
 
-    progreso = sesion.scalars(select(ProgresoUsuario)).one()
+    servicio.aplicar_curva_olvido(sesion, usuario, 1, momento, [
+        {"caracter": "学", "acerto": True, "codigo_error": None},
+        {"caracter": "校", "acerto": False, "codigo_error": None},
+    ])
+
+    progreso = entidad(sesion)
     assert progreso.agenda_repaso == {
         "学": "2026-10-24T12:00:00+00:00",
         "校": "2026-10-24T00:00:00+00:00",
@@ -170,13 +185,23 @@ def test_la_agenda_guarda_una_fecha_por_caracter(sesion):
 
 
 def test_el_intervalo_crece_con_la_racha(sesion):
+    """RF-IA-02: tres sesiones seguidas acertando 学. Con SM-2 los intervalos
+    son 1, 6 y round(6 x 2.5) = 15 días (antes, 1, 3 y 7)."""
     momento = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
-    for _ in range(3):
-        servicio.registrar_respuesta(sesion, uuid.UUID(USUARIO), "学", True, momento=momento)
+    usuario = uuid.UUID(USUARIO)
+    acierto = [{"caracter": "学", "acerto": True, "codigo_error": None}]
 
-    progreso = sesion.scalars(select(ProgresoUsuario)).one()
-    # Tercer acierto seguido: 7 días.
-    assert progreso.agenda_repaso["学"] == "2026-10-30T12:00:00+00:00"
+    agenda = []
+    for sesion_id in (1, 2, 3):
+        servicio.registrar_respuesta(sesion, usuario, "学", True, momento=momento)
+        servicio.aplicar_curva_olvido(sesion, usuario, sesion_id, momento, acierto)
+        agenda.append(entidad(sesion).agenda_repaso["学"])
+
+    assert agenda == [
+        "2026-10-24T12:00:00+00:00",
+        "2026-10-29T12:00:00+00:00",
+        "2026-11-07T12:00:00+00:00",
+    ]
 
 
 def test_respuestas_de_usuarios_distintos_no_se_mezclan(client, responder):
@@ -266,10 +291,6 @@ def test_los_metodos_del_modelo_no_guardan(sesion):
 # ---------- codigo_error en respuestas/ (RF-IA-01) ----------
 
 
-def entidad(sesion):
-    return sesion.scalars(select(ProgresoUsuario)).one()
-
-
 def test_fallo_con_codigo_error_queda_en_el_historial(responder, sesion):
     responder("学", False, codigo_error="PINYIN_INICIAL")
 
@@ -356,7 +377,8 @@ def test_error_de_trazo_solo_alimenta_el_historial(client, responder, sesion):
         if campo != "actualizado_en":
             assert despues[campo] == antes[campo], campo
     progreso = entidad(sesion)
-    assert progreso.agenda_repaso.keys() == {"人", "大"}
+    # RF-IA-02: ni respuestas/ ni errores/ agendan.
+    assert progreso.agenda_repaso == {}
     assert progreso.errores_por_codigo == {"TRAZO_INVERTIDO": 1}
     assert progreso.historial_errores[-1]["origen"] == "trazos"
 

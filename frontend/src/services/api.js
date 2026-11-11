@@ -161,6 +161,18 @@ export function registrarErrorDeTrazo(usuarioId, { caracter, codigoError }) {
   });
 }
 
+/**
+ * Repasos del estudiante (RF-IA-02), que agenda la curva de olvido al cerrar
+ * cada sesión: { usuario_id, momento, dias, vencidos, proximos }. Cada repaso
+ * es { caracter, proximo_repaso, intervalo_dias, repeticiones }. `vencidos`
+ * va del más atrasado al menos atrasado y `proximos` cubre los próximos
+ * `dias` días; cada lista tiene como máximo `limite` repasos.
+ */
+export function obtenerRepasos(usuarioId, { dias = 7, limite = 20 } = {}) {
+  const params = new URLSearchParams({ dias, limite });
+  return pedir(`${PROGRESO_API}/progreso/${usuarioId}/repasos/?${params}`);
+}
+
 // ---------------------------------------------------------------- reportes
 
 /**

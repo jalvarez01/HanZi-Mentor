@@ -41,3 +41,18 @@ def patron(p):
         "titulo": traducir(p.titulo),
         "consejo": traducir(p.consejo),
     }
+
+
+def repaso(r):
+    """Un repaso agendado (RF-IA-02): {caracter, proximo_repaso, intervalo_dias, repeticiones}."""
+    return {
+        "caracter": r["caracter"],
+        "proximo_repaso": _fecha(r["proximo_repaso"]),
+        "intervalo_dias": r["intervalo_dias"],
+        "repeticiones": r["repeticiones"],
+    }
+
+
+def fecha(valor):
+    """Una fecha suelta en ISO 8601 con Z (o None)."""
+    return _fecha(valor)

@@ -5,11 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
 from dominio import progreso as reglas
-from dominio.repaso import (
-    actualizar_tasa_acierto,
-    calcular_proximo_repaso,
-    esta_pendiente,
-)
+from dominio.repaso import actualizar_tasa_acierto
 
 AHORA = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
 
@@ -29,31 +25,6 @@ class Progreso:
 
 
 # ---------- repaso espaciado ----------
-
-
-def test_el_intervalo_crece_con_la_racha():
-    assert calcular_proximo_repaso(0, acerto=True, desde=AHORA) == AHORA + timedelta(days=1)
-    assert calcular_proximo_repaso(2, acerto=True, desde=AHORA) == AHORA + timedelta(days=7)
-
-
-def test_fallar_acerca_el_repaso():
-    assert calcular_proximo_repaso(5, acerto=False, desde=AHORA) == AHORA + timedelta(hours=12)
-
-
-def test_el_intervalo_tiene_techo():
-    assert calcular_proximo_repaso(99, acerto=True, desde=AHORA) == AHORA + timedelta(days=90)
-
-
-def test_sin_desde_usa_ahora_en_utc():
-    cuando = calcular_proximo_repaso(0, acerto=True)
-
-    assert cuando.tzinfo == timezone.utc
-
-
-def test_pendiente_si_nunca_se_agendo():
-    assert esta_pendiente(None)
-    assert not esta_pendiente(AHORA + timedelta(days=1), momento=AHORA)
-    assert esta_pendiente(AHORA - timedelta(seconds=1), momento=AHORA)
 
 
 def test_la_tasa_sube_al_acertar_y_baja_al_fallar():
@@ -224,3 +195,24 @@ def test_en_sesion_dos_fallos_seguidos_se_anotan_los_dos():
     assert reglas.anotar_error(progreso, "人", "NO_SABE", AHORA + timedelta(seconds=5))
 
     assert len(progreso.historial_errores) == 2
+
+
+
+def test_proximo_repaso_es_el_mas_cercano_aunque_la_fecha_nueva_sea_posterior():
+    """RF-IA-02: antes, un carácter que pasaba de 12 horas a 1 día dejaba
+    proximo_repaso en las 12 horas, aunque ya no estaba en la agenda."""
+    progreso = Progreso()
+    reglas.agendar_repaso(progreso, "学", AHORA + timedelta(hours=12))
+    reglas.agendar_repaso(progreso, "校", AHORA + timedelta(days=3))
+
+    reglas.agendar_repaso(progreso, "学", AHORA + timedelta(days=6))
+
+    assert progreso.proximo_repaso == AHORA + timedelta(days=3)
+
+
+def test_fecha_mas_cercana_ignora_valores_que_no_son_fechas():
+    agenda = {"学": "no es fecha", "校": 7, "人": (AHORA + timedelta(days=2)).isoformat()}
+
+    assert reglas.fecha_mas_cercana(agenda) == AHORA + timedelta(days=2)
+    assert reglas.fecha_mas_cercana({}) is None
+    assert reglas.fecha_mas_cercana(None) is None

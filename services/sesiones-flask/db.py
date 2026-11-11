@@ -9,6 +9,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+import migraciones
+
 
 class Base(DeclarativeBase):
     """Clase base de los modelos del servicio."""
@@ -39,9 +41,12 @@ def iniciar_db(app):
     if app.config.get("DB_CREAR_TABLAS"):
         try:
             Base.metadata.create_all(engine)
+            # create_all no altera una tabla que ya existe: las columnas
+            # nuevas de una base con datos las agrega la migración.
+            migraciones.aplicar(engine)
         except Exception:
             # El servicio arranca igual; /health informa que la base no responde.
-            app.logger.exception("No se pudieron crear las tablas")
+            app.logger.exception("No se pudieron crear o migrar las tablas")
 
     @app.teardown_appcontext
     def cerrar_sesion(exc):

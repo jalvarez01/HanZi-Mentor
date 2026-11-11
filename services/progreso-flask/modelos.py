@@ -82,6 +82,11 @@ class ProgresoUsuario(Base):
     historial_errores: Mapped[list] = mapped_column(
         JSON, default=list, server_default=text("'[]'")
     )
+    # RF-IA-02. Carácter -> {facilidad, repeticiones, intervalo_dias} de SM-2.
+    # La fecha sigue en agenda_repaso. El mismo default que migraciones.py.
+    curva_olvido: Mapped[dict] = mapped_column(
+        JSON, default=dict, server_default=text("'{}'")
+    )
 
     # El más cercano de la agenda. Permite consultar sin abrir el JSON.
     proximo_repaso: Mapped[datetime | None] = mapped_column(FechaUTC)
@@ -100,7 +105,12 @@ class ProgresoUsuario(Base):
         campos.setdefault("agenda_repaso", {})
         campos.setdefault("errores_por_codigo", {})
         campos.setdefault("historial_errores", [])
+        campos.setdefault("curva_olvido", {})
         super().__init__(**campos)
+
+    def actualizar_curva_olvido(self, respuestas, momento):
+        """actualizarCurvaOlvido() de RF-IA-02 (dominio/progreso.py). No guarda."""
+        return reglas.aplicar_curva_olvido(self, respuestas, momento)
 
     def detectar_patron_error(self, momento=None):
         """Patrones de error del historial reciente (dominio/patrones.py)."""
@@ -114,3 +124,21 @@ class ProgresoUsuario(Base):
 
     def __repr__(self):
         return f"Progreso de {self.usuario_id} HSK{self.nivel_hsk}"
+
+
+class SesionAplicada(Base):
+    """Sesión cuya curva de olvido ya se aplicó (RF-IA-02).
+
+    La clave primaria (usuario_id, sesion_id) hace idempotente
+    POST .../curva-olvido/: un reintento o un cierre duplicado de la misma
+    sesión no la aplica dos veces, aunque lleguen a la vez.
+    """
+
+    __tablename__ = "sesiones_aplicadas"
+
+    usuario_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    sesion_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    aplicada_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
+
+    def __repr__(self):
+        return f"Sesión {self.sesion_id} de {self.usuario_id} aplicada"

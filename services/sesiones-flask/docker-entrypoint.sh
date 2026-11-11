@@ -8,7 +8,9 @@ set -e
 python crear_base.py
 
 # Las tablas se crean una vez acá y no en paralelo desde cada worker de
-# gunicorn. Si la base no responde, create_app solo deja el error en el log.
+# gunicorn; también se agregan las columnas nuevas a una tabla que ya existe
+# (migraciones.py). Si la base no responde, create_app solo deja el error en
+# el log.
 python -c "from app import create_app; create_app()"
 
 exec "$@"

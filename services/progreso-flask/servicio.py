@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 
 from dominio import progreso as reglas
 from dominio.codigos import ORIGEN_SESION, ORIGEN_TRAZOS
-from dominio.repaso import actualizar_tasa_acierto, ahora, calcular_proximo_repaso
+from dominio.repaso import actualizar_tasa_acierto, ahora
 from repositorio import ProgresoRepositorio
 
 
@@ -42,7 +42,10 @@ def _con_reintento(sesion, aplicar):
 def _aplicar_respuesta(sesion, usuario_id, caracter, acerto, momento, codigo_error):
     repo = ProgresoRepositorio(sesion)
     progreso = repo.obtener_o_crear_entidad(usuario_id)
-    racha_previa = reglas.racha_de(progreso, caracter)
+    # RF-IA-02: estado SM-2 de un carácter con agenda anterior, con la racha
+    # de antes de responder. La respuesta ya no agenda: eso pasa al cerrar
+    # la sesión (aplicar_curva_olvido).
+    reglas.guardar_estado_previo(progreso, caracter)
 
     if not acerto:
         # Antes de registrar_respuesta, que lo saca de dominados.
@@ -51,17 +54,16 @@ def _aplicar_respuesta(sesion, usuario_id, caracter, acerto, momento, codigo_err
 
     reglas.registrar_respuesta(progreso, caracter, acerto)
     progreso.tasa_acierto = actualizar_tasa_acierto(progreso.tasa_acierto, acerto)
-    reglas.agendar_repaso(
-        progreso,
-        caracter,
-        calcular_proximo_repaso(racha_previa, acerto, desde=momento),
-    )
     repo.guardar(progreso)
     sesion.commit()
 
 
 def registrar_respuesta(sesion, usuario_id, caracter, acerto, momento=None, codigo_error=None):
     """Registra un acierto o un error y devuelve el progreso actualizado.
+
+    Actualiza la racha, la tasa de acierto, los dominados, los errores
+    frecuentes y el historial de errores. No agenda el repaso: desde
+    RF-IA-02 eso lo hace aplicar_curva_olvido al cerrar la sesión.
 
     codigo_error (RF-IA-01): tipo de error de una respuesta fallada. Con un
     acierto se ignora.
@@ -97,3 +99,48 @@ def registrar_error_de_trazo(sesion, usuario_id, caracter, codigo_error, momento
         sesion,
         lambda: _aplicar_error_de_trazo(sesion, usuario_id, caracter, codigo_error, momento),
     )
+
+
+# ---------------------------------------------------------- curva de olvido
+
+
+def _aplicar_curva(sesion, usuario_id, sesion_id, cerrada_en, respuestas):
+    repo = ProgresoRepositorio(sesion)
+    if repo.sesion_aplicada(usuario_id, sesion_id):
+        return None
+    progreso = repo.obtener_o_crear_entidad(usuario_id)
+    # Con el progreso bloqueado (PostgreSQL), otra llamada de la misma
+    # sesión pudo terminar mientras se esperaba: se vuelve a mirar.
+    if repo.sesion_aplicada(usuario_id, sesion_id):
+        sesion.rollback()
+        return None
+
+    repo.registrar_sesion_aplicada(usuario_id, sesion_id, ahora())
+    resultado = progreso.actualizar_curva_olvido(respuestas, cerrada_en)
+    repo.guardar(progreso)
+    sesion.commit()
+    return resultado
+
+
+def aplicar_curva_olvido(sesion, usuario_id, sesion_id, cerrada_en, respuestas):
+    """Aplica la curva de olvido de una sesión cerrada (RF-IA-02).
+
+    Devuelve los repasos agendados, o None si esa sesión ya se había
+    aplicado. Es idempotente: si dos llamadas de la misma sesión llegan a
+    la vez, la clave primaria de sesiones_aplicadas hace fallar a la segunda,
+    que se reintenta, ve la sesión aplicada y no cambia nada.
+    """
+    return _con_reintento(
+        sesion,
+        lambda: _aplicar_curva(sesion, usuario_id, sesion_id, cerrada_en, respuestas),
+    )
+
+
+def listar_repasos(sesion, usuario_id, dias, limite, momento=None):
+    """(momento, vencidos, proximos) del usuario. Sin progreso, listas vacías."""
+    momento = momento or ahora()
+    progreso = ProgresoRepositorio(sesion).obtener_entidad(usuario_id)
+    if progreso is None:
+        return momento, [], []
+    vencidos, proximos = reglas.listar_repasos(progreso, momento, dias, limite)
+    return momento, vencidos, proximos

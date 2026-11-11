@@ -8,7 +8,7 @@ una tabla local: se lee y se registra en progreso-flask por HTTP
 """
 
 from dominio import sesion as reglas
-from dominio.builder import SesionEstudioBuilder
+from dominio.builder import SesionEstudioBuilder, sin_repetir
 from dominio.excepciones import (
     EjercicioNoEncontradoError,
     EjercicioYaRespondidoError,
@@ -19,8 +19,13 @@ from mensajes import N_
 from modelos import ahora
 from repositorio import SesionesRepositorio
 
+# Composición de una sesión (RF-IA-02): primero hasta 4 repasos vencidos,
+# después hasta 3 refuerzos y los nuevos completan 7, con al menos 1 nuevo.
+# Como mucho 4 + 3 + 1 = 8 ejercicios. Ningún carácter se repite.
+CANTIDAD_VENCIDOS = 4
 CANTIDAD_REFUERZOS = 3
-CANTIDAD_NUEVOS = 4
+TOTAL_OBJETIVO = 7
+MINIMO_NUEVOS = 1
 
 # En español; serializacion.py lo traduce al idioma de la petición.
 AVISO_PROGRESO = N_(
@@ -43,12 +48,7 @@ class SesionEstudioService:
         progreso = self._progreso.obtener(usuario_id)
 
         dificultad = self._motor.sugerir_dificultad(progreso)
-        refuerzos = self._progreso.caracteres_a_reforzar(
-            usuario_id, limite=CANTIDAD_REFUERZOS
-        )
-        nuevos = self._motor.seleccionar_caracteres_nuevos(
-            progreso, cantidad=CANTIDAD_NUEVOS
-        )
+        vencidos, refuerzos, nuevos = self._elegir_caracteres(usuario_id, progreso)
 
         sesion = (
             SesionEstudioBuilder()
@@ -56,6 +56,7 @@ class SesionEstudioService:
             .en_nivel(nivel_hsk)
             .con_dificultad(dificultad)
             .con_duracion(duracion_min)
+            .agregar_vencidos(vencidos)
             .agregar_refuerzos(refuerzos)
             .agregar_contenido_nuevo(nuevos)
             .build(SesionesRepositorio(sesion_db))
@@ -64,17 +65,50 @@ class SesionEstudioService:
         self._notificador.sesion_lista(usuario_id, sesion)
         return sesion
 
+    def _elegir_caracteres(self, usuario_id, progreso):
+        """(vencidos, refuerzos, nuevos), sin repetir caracteres entre ellos.
+
+        Cada lista se pide con margen (tantos como los ya elegidos) para que
+        quitar repetidos no la deje más corta de lo necesario.
+        """
+        vencidos = sin_repetir(
+            self._progreso.repasos_vencidos(usuario_id, limite=CANTIDAD_VENCIDOS)
+        )[:CANTIDAD_VENCIDOS]
+
+        refuerzos = sin_repetir(
+            self._progreso.caracteres_a_reforzar(
+                usuario_id, limite=CANTIDAD_REFUERZOS + len(vencidos)
+            ),
+            excluir=vencidos,
+        )[:CANTIDAD_REFUERZOS]
+
+        ocupados = vencidos + refuerzos
+        cantidad = max(MINIMO_NUEVOS, TOTAL_OBJETIVO - len(ocupados))
+        nuevos = sin_repetir(
+            self._motor.seleccionar_caracteres_nuevos(progreso, cantidad=cantidad + len(ocupados)),
+            excluir=ocupados,
+        )[:cantidad]
+        return vencidos, refuerzos, nuevos
+
 
 class ResponderEjercicioService:
-    """Registra la respuesta a un ejercicio y la informa a progreso-flask."""
+    """Registra la respuesta a un ejercicio y la informa a progreso-flask.
+
+    Si la respuesta cierra la sesión, además le pide a progreso-flask que
+    aplique la curva de olvido (RF-IA-02). Si progreso no responde, queda
+    una advertencia en el log y la respuesta no cambia: la sesión queda
+    completada igual y no se reintenta.
+    """
 
     def __init__(self, progreso, reloj=ahora):
         self._progreso = progreso
         self._reloj = reloj
 
     def responder(self, sesion_db, ejercicio_id, acerto, codigo_error=None):
-        """codigo_error (RF-IA-01): tipo de error de un fallo. No se guarda en
-        la sesión: se pasa a progreso-flask, que detecta los patrones."""
+        """codigo_error (RF-IA-01): tipo de error de un fallo. Se pasa a
+        progreso-flask, que detecta los patrones, y desde RF-IA-02 también se
+        guarda en el ejercicio para la curva de olvido. Con un acierto queda
+        NULL."""
         repo = SesionesRepositorio(sesion_db)
         ejercicio = repo.obtener_ejercicio_para_responder(ejercicio_id)
         if ejercicio is None:
@@ -88,6 +122,8 @@ class ResponderEjercicioService:
         ejercicio.respondido = True
         ejercicio.fue_correcto = acerto
         ejercicio.respondido_en = momento
+        # RF-IA-02: se guarda para calcular la curva de olvido al cerrar.
+        ejercicio.codigo_error = None if acerto else codigo_error
 
         sesion = ejercicio.sesion
         sesion_cerrada = reglas.cerrar_si_completa(sesion)
@@ -113,6 +149,11 @@ class ResponderEjercicioService:
         progreso = self._progreso.registrar_respuesta(
             usuario_id, caracter, acerto, codigo_error=None if acerto else codigo_error
         )
+        # Después de registrar la última respuesta: progreso-flask fija ahí
+        # el estado inicial de un carácter con agenda anterior.
+        if sesion_cerrada:
+            self._aplicar_curva_olvido(sesion)
+
         if progreso is None:
             resultado["aviso"] = AVISO_PROGRESO
             return resultado
@@ -124,6 +165,33 @@ class ResponderEjercicioService:
         resultado["proximo_repaso"] = calcular_proximo_repaso(racha, acerto, momento).isoformat()
         resultado["tasa_acierto"] = progreso.get("tasa_acierto")
         return resultado
+
+    def _aplicar_curva_olvido(self, sesion):
+        """Le pide a progreso-flask la curva de olvido de la sesión cerrada.
+
+        Si falla, ProgresoRemoto ya dejó la advertencia en el log: acá no
+        cambia nada de la respuesta.
+        """
+        cerrada_en, respuestas = resumen_para_curva(sesion)
+        self._progreso.aplicar_curva_olvido(sesion.usuario_id, sesion.id, cerrada_en, respuestas)
+
+
+def resumen_para_curva(sesion):
+    """(cerrada_en, respuestas) de una sesión cerrada, para progreso-flask.
+
+    cerrada_en es la fecha de la última respuesta, con zona horaria;
+    respuestas, una por ejercicio respondido, en el orden de la sesión, con
+    `codigo_error` solo si existe.
+    """
+    respondidos = [e for e in sesion.ejercicios if e.respondido]
+    respuestas = []
+    for e in respondidos:
+        respuesta = {"caracter": e.caracter, "acerto": bool(e.fue_correcto)}
+        if not e.fue_correcto and e.codigo_error:
+            respuesta["codigo_error"] = e.codigo_error
+        respuestas.append(respuesta)
+    cerrada_en = max(e.respondido_en for e in respondidos)
+    return cerrada_en.isoformat(), respuestas
 
 
 def obtener_sesion(sesion_db, sesion_id):

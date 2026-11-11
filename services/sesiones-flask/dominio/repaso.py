@@ -1,7 +1,9 @@
-"""Intervalos del repaso espaciado, iguales a los de progreso-flask.
+"""Estimación del próximo repaso que devuelve responder (`proximo_repaso`, como en v1).
 
-Se usan solo para informar en la respuesta cuándo vuelve a tocar el carácter
-(`proximo_repaso`, como en v1). La agenda real la guarda progreso-flask.
+Son los intervalos fijos que usaba progreso-flask antes de RF-IA-02. Desde
+RF-IA-02 la fecha real la calcula progreso-flask con la curva de olvido
+(SM-2) al cerrar la sesión, así que esto es solo una estimación: puede no
+coincidir con la fecha que muestra GET /api/v2/progreso/<id>/repasos/.
 """
 
 from datetime import timedelta

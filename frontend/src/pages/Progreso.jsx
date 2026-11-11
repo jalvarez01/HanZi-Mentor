@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PatronesError from '../components/PatronesError';
+import ProximosRepasos from '../components/ProximosRepasos';
 import ReporteProgreso from '../components/ReporteProgreso';
 import TopBar from '../components/TopBar';
 import { useProgreso } from '../hooks/useProgreso';
@@ -12,12 +13,13 @@ export default function Progreso() {
   const { datos, cargando, error, recargar, usuarioId, reiniciar } = useProgreso();
   const { t } = useTranslation();
   const formato = useFormato();
-  // "Actualizar" también vuelve a pedir los patrones de error (RF-IA-01).
-  const [recargaPatrones, setRecargaPatrones] = useState(0);
+  // "Actualizar" también vuelve a pedir los patrones de error (RF-IA-01) y
+  // los repasos (RF-IA-02), que tienen su propia petición.
+  const [recargaSecciones, setRecargaSecciones] = useState(0);
 
   function actualizar() {
     recargar();
-    setRecargaPatrones((n) => n + 1);
+    setRecargaSecciones((n) => n + 1);
   }
 
   return (
@@ -99,7 +101,7 @@ export default function Progreso() {
             </Bloque>
 
             {/* key: al empezar como usuario nuevo, los patrones del anterior se descartan */}
-            <PatronesError key={usuarioId} usuarioId={usuarioId} recarga={recargaPatrones} />
+            <PatronesError key={usuarioId} usuarioId={usuarioId} recarga={recargaSecciones} />
 
             <Bloque kicker={t('progress.masteredKicker')} titulo={t('progress.mastered')} id="progreso-dominados">
               {datos.caracteres_dominados.length === 0 ? (
@@ -113,13 +115,8 @@ export default function Progreso() {
               )}
             </Bloque>
 
-            <Bloque kicker={t('progress.reviewKicker')} titulo={t('progress.reviewTitle')} id="progreso-repaso">
-              <p className="progreso-pie">
-                {datos.proximo_repaso
-                  ? formato.fechaHora(datos.proximo_repaso)
-                  : t('progress.reviewNone')}
-              </p>
-            </Bloque>
+            {/* RF-IA-02: reemplaza el bloque "Próximo repaso", que mostraba una sola fecha */}
+            <ProximosRepasos key={usuarioId} usuarioId={usuarioId} recarga={recargaSecciones} />
 
             {/* key: al empezar como usuario nuevo, el reporte del anterior se descarta */}
             <ReporteProgreso key={usuarioId} usuarioId={usuarioId} />
