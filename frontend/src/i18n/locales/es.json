@@ -257,6 +257,7 @@
     "activateWithPrice": "Hacerme Premium · {{precio}} por 30 días",
     "renew": "Renovar 30 días",
     "renewWithPrice": "Renovar 30 días · {{precio}}",
+    "renewableFrom": "Podrás renovar desde el {{fecha}}.",
     "cancel": "Cancelar Premium",
     "cancelConfirm": "¿Cancelar Premium? No se devuelve el pago: seguís con todos los niveles hasta el {{fecha}}.",
     "cancelYes": "Sí, cancelar",
