@@ -44,6 +44,16 @@ export function useFormato() {
       return new Intl.NumberFormat(idioma, { style: 'percent', maximumFractionDigits: 0 }).format(valor ?? 0);
     },
 
+    /** Segundos como duración corta: 380 -> "6 min 20 s", 45 -> "45 s" (es y en). */
+    duracion(segundos) {
+      const total = Math.max(0, Math.round(segundos ?? 0));
+      const unidad = (valor, u) => new Intl.NumberFormat(idioma, { style: 'unit', unit: u, unitDisplay: 'short' }).format(valor);
+      const min = Math.floor(total / 60);
+      const seg = total % 60;
+      if (!min) return unidad(seg, 'second');
+      return seg ? `${unidad(min, 'minute')} ${unidad(seg, 'second')}` : unidad(min, 'minute');
+    },
+
     /** Fecha larga: "11 de diciembre de 2026" / "December 11, 2026" */
     fecha(iso) {
       return new Intl.DateTimeFormat(idioma, { dateStyle: 'long' }).format(new Date(iso));

@@ -22,6 +22,7 @@ y parte de la plantilla `services/flask-base`.
 | `modelos.py`           | `SesionEstudio` y `Ejercicio`                                    |
 | `dominio/builder.py`   | `SesionEstudioBuilder` con las validaciones de v1, vencidos y sin caracteres repetidos |
 | `dominio/sesion.py`    | Ciclo de vida: pendientes y cierre de la sesión                  |
+| `dominio/desempeno.py` | Desempeño de una sesión terminada: duración, fecha y resultados (RF-IA-05) |
 | `dominio/repaso.py`    | Intervalos fijos para la estimación de `proximo_repaso` que devuelve responder |
 | `dominio/excepciones.py` | Errores de negocio con su estado HTTP y su código              |
 | `dominio/codigos_error.py` | Códigos que acepta `codigo_error` al responder (RF-IA-01)    |
@@ -32,7 +33,7 @@ y parte de la plantilla `services/flask-base`.
 | `fabricas.py`          | Elige motor, notificador y clientes según la configuración       |
 | `repositorio.py`       | Acceso a la base; guarda sesión y ejercicios en una transacción  |
 | `servicio.py`          | `SesionEstudioService` y `ResponderEjercicioService`             |
-| `validacion.py`, `serializacion.py`, `rutas.py` | Entrada, JSON igual a v1 y los tres endpoints |
+| `validacion.py`, `serializacion.py`, `rutas.py` | Entrada, JSON igual a v1 y los endpoints |
 | `crear_base.py`, `docker-entrypoint.sh` | Base en el PostgreSQL compartido, igual que progreso-flask |
 
 Equivalencias con v1 (`services/agente-tutor/tutor`):
@@ -221,23 +222,27 @@ servicio arranca igual y `/health` responde 503.
 
 ### Migración
 
-RF-IA-02 trae la primera migración de `db_sesiones` y RF-IA-03 la segunda.
-`create_all` no altera una tabla que ya existe, así que
-`migraciones.aplicar()`, con el mismo patrón que progreso-flask, agrega las
-columnas en una base con datos:
+RF-IA-02 trae la primera migración de `db_sesiones`, RF-IA-03 la segunda y
+RF-IA-05 suma tres columnas a `sesiones`. `create_all` no altera una tabla
+que ya existe, así que `migraciones.aplicar()`, con el mismo patrón que
+progreso-flask, agrega las columnas en una base con datos:
 
 ```sql
-ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS codigo_error VARCHAR(40);  -- RF-IA-02
-ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS patron VARCHAR(40);        -- RF-IA-03
+ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS codigo_error VARCHAR(40);             -- RF-IA-02
+ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS patron VARCHAR(40);                   -- RF-IA-03
+ALTER TABLE sesiones ADD COLUMN IF NOT EXISTS completada_en TIMESTAMP WITH TIME ZONE; -- RF-IA-05
+ALTER TABLE sesiones ADD COLUMN IF NOT EXISTS duracion_seg INTEGER;                   -- RF-IA-05
+ALTER TABLE sesiones ADD COLUMN IF NOT EXISTS aciertos SMALLINT;                      -- RF-IA-05
 ```
 
 - La llama `iniciar_db` en cada arranque, después de `create_all`.
 - Es idempotente: si la columna ya está, no hace nada. En PostgreSQL,
   `IF NOT EXISTS` cubre además el caso de dos workers que arrancan a la vez.
-- Las columnas admiten NULL y no tiene valor por defecto: las filas que ya
-  existen quedan con NULL y la tabla no se reescribe. Una imagen anterior
+- Las columnas admiten NULL y no tienen valor por defecto: las filas que ya
+  existen quedan con NULL y las tablas no se reescriben. Una imagen anterior
   del servicio puede seguir insertando si hay que volver atrás.
-- `sesiones` no cambia.
+- Las sesiones que ya estaban cerradas no se rellenan: su desempeño se
+  calcula con la fecha de su última respuesta (ver "Desempeño").
 
 Se probó sobre una copia de `db_sesiones` hecha con `pg_dump` (88 sesiones y
 372 ejercicios): la primera ejecución agregó la columna, la segunda y la
@@ -247,7 +252,9 @@ Con `patron` se repitió la prueba sobre una base de RF-IA-02 con datos (ver
 la descripción del PR).
 Antes del despliegue se respaldó la base con `pg_dump`, y después la huella
 de la base real siguió idéntica. `tests/test_migraciones.py` repite la
-prueba en SQLite con el esquema anterior.
+prueba en SQLite con el esquema anterior. Las columnas de RF-IA-05 se
+probaron igual, sobre una base de development con datos (ver la descripción
+del PR).
 
 ## Idioma de los mensajes
 
@@ -360,12 +367,65 @@ igual. Esa sesión no se vuelve a enviar más tarde. progreso-flask es
 idempotente por sesión: si dos respuestas cierran la misma sesión a la vez,
 la curva se aplica una sola vez.
 
+**Desempeño (RF-IA-05).** En cuanto la respuesta cierra la sesión, la
+sesión ejecuta `calcular_desempeno()` (`calcularDesempeño()` del diagrama),
+que procesa la duración y la fecha, y los resultados quedan registrados en
+`sesiones` en el mismo commit que la última respuesta: `completada_en` (la
+fecha de esa respuesta), `duracion_seg` y `aciertos`. La respuesta que
+cierra trae además `desempeno` al final, con la misma forma que
+`GET /api/v2/sesiones/<id>/desempeno/`. Las demás respuestas no cambian. No
+depende de progreso-flask: con progreso caído el desempeño se registra
+igual y la respuesta trae `desempeno` y después `aviso`.
+
+`duracion_seg` y `aciertos` quedan para consultar la base directamente (un
+reporte o un `SELECT`) sin recorrer los ejercicios. El servicio no los lee:
+`calcular_desempeno()` cuenta los aciertos desde los ejercicios, porque ahí
+también saca el desglose por tipo y porque así las sesiones cerradas antes
+de RF-IA-05, que tienen esas columnas en NULL, dan el mismo resultado.
+
 Si progreso-flask no responde, la respuesta igual queda guardada:
 
 ```json
 {"ejercicio": {...}, "sesion_completada": false, "pendientes": 1,
  "proximo_repaso": null, "tasa_acierto": null,
  "aviso": "La respuesta quedó guardada en la sesión, pero no se pudo actualizar el progreso: el servicio de progreso no respondió."}
+```
+
+### `GET /api/v2/sesiones/<id>/desempeno/` (RF-IA-05)
+
+Desempeño de una sesión terminada. `409 SESION_NO_COMPLETADA` si sigue en
+curso y `404` si no existe.
+
+```json
+{"sesion_id": 12, "creada_en": "2026-11-10T15:00:00Z", "completada_en": "2026-11-10T15:08:30Z",
+ "duracion_seg": 510, "duracion_estimada_min": 10, "dentro_del_tiempo": true,
+ "segundos_por_ejercicio": 128, "total": 4, "aciertos": 3, "fallos": 1, "tasa_acierto": 0.75,
+ "por_tipo": {"trazo": {"total": 2, "aciertos": 1}, "significado": {"total": 2, "aciertos": 2}}}
+```
+
+- `duracion_seg` va de `creada_en` (cuando empezó) a `completada_en` (la
+  última respuesta), sin bajar de 0. `dentro_del_tiempo` es true si no pasó
+  de `duracion_estimada_min`.
+- `tasa_acierto` es la de esta sesión (aciertos sobre respondidos, con dos
+  decimales), en la misma escala de 0 a 1 que la tasa global de
+  progreso-flask, que es otra cosa: un promedio móvil de todas las
+  respuestas.
+- `por_tipo` solo trae los tipos que tiene la sesión.
+- Las sesiones cerradas antes de RF-IA-05 no tienen `completada_en`
+  guardado: se usa la fecha de su última respuesta, así que también tienen
+  desempeño.
+
+### `GET /api/v2/sesiones/desempeno/?usuario_id=<uuid>&limite=10` (RF-IA-05)
+
+Las últimas `limite` (1 a 50, por defecto 10) sesiones terminadas del
+usuario, de la más reciente a la más antigua, con los totales. Las sesiones
+en curso no entran. Sin `usuario_id`, o con un UUID o un `limite`
+inválidos, `400 ENTRADA_INVALIDA`.
+
+```json
+{"usuario_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+ "resumen": {"sesiones": 2, "ejercicios": 14, "aciertos": 11, "tasa_acierto": 0.79, "duracion_seg": 960},
+ "sesiones": [{"sesion_id": 13, ...}, {"sesion_id": 12, ...}]}
 ```
 
 ### Errores
@@ -380,11 +440,13 @@ Siempre `{"error": "<mensaje>", "codigo": "<CODIGO>"}`:
 | 404    | `NO_ENCONTRADO`           | Sesión, ejercicio o ruta inexistente           |
 | 405    | `METODO_NO_PERMITIDO`     | Método HTTP no soportado                       |
 | 409    | `EJERCICIO_YA_RESPONDIDO` | El ejercicio ya fue respondido                 |
+| 409    | `SESION_NO_COMPLETADA`    | Se pidió el desempeño de una sesión en curso   |
 | 500    | `ERROR_INTERNO`           | Error inesperado (sin stack trace)             |
 
 Diferencias con v1: los errores de validación eran el dict de DRF por campo
 y ahora son un `error` con el campo en el mensaje; todos traen `codigo`; y
-la respuesta puede traer `aviso` cuando progreso no respondió.
+la respuesta puede traer `desempeno` cuando cierra la sesión y `aviso`
+cuando progreso no respondió.
 
 ## Docker
 

@@ -495,13 +495,13 @@ def test_la_curva_va_despues_de_registrar_la_ultima_respuesta(client, crear_sesi
     assert orden[-2:] == ["respuesta", "curva"]
 
 
-def test_la_respuesta_que_cierra_no_cambia_de_forma(client, crear_sesion, progreso):
+def test_la_respuesta_que_cierra_solo_suma_el_desempeno(client, crear_sesion, progreso):
     ejercicios = crear_sesion()["ejercicios"]
     anterior = client.post(f"/api/v2/ejercicios/{ejercicios[0]['id']}/responder/", json={"acerto": True}).get_json()
 
     ultima = responder_todo(client, ejercicios[1:], {}).get_json()
 
-    assert list(ultima) == list(anterior)
+    assert list(ultima) == list(anterior) + ["desempeno"]
     assert ultima["proximo_repaso"] is not None
 
 
