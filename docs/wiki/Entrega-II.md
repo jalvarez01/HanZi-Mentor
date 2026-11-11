@@ -70,7 +70,7 @@ todo esto:
 | Ejemplos de oraciones (API de terceros) | Nuevo | `ejemplos-flask` | `GET /api/v2/ejemplos/<hanzi>/` | 1 | Migrado | PR #27 (`f9ebcdc`), integrado en PR #30 (`dd82852`), consumo en PR #37 (`2d58af2`) | Frontend (pantalla de Trazos) |
 | Servicio para el equipo aliado | Nuevo | `catalogo-flask` | `GET /api/v2/publico/resumen/` | 1 | En progreso | PR #38 | Pendiente: equipo aliado |
 | Reportes y notificaciones | Nuevo | `flask_reportes` + worker de Celery | `/api/v2/reportes/` | 1 | Migrado | PR #42 (`f0b21cf`), consumo en PR #46 (`7c4b021`) | Frontend (Progreso) |
-| Suscripciones Free y Premium (RF-USR-01) | Nuevo | `suscripciones-flask` | `/api/v2/suscripciones/` (planes, consulta, activar, renovar, cancelar, pagos) | 1 | Migrado | Rama `feature/suscripciones` | Frontend (Practicar y Progreso) |
+| Suscripciones Free y Premium (RF-USR-01) | Nuevo | `suscripciones-flask` | `/api/v2/suscripciones/` (planes, consulta, activar, renovar, cancelar, pagos) | 1 | Migrado | PR #55 | Frontend (Practicar y Progreso) |
 
 Los dos módulos con peso 0 no tienen endpoints de negocio propios:
 
