@@ -10,9 +10,11 @@ una tabla local: se lee y se registra en progreso-flask por HTTP
 from dominio import sesion as reglas
 from dominio.adaptacion import adaptar_a_patrones
 from dominio.builder import SesionEstudioBuilder, sin_repetir
+from dominio.desempeno import registrar_desempeno, resumen
 from dominio.excepciones import (
     EjercicioNoEncontradoError,
     EjercicioYaRespondidoError,
+    SesionNoCompletadaError,
     SesionNoEncontradaError,
 )
 from dominio.repaso import calcular_proximo_repaso, racha_previa
@@ -151,8 +153,13 @@ class ResponderEjercicioService:
         ejercicio.codigo_error = None if acerto else codigo_error
 
         sesion = ejercicio.sesion
-        sesion_cerrada = reglas.cerrar_si_completa(sesion)
+        sesion_cerrada = reglas.cerrar_si_completa(sesion, momento)
         pendientes = reglas.ejercicios_pendientes(sesion)
+        # RF-IA-05: en cuanto termina, la sesión calcula su desempeño y
+        # queda registrado en el mismo commit que la última respuesta.
+        desempeno = sesion.calcular_desempeno() if sesion_cerrada else None
+        if desempeno is not None:
+            registrar_desempeno(sesion, desempeno)
         usuario_id, caracter = sesion.usuario_id, ejercicio.caracter
 
         # La respuesta se guarda antes de avisar a progreso: si progreso no
@@ -170,6 +177,8 @@ class ResponderEjercicioService:
             "proximo_repaso": None,
             "tasa_acierto": None,
         }
+        if desempeno is not None:
+            resultado["desempeno"] = desempeno
 
         progreso = self._progreso.registrar_respuesta(
             usuario_id, caracter, acerto, codigo_error=None if acerto else codigo_error
@@ -217,6 +226,24 @@ def resumen_para_curva(sesion):
         respuestas.append(respuesta)
     cerrada_en = max(e.respondido_en for e in respondidos)
     return cerrada_en.isoformat(), respuestas
+
+
+def desempeno_de_sesion(sesion_db, sesion_id):
+    """Desempeño de una sesión terminada (RF-IA-05)."""
+    desempeno = obtener_sesion(sesion_db, sesion_id).calcular_desempeno()
+    if desempeno is None:
+        raise SesionNoCompletadaError(
+            N_("La sesión %(id)s todavía no terminó: no tiene desempeño."), id=sesion_id
+        )
+    return desempeno
+
+
+def historial_de_desempeno(sesion_db, usuario_id, limite):
+    """Desempeño de las últimas sesiones terminadas del usuario, de la más
+    reciente a la más antigua, con los totales."""
+    sesiones = SesionesRepositorio(sesion_db).sesiones_completadas(usuario_id, limite)
+    desempenos = [d for d in (s.calcular_desempeno() for s in sesiones) if d is not None]
+    return desempenos, resumen(desempenos)
 
 
 def obtener_sesion(sesion_db, sesion_id):

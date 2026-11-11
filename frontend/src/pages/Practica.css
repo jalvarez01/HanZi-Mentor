@@ -249,6 +249,54 @@
 
 .practica-resumen .hm-btn { margin-top: 18px; }
 
+/* RF-IA-05: desempeño de la sesión terminada */
+.practica-desempeno {
+  width: 100%;
+  max-width: 420px;
+  margin: 14px 0 6px;
+  padding: 14px 18px;
+  text-align: left;
+}
+
+.practica-desempeno h3 { margin: 0 0 8px; }
+
+.practica-desempeno dl { margin: 0; }
+
+.practica-desempeno dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.practica-desempeno dl > div:first-child { border-top: 0; }
+
+.practica-desempeno dt {
+  color: var(--ink-muted);
+  font: var(--fs-sm) var(--font-ui);
+}
+
+.practica-desempeno dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 2px 8px;
+  margin: 0;
+  font: var(--fs-md) var(--font-ui);
+  text-align: right;
+}
+
+.practica-desempeno dd strong { color: var(--ink); }
+
+.practica-desempeno dd span {
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
 /* Aviso del patrón principal (RF-IA-01): una nota discreta, como .trazos-nota */
 .practica-patron {
   width: 100%;

@@ -13,6 +13,7 @@ import {
   crearSesion,
   generarLeccion,
   obtenerCaracter,
+  obtenerDesempeno,
   obtenerPatrones,
   responderEjercicio,
 } from '../services/api';
@@ -40,6 +41,8 @@ export default function Practica() {
   const [patronFinal, setPatronFinal] = useState(null);
   // RF-IA-03: título de cada patrón de la sesión, por código, para los ejercicios adaptados.
   const [titulosPatron, setTitulosPatron] = useState(null);
+  // RF-IA-05: desempeño de la sesión terminada (duración, aciertos, ritmo).
+  const [desempeno, setDesempeno] = useState(null);
 
   const [leccion, setLeccion] = useState(null);
   const [indiceLeccion, setIndiceLeccion] = useState(0);
@@ -69,6 +72,7 @@ export default function Practica() {
     setUltimoResultado(null);
     setPatronFinal(null);
     setTitulosPatron(null);
+    setDesempeno(null);
 
     try {
       const nueva = await crearSesion({ usuarioId, nivelHsk: nivel });
@@ -91,6 +95,7 @@ export default function Practica() {
     if (resultado.sesion_completada) {
       setTerminada(true);
       avisarPatron(sesion.id);
+      mostrarDesempeno(sesion.id, resultado.desempeno);
     }
   }
 
@@ -102,6 +107,18 @@ export default function Practica() {
         const porCodigo = Object.fromEntries((r?.patrones ?? []).map((p) => [p.codigo, p.titulo]));
         setTitulosPatron({ sesionId, porCodigo });
       })
+      .catch(() => {});
+  }
+
+  // RF-IA-05: la respuesta que cierra la sesión trae el desempeño. Si no
+  // vino, se pide aparte; si eso también falla, el cierre queda como estaba.
+  function mostrarDesempeno(sesionId, desdeRespuesta) {
+    if (desdeRespuesta) {
+      setDesempeno(desdeRespuesta);
+      return;
+    }
+    obtenerDesempeno(sesionId)
+      .then(setDesempeno)
       .catch(() => {});
   }
 
@@ -330,6 +347,43 @@ export default function Practica() {
 
           {ultimoResultado?.aviso && (
             <p className="hm-status hm-status--empty" role="status">{t('practice.progressNotSaved')}</p>
+          )}
+
+          {/* RF-IA-05: lo que quedó registrado de esta sesión. */}
+          {desempeno?.sesion_id === sesion.id && (
+            <section className="hm-card practica-desempeno" aria-labelledby="practica-desempeno-titulo">
+              <h3 id="practica-desempeno-titulo" className="hm-kicker">{t('practice.performanceTitle')}</h3>
+              <dl>
+                <div>
+                  <dt>{t('practice.performanceTime')}</dt>
+                  <dd>
+                    <strong>{formato.duracion(desempeno.duracion_seg)}</strong>
+                    <span>
+                      {t(desempeno.dentro_del_tiempo ? 'practice.performanceOnTime' : 'practice.performanceOverTime', {
+                        minutos: desempeno.duracion_estimada_min,
+                      })}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t('practice.performanceCorrect')}</dt>
+                  <dd>
+                    <strong>
+                      {t('practice.performanceCorrectValue', { aciertos: desempeno.aciertos, total: desempeno.total })}
+                    </strong>
+                    <span>{formato.porcentaje(desempeno.tasa_acierto)}</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t('practice.performancePace')}</dt>
+                  <dd>
+                    <strong>
+                      {t('practice.performancePaceValue', { tiempo: formato.duracion(desempeno.segundos_por_ejercicio) })}
+                    </strong>
+                  </dd>
+                </div>
+              </dl>
+            </section>
           )}
 
           {ultimoResultado && (

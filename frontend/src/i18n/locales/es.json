@@ -160,7 +160,15 @@
     "premiumLevel": "HSK {{nivel}}: requiere Premium. Ver tu plan",
     "premiumNote": "Con el plan Gratis practicás HSK 1 a 3. HSK 4 a 6 son parte de Premium.",
     "premiumLink": "Ver planes",
-    "planUnknown": "No pudimos confirmar tu plan: por ahora están todos los niveles abiertos."
+    "planUnknown": "No pudimos confirmar tu plan: por ahora están todos los niveles abiertos.",
+    "performanceTitle": "Tu desempeño",
+    "performanceTime": "Tiempo",
+    "performanceOnTime": "dentro de los {{minutos}} min estimados",
+    "performanceOverTime": "más que los {{minutos}} min estimados",
+    "performanceCorrect": "Aciertos",
+    "performanceCorrectValue": "{{aciertos}} de {{total}}",
+    "performancePace": "Ritmo",
+    "performancePaceValue": "{{tiempo}} por ejercicio"
   },
   "feedback": {
     "why": "Por qué",
