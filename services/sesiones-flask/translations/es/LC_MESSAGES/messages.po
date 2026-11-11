@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sesiones-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 22:06-0500\n"
+"POT-Creation-Date: 2026-11-10 23:07-0500\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: es\n"
@@ -31,22 +31,27 @@ msgstr ""
 msgid "Error interno"
 msgstr ""
 
-#: servicio.py:27
+#: servicio.py:34
 msgid ""
 "La respuesta quedó guardada en la sesión, pero no se pudo actualizar el "
 "progreso: el servicio de progreso no respondió."
 msgstr ""
 
-#: servicio.py:81
+#: servicio.py:117
 msgid "Ejercicio no encontrado."
 msgstr ""
 
-#: servicio.py:84
+#: servicio.py:120
 #, python-format
 msgid "El ejercicio %(id)s ya fue respondido."
 msgstr ""
 
-#: servicio.py:132
+#: servicio.py:211
+#, python-format
+msgid "La sesión %(id)s todavía no terminó: no tiene desempeño."
+msgstr ""
+
+#: servicio.py:227
 msgid "Sesión no encontrada."
 msgstr ""
 
@@ -54,7 +59,7 @@ msgstr ""
 msgid "El cuerpo debe ser un objeto JSON"
 msgstr ""
 
-#: validacion.py:61 validacion.py:76 validacion.py:88
+#: validacion.py:61 validacion.py:76 validacion.py:92 validacion.py:102
 #, python-format
 msgid "El campo '%(campo)s' es obligatorio"
 msgstr ""
@@ -64,43 +69,43 @@ msgstr ""
 msgid "El campo '%(campo)s' debe ser un entero entre %(minimo)s y %(maximo)s"
 msgstr ""
 
-#: validacion.py:79
+#: validacion.py:79 validacion.py:95
 #, python-format
 msgid "El campo '%(campo)s' debe ser un UUID válido"
 msgstr ""
 
-#: validacion.py:98
+#: validacion.py:112
 msgid "El campo 'acerto' debe ser true o false"
 msgstr ""
 
-#: validacion.py:115
+#: validacion.py:129
 msgid "El campo 'codigo_error' no es un código de error conocido"
 msgstr ""
 
-#: dominio/builder.py:83
+#: dominio/builder.py:107
 msgid "La sesión requiere un usuario."
 msgstr ""
 
-#: dominio/builder.py:86
+#: dominio/builder.py:110
 #, python-format
 msgid "Nivel HSK inválido: %(nivel)s."
 msgstr ""
 
-#: dominio/builder.py:90
+#: dominio/builder.py:114
 #, python-format
 msgid "HSK%(nivel)s aún no está desbloqueado (máximo actual: HSK%(maximo)s)."
 msgstr ""
 
-#: dominio/builder.py:96
+#: dominio/builder.py:120
 msgid "La sesión requiere una dificultad."
 msgstr ""
 
-#: dominio/builder.py:100
+#: dominio/builder.py:124
 #, python-format
 msgid "Una sesión necesita al menos %(minimo)s ejercicios."
 msgstr ""
 
-#: dominio/builder.py:105
+#: dominio/builder.py:129
 #, python-format
 msgid "Una sesión no puede exceder %(maximo)s ejercicios."
 msgstr ""

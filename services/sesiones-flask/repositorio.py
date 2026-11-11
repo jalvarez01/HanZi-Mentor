@@ -29,6 +29,16 @@ class SesionesRepositorio:
             .options(selectinload(SesionEstudio.ejercicios))
         ).first()
 
+    def sesiones_completadas(self, usuario_id, limite):
+        """Las últimas `limite` sesiones terminadas del usuario (RF-IA-05)."""
+        return self._db.scalars(
+            select(SesionEstudio)
+            .where(SesionEstudio.usuario_id == usuario_id, SesionEstudio.estado == "completada")
+            .order_by(SesionEstudio.id.desc())
+            .limit(limite)
+            .options(selectinload(SesionEstudio.ejercicios))
+        ).all()
+
     def obtener_ejercicio_para_responder(self, ejercicio_id):
         """Bloquea la fila (en PostgreSQL) para que no se responda dos veces a la vez."""
         return self._db.scalars(

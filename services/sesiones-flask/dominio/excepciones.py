@@ -47,6 +47,13 @@ class EjercicioNoEncontradoError(DominioError):
     codigo = "NO_ENCONTRADO"
 
 
+class SesionNoCompletadaError(DominioError):
+    """La sesión sigue en curso y todavía no tiene desempeño (RF-IA-05)."""
+
+    estado = 409
+    codigo = "SESION_NO_COMPLETADA"
+
+
 class SesionNoEncontradaError(DominioError):
     """No existe una sesión con el id solicitado."""
 

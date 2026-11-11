@@ -83,6 +83,20 @@ def validar_crear_sesion(datos):
     return usuario_id, nivel_hsk, duracion
 
 
+LIMITE_HISTORIAL = 10
+
+
+def validar_historial(args):
+    """Devuelve (usuario_id, limite) de GET /api/v2/sesiones/desempeno/."""
+    if not args.get("usuario_id"):
+        raise _invalida(N_("El campo '%(campo)s' es obligatorio"), campo="usuario_id")
+    usuario_id = _uuid(args.get("usuario_id"))
+    if usuario_id is None:
+        raise _invalida(N_("El campo '%(campo)s' debe ser un UUID válido"), campo="usuario_id")
+    limite = _entero_en_rango(args, "limite", 1, 50, defecto=LIMITE_HISTORIAL)
+    return usuario_id, limite
+
+
 def _acerto(datos):
     if "acerto" not in datos:
         raise _invalida(N_("El campo '%(campo)s' es obligatorio"), campo="acerto")

@@ -42,8 +42,36 @@ def sesion(s):
     }
 
 
+def desempeno(d):
+    """Desempeño de una sesión (RF-IA-05). No existe en v1."""
+    return {
+        "sesion_id": d.sesion_id,
+        "creada_en": _fecha(d.creada_en),
+        "completada_en": _fecha(d.completada_en),
+        "duracion_seg": d.duracion_seg,
+        "duracion_estimada_min": d.duracion_estimada_min,
+        "dentro_del_tiempo": d.dentro_del_tiempo,
+        "segundos_por_ejercicio": d.segundos_por_ejercicio,
+        "total": d.total,
+        "aciertos": d.aciertos,
+        "fallos": d.fallos,
+        "tasa_acierto": d.tasa_acierto,
+        "por_tipo": d.por_tipo,
+    }
+
+
+def historial(usuario_id, desempenos, totales):
+    return {
+        "usuario_id": str(usuario_id),
+        "resumen": totales,
+        "sesiones": [desempeno(d) for d in desempenos],
+    }
+
+
 def resultado_respuesta(r):
-    """ResultadoRespuestaSerializer. `aviso` solo aparece si progreso no respondió."""
+    """ResultadoRespuestaSerializer. Al final, dos claves que v1 no tiene:
+    `desempeno` solo en la respuesta que cierra la sesión (RF-IA-05) y
+    `aviso` solo si progreso no respondió."""
     datos = {
         "ejercicio": ejercicio(r["ejercicio"]),
         "sesion_completada": r["sesion_completada"],
@@ -51,6 +79,8 @@ def resultado_respuesta(r):
         "proximo_repaso": r["proximo_repaso"],
         "tasa_acierto": r["tasa_acierto"],
     }
+    if "desempeno" in r:
+        datos["desempeno"] = desempeno(r["desempeno"])
     if "aviso" in r:
         datos["aviso"] = traducir(r["aviso"])
     return datos
