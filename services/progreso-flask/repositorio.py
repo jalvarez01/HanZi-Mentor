@@ -5,8 +5,8 @@ Port de services/agente-tutor/progreso/repositories.py.
 
 from sqlalchemy import select
 
-from dominio.progreso import peores_caracteres
-from modelos import ProgresoUsuario
+from dominio.progreso import fecha_mas_cercana, peores_caracteres
+from modelos import ProgresoUsuario, SesionAplicada
 
 # Cuántos caracteres débiles se muestran en el resumen.
 TOTAL_DEBILES = 5
@@ -57,7 +57,10 @@ class ProgresoRepositorio:
             "caracteres_dominados": caracteres_dominados,
             "errores_frecuentes": errores_frecuentes,
             "aciertos_consecutivos": progreso.aciertos_consecutivos or {},
-            "proximo_repaso": progreso.proximo_repaso,
+            # Siempre la fecha más cercana de la agenda (RF-IA-02). Se lee de
+            # la agenda y no de la columna: una fila guardada antes del
+            # arreglo puede tener en la columna una fecha vieja.
+            "proximo_repaso": fecha_mas_cercana(progreso.agenda_repaso) or progreso.proximo_repaso,
             "actualizado_en": progreso.actualizado_en,
             "total_dominados": len(caracteres_dominados),
             "total_por_reforzar": len(errores_frecuentes),
@@ -86,6 +89,12 @@ class ProgresoRepositorio:
             progreso = ProgresoUsuario(usuario_id=usuario_id)
             self._sesion.add(progreso)
         return progreso
+
+    def sesion_aplicada(self, usuario_id, sesion_id) -> bool:
+        return self._sesion.get(SesionAplicada, (usuario_id, sesion_id)) is not None
+
+    def registrar_sesion_aplicada(self, usuario_id, sesion_id, momento) -> None:
+        self._sesion.add(SesionAplicada(usuario_id=usuario_id, sesion_id=sesion_id, aplicada_en=momento))
 
     def guardar(self, progreso: ProgresoUsuario) -> None:
         self._sesion.add(progreso)

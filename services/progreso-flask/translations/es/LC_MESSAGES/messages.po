@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: progreso-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 22:01-0500\n"
+"POT-Creation-Date: 2026-11-10 20:18-0500\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: es\n"
@@ -31,42 +31,64 @@ msgstr ""
 msgid "Error interno"
 msgstr ""
 
-#: validacion.py:29
+#: validacion.py:37
 msgid "El usuario_id debe ser un UUID válido"
 msgstr ""
 
-#: validacion.py:35
+#: validacion.py:43 validacion.py:153
 msgid "El cuerpo debe ser un objeto JSON"
 msgstr ""
 
-#: validacion.py:39
+#: validacion.py:47
 msgid "El campo 'caracter' es obligatorio y debe ser texto"
 msgstr ""
 
-#: validacion.py:43
+#: validacion.py:51
 #, python-format
 msgid "El campo 'caracter' admite hasta %(maximo)s caracteres"
 msgstr ""
 
-#: validacion.py:54
+#: validacion.py:62
 msgid "El campo 'codigo_error' no es un código de error conocido"
 msgstr ""
 
-#: validacion.py:69
+#: validacion.py:77 validacion.py:139
 msgid "El campo 'acerto' es obligatorio y debe ser true o false"
 msgstr ""
 
-#: validacion.py:83
+#: validacion.py:91
 msgid "El campo 'codigo_error' es obligatorio"
 msgstr ""
 
-#: validacion.py:85
+#: validacion.py:93
 msgid "El campo 'codigo_error' debe ser un código de error de trazo"
 msgstr ""
 
-#: validacion.py:96
+#: validacion.py:104
 #, python-format
 msgid "El límite debe ser un entero entre 1 y %(maximo)s"
+msgstr ""
+
+#: validacion.py:117
+#, python-format
+msgid "El campo 'dias' debe ser un entero entre 1 y %(maximo)s"
+msgstr ""
+
+#: validacion.py:135
+msgid "Cada respuesta debe ser un objeto con 'caracter' y 'acerto'"
+msgstr ""
+
+#: validacion.py:157
+msgid "El campo 'sesion_id' debe ser un entero positivo"
+msgstr ""
+
+#: validacion.py:161
+msgid "El campo 'cerrada_en' debe ser una fecha ISO 8601 con zona horaria"
+msgstr ""
+
+#: validacion.py:166
+#, python-format
+msgid "El campo 'respuestas' debe ser una lista de 1 a %(maximo)s respuestas"
 msgstr ""
 
 #: dominio/patrones.py:72

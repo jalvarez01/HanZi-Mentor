@@ -97,3 +97,45 @@ def test_todos_los_patrones_tienen_traduccion_al_ingles(app):
     with app.test_request_context(), force_locale("en"):
         for texto in textos:
             assert gettext(texto) != texto, texto
+
+
+def test_curva_olvido_invalida_en_espanol_y_en_ingles(client):
+    url = f"/api/v2/progreso/{USUARIO}/curva-olvido/"
+    sin_zona = {"sesion_id": 1, "cerrada_en": "2026-11-10T12:00:00", "respuestas": [{"caracter": "x", "acerto": True}]}
+
+    es = client.post(url, json=sin_zona)
+    en = client.post(url, json=sin_zona, headers=EN)
+
+    assert es.get_json() == {
+        "error": "El campo 'cerrada_en' debe ser una fecha ISO 8601 con zona horaria",
+        "codigo": "ENTRADA_INVALIDA",
+    }
+    assert en.get_json() == {
+        "error": "The field 'cerrada_en' must be an ISO 8601 date with a time zone",
+        "codigo": "ENTRADA_INVALIDA",
+    }
+
+
+def test_curva_olvido_demas_mensajes_en_ingles(client):
+    url = f"/api/v2/progreso/{USUARIO}/curva-olvido/"
+    cierre = "2026-11-10T12:00:00+00:00"
+
+    def error(cuerpo):
+        return client.post(url, json=cuerpo, headers=EN).get_json()["error"]
+
+    assert error({"sesion_id": 0}) == "The field 'sesion_id' must be a positive integer"
+    assert error({"sesion_id": 1, "cerrada_en": cierre, "respuestas": []}) == (
+        "The field 'respuestas' must be a list of 1 to 20 answers"
+    )
+    assert error({"sesion_id": 1, "cerrada_en": cierre, "respuestas": ["x"]}) == (
+        "Each answer must be an object with 'caracter' and 'acerto'"
+    )
+
+
+def test_repasos_dias_invalido_en_ingles(client):
+    resp = client.get(f"/api/v2/progreso/{USUARIO}/repasos/?dias=40", headers=EN)
+
+    assert resp.get_json() == {
+        "error": "The field 'dias' must be an integer between 1 and 30",
+        "codigo": "ENTRADA_INVALIDA",
+    }

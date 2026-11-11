@@ -23,10 +23,14 @@ logger = logging.getLogger(__name__)
 
 TABLA = "progresos"
 
-# (columna, tipo SQL, valor por defecto). RF-IA-01.
+# (columna, tipo SQL, valor por defecto).
 COLUMNAS_NUEVAS = (
+    # RF-IA-01: patrones de error.
     ("errores_por_codigo", "JSON", "'{}'"),
     ("historial_errores", "JSON", "'[]'"),
+    # RF-IA-02: estado SM-2 por carácter. La tabla sesiones_aplicadas es
+    # nueva y la crea create_all.
+    ("curva_olvido", "JSON", "'{}'"),
 )
 
 

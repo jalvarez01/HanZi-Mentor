@@ -7,9 +7,15 @@ reglas. Las funciones reciben la entidad, la mutan en memoria y nunca
 guardan: quien las llama decide cuándo hacer commit.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from .codigos import ORIGEN_SESION, ORIGEN_TRAZOS
+from .curva_olvido import (
+    EstadoCurva,
+    actualizar_curva_olvido,
+    estado_desde_racha,
+    peor_calidad_por_caracter,
+)
 
 NIVEL_HSK_MAXIMO = 6
 
@@ -68,14 +74,123 @@ def registrar_respuesta(progreso, caracter, acerto):
         registrar_error(progreso, caracter)
 
 
+def _leer_fecha(texto):
+    """Una fecha ISO de la agenda, con zona, o None si no se puede leer."""
+    if not isinstance(texto, str):
+        return None
+    try:
+        fecha = datetime.fromisoformat(texto)
+    except ValueError:
+        return None
+    return fecha if fecha.tzinfo is not None else fecha.replace(tzinfo=timezone.utc)
+
+
+def fecha_mas_cercana(agenda):
+    """La fecha más cercana de la agenda, o None si está vacía."""
+    fechas = [f for f in (_leer_fecha(v) for v in (agenda or {}).values()) if f is not None]
+    return min(fechas) if fechas else None
+
+
 def agendar_repaso(progreso, caracter, cuando):
-    """Guarda la fecha del próximo repaso y actualiza la más cercana."""
+    """Guarda la fecha del próximo repaso y recalcula la más cercana.
+
+    `proximo_repaso` es siempre la fecha más cercana de toda la agenda,
+    también cuando la fecha nueva es posterior a la que tenía el carácter.
+    Antes solo se actualizaba si la fecha nueva era anterior, y quedaba una
+    fecha vieja que nunca se corregía (el mismo defecto de v1).
+    """
     agenda = dict(progreso.agenda_repaso or {})
     agenda[caracter] = cuando.isoformat()
     progreso.agenda_repaso = agenda
+    progreso.proximo_repaso = fecha_mas_cercana(agenda)
 
-    if progreso.proximo_repaso is None or cuando < progreso.proximo_repaso:
-        progreso.proximo_repaso = cuando
+
+# ---------------------------------------------------------- curva de olvido
+
+
+def estado_curva(progreso, caracter):
+    """Estado SM-2 de un carácter.
+
+    Si todavía no tiene uno y ya tenía repaso con el algoritmo anterior, se
+    deriva de su racha (curva_olvido.estado_desde_racha). Si nunca se
+    agendó, es el estado de un carácter nuevo.
+    """
+    guardado = EstadoCurva.desde_dict((progreso.curva_olvido or {}).get(caracter))
+    if guardado is not None:
+        return guardado
+    if caracter in (progreso.agenda_repaso or {}):
+        return estado_desde_racha(racha_de(progreso, caracter))
+    return EstadoCurva()
+
+
+def guardar_estado_previo(progreso, caracter):
+    """Fija el estado SM-2 inicial de un carácter antes de su primera respuesta.
+
+    Inicialización perezosa (RF-IA-02): un carácter que ya tenía fecha en
+    agenda_repaso, pero todavía no tiene estado SM-2, lo recibe acá, con la
+    racha de ANTES de responder. Al cerrar la sesión la racha ya incluye las
+    respuestas de esa sesión, por eso no se puede derivar recién ahí. La
+    fecha de agenda_repaso no se toca.
+    """
+    curva = progreso.curva_olvido or {}
+    if caracter in curva or caracter not in (progreso.agenda_repaso or {}):
+        return
+    curva = dict(curva)
+    curva[caracter] = estado_desde_racha(racha_de(progreso, caracter)).a_dict()
+    progreso.curva_olvido = curva
+
+
+def aplicar_curva_olvido(progreso, respuestas, momento):
+    """actualizarCurvaOlvido() del requisito: aplica una sesión cerrada.
+
+    respuestas: [{caracter, acerto, codigo_error}] de la sesión. Cada
+    carácter respondido se actualiza una vez, con su peor calidad, y se
+    agenda desde `momento` (el cierre de la sesión). Devuelve, por carácter
+    y en el orden de la sesión, {caracter, proximo_repaso, intervalo_dias,
+    repeticiones}.
+    """
+    curva = dict(progreso.curva_olvido or {})
+    resultado = []
+    for caracter, calidad in peor_calidad_por_caracter(respuestas).items():
+        nuevo, cuando = actualizar_curva_olvido(estado_curva(progreso, caracter), calidad, momento)
+        curva[caracter] = nuevo.a_dict()
+        agendar_repaso(progreso, caracter, cuando)
+        resultado.append({
+            "caracter": caracter,
+            "proximo_repaso": cuando,
+            "intervalo_dias": nuevo.intervalo_dias,
+            "repeticiones": nuevo.repeticiones,
+        })
+    progreso.curva_olvido = curva
+    return resultado
+
+
+def listar_repasos(progreso, momento, dias, limite):
+    """(vencidos, proximos) de la agenda.
+
+    vencidos: fecha igual o anterior a `momento`, del más atrasado al menos
+    atrasado. proximos: después de `momento` y hasta `dias` días, del más
+    cercano al más lejano. Cada lista tiene como máximo `limite` elementos.
+    """
+    hasta = momento + timedelta(days=dias)
+    vencidos, proximos = [], []
+    for caracter, texto in (progreso.agenda_repaso or {}).items():
+        cuando = _leer_fecha(texto)
+        if cuando is None or cuando > hasta:
+            continue
+        estado = estado_curva(progreso, caracter)
+        fila = {
+            "caracter": caracter,
+            "proximo_repaso": cuando,
+            "intervalo_dias": estado.intervalo_dias,
+            "repeticiones": estado.repeticiones,
+        }
+        (vencidos if cuando <= momento else proximos).append(fila)
+
+    def orden(fila):
+        return (fila["proximo_repaso"], fila["caracter"])
+
+    return sorted(vencidos, key=orden)[:limite], sorted(proximos, key=orden)[:limite]
 
 
 def _es_reintento(historial, caracter, codigo, momento):

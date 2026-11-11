@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: progreso-flask 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-09 22:01-0500\n"
+"POT-Creation-Date: 2026-11-10 20:18-0500\n"
 "PO-Revision-Date: 2026-10-25 00:00+0000\n"
 "Last-Translator: HanZi Mentor\n"
 "Language: en\n"
@@ -31,43 +31,65 @@ msgstr "Method not allowed"
 msgid "Error interno"
 msgstr "Internal error"
 
-#: validacion.py:29
+#: validacion.py:37
 msgid "El usuario_id debe ser un UUID válido"
 msgstr "The usuario_id must be a valid UUID"
 
-#: validacion.py:35
+#: validacion.py:43 validacion.py:153
 msgid "El cuerpo debe ser un objeto JSON"
 msgstr "The body must be a JSON object"
 
-#: validacion.py:39
+#: validacion.py:47
 msgid "El campo 'caracter' es obligatorio y debe ser texto"
 msgstr "The field 'caracter' is required and must be text"
 
-#: validacion.py:43
+#: validacion.py:51
 #, python-format
 msgid "El campo 'caracter' admite hasta %(maximo)s caracteres"
 msgstr "The field 'caracter' allows up to %(maximo)s characters"
 
-#: validacion.py:54
+#: validacion.py:62
 msgid "El campo 'codigo_error' no es un código de error conocido"
 msgstr "The field 'codigo_error' is not a known error code"
 
-#: validacion.py:69
+#: validacion.py:77 validacion.py:139
 msgid "El campo 'acerto' es obligatorio y debe ser true o false"
 msgstr "The field 'acerto' is required and must be true or false"
 
-#: validacion.py:83
+#: validacion.py:91
 msgid "El campo 'codigo_error' es obligatorio"
 msgstr "The field 'codigo_error' is required"
 
-#: validacion.py:85
+#: validacion.py:93
 msgid "El campo 'codigo_error' debe ser un código de error de trazo"
 msgstr "The field 'codigo_error' must be a stroke error code"
 
-#: validacion.py:96
+#: validacion.py:104
 #, python-format
 msgid "El límite debe ser un entero entre 1 y %(maximo)s"
 msgstr "The limit must be an integer between 1 and %(maximo)s"
+
+#: validacion.py:117
+#, python-format
+msgid "El campo 'dias' debe ser un entero entre 1 y %(maximo)s"
+msgstr "The field 'dias' must be an integer between 1 and %(maximo)s"
+
+#: validacion.py:135
+msgid "Cada respuesta debe ser un objeto con 'caracter' y 'acerto'"
+msgstr "Each answer must be an object with 'caracter' and 'acerto'"
+
+#: validacion.py:157
+msgid "El campo 'sesion_id' debe ser un entero positivo"
+msgstr "The field 'sesion_id' must be a positive integer"
+
+#: validacion.py:161
+msgid "El campo 'cerrada_en' debe ser una fecha ISO 8601 con zona horaria"
+msgstr "The field 'cerrada_en' must be an ISO 8601 date with a time zone"
+
+#: validacion.py:166
+#, python-format
+msgid "El campo 'respuestas' debe ser una lista de 1 a %(maximo)s respuestas"
+msgstr "The field 'respuestas' must be a list of 1 to %(maximo)s answers"
 
 #: dominio/patrones.py:72
 msgid "Trazos al revés"

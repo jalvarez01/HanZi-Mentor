@@ -7,6 +7,9 @@ import servicio
 from db import obtener_sesion
 from dominio.patrones import VENTANA_DIAS
 from validacion import (
+    LIMITE_REPASOS_DEFECTO,
+    validar_curva_olvido,
+    validar_dias,
     validar_error_de_trazo,
     validar_limite,
     validar_respuesta,
@@ -69,3 +72,37 @@ def refuerzos(usuario_id):
     limite = validar_limite(request.args)
     caracteres = servicio.caracteres_a_reforzar(obtener_sesion(), usuario_id, limite)
     return jsonify({"usuario_id": str(usuario_id), "caracteres": caracteres}), 200
+
+
+@progreso_bp.post("/api/v2/progreso/<usuario_id>/curva-olvido/")
+def curva_olvido(usuario_id):
+    """Uso interno (flask_sesiones): aplica la curva de olvido de una sesión
+    cerrada (RF-IA-02). Idempotente: una sesión ya aplicada responde 200 con
+    `aplicada` false y no cambia nada."""
+    usuario_id = validar_usuario_id(usuario_id)
+    sesion_id, cerrada_en, respuestas = validar_curva_olvido(request.get_json(silent=True))
+    repasos_agendados = servicio.aplicar_curva_olvido(
+        obtener_sesion(), usuario_id, sesion_id, cerrada_en, respuestas
+    )
+    return jsonify({
+        "usuario_id": str(usuario_id),
+        "sesion_id": sesion_id,
+        "aplicada": repasos_agendados is not None,
+        "repasos": [serializacion.repaso(r) for r in repasos_agendados or []],
+    }), 200
+
+
+@progreso_bp.get("/api/v2/progreso/<usuario_id>/repasos/")
+def repasos(usuario_id):
+    """Repasos vencidos y de los próximos `dias` días, cada lista hasta `limite`."""
+    usuario_id = validar_usuario_id(usuario_id)
+    dias = validar_dias(request.args)
+    limite = validar_limite(request.args, defecto=LIMITE_REPASOS_DEFECTO)
+    momento, vencidos, proximos = servicio.listar_repasos(obtener_sesion(), usuario_id, dias, limite)
+    return jsonify({
+        "usuario_id": str(usuario_id),
+        "momento": serializacion.fecha(momento),
+        "dias": dias,
+        "vencidos": [serializacion.repaso(r) for r in vencidos],
+        "proximos": [serializacion.repaso(r) for r in proximos],
+    }), 200

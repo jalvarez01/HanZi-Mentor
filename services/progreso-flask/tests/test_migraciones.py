@@ -77,15 +77,15 @@ def test_agrega_las_columnas_sin_tocar_los_datos(url_vieja):
 
     agregadas = migraciones.aplicar(engine)
 
-    assert agregadas == ["errores_por_codigo", "historial_errores"]
-    assert columnas(engine)[-2:] == ["errores_por_codigo", "historial_errores"]
+    assert agregadas == ["errores_por_codigo", "historial_errores", "curva_olvido"]
+    assert columnas(engine)[-3:] == ["errores_por_codigo", "historial_errores", "curva_olvido"]
     assert filas_viejas(engine) == antes == FILAS
     with engine.connect() as conexion:
         nuevas = conexion.execute(
-            text("SELECT errores_por_codigo, historial_errores FROM progresos ORDER BY id")
+            text("SELECT errores_por_codigo, historial_errores, curva_olvido FROM progresos ORDER BY id")
         ).all()
     # Las filas que ya existían toman el valor por defecto.
-    assert [(json.loads(a), json.loads(b)) for a, b in nuevas] == [({}, []), ({}, [])]
+    assert [tuple(json.loads(v) for v in fila) for fila in nuevas] == [({}, [], {}), ({}, [], {})]
     engine.dispose()
 
 
@@ -143,7 +143,10 @@ def test_el_servicio_arranca_sobre_la_base_vieja_y_conserva_el_progreso(url_viej
     assert datos["caracteres_dominados"] == ["人", "大"]
     assert datos["errores_frecuentes"] == {"学": 2}
     assert datos["aciertos_consecutivos"] == {"人": 3, "学": 0}
-    assert datos["proximo_repaso"] == "2026-11-10T22:00:00Z"
+    # RF-IA-02: la fecha más cercana de la agenda. La columna de esta fila
+    # tiene una fecha anterior que no está en la agenda (el defecto que se
+    # corrigió); la agenda no se toca.
+    assert datos["proximo_repaso"] == "2026-11-12T10:00:00Z"
     assert client.get(f"/api/v2/progreso/{usuario}/patrones/").get_json()["patrones"] == []
 
     # Y se puede seguir escribiendo sobre la fila migrada.
@@ -166,11 +169,63 @@ def test_el_esquema_migrado_es_igual_al_de_una_base_nueva(url_vieja):
         return {
             c["name"]: (c["nullable"], str(c["default"]))
             for c in inspect(engine).get_columns("progresos")
-            if c["name"] in ("errores_por_codigo", "historial_errores")
+            if c["name"] in ("errores_por_codigo", "historial_errores", "curva_olvido")
         }
 
     assert resumen(migrada) == resumen(nueva) == {
         "errores_por_codigo": (False, "'{}'"),
         "historial_errores": (False, "'[]'"),
+        "curva_olvido": (False, "'{}'"),
     }
     migrada.dispose()
+
+
+
+def test_desde_la_version_de_rf_ia_01_solo_agrega_curva_olvido(url_vieja):
+    """La base real ya tiene las columnas de RF-IA-01: solo falta curva_olvido."""
+    engine = create_engine(url_vieja)
+    with engine.begin() as conexion:
+        conexion.execute(text("ALTER TABLE progresos ADD COLUMN errores_por_codigo JSON NOT NULL DEFAULT '{}'"))
+        conexion.execute(text("ALTER TABLE progresos ADD COLUMN historial_errores JSON NOT NULL DEFAULT '[]'"))
+
+    assert migraciones.aplicar(engine) == ["curva_olvido"]
+    assert filas_viejas(engine) == FILAS
+    engine.dispose()
+
+
+def test_create_app_crea_la_tabla_sesiones_aplicadas_en_una_base_vieja(url_vieja):
+    app = create_app({"TESTING": True, "DATABASE_URL": url_vieja})
+    engine = app.extensions["db"]["engine"]
+
+    assert inspect(engine).has_table("sesiones_aplicadas")
+    assert [c["name"] for c in inspect(engine).get_columns("sesiones_aplicadas")] == [
+        "usuario_id", "sesion_id", "aplicada_en",
+    ]
+    assert filas_viejas(engine) == FILAS
+    engine.dispose()
+
+
+def test_la_curva_sobre_la_base_vieja_conserva_las_fechas_de_los_demas(url_vieja):
+    """Inicialización perezosa: el carácter con agenda anterior parte de su
+    racha, y los demás caracteres conservan su fecha."""
+    app = create_app({"TESTING": True, "DATABASE_URL": url_vieja})
+    client = app.test_client()
+    usuario = "12345678-1234-5678-1234-567812345678"
+    url = f"/api/v2/progreso/{usuario}/"
+
+    # 人 tenía racha 3 y fecha 2026-11-12T10:00 con el algoritmo anterior.
+    client.post(f"{url}respuestas/", json={"caracter": "学", "acerto": True})
+    resp = client.post(f"{url}curva-olvido/", json={
+        "sesion_id": 1, "cerrada_en": "2026-11-13T09:00:00+00:00",
+        "respuestas": [{"caracter": "学", "acerto": True}],
+    })
+
+    assert resp.get_json()["repasos"] == [{
+        "caracter": "学", "proximo_repaso": "2026-11-14T09:00:00Z", "intervalo_dias": 1, "repeticiones": 1,
+    }]
+    repasos = client.get(f"{url}repasos/?dias=30", headers={}).get_json()
+    fechas = {r["caracter"]: r for r in repasos["vencidos"] + repasos["proximos"]}
+    # 人 conserva su fecha y su estado sale de la racha 3: intervalo 7.
+    assert fechas["人"]["proximo_repaso"] == "2026-11-12T10:00:00Z"
+    assert (fechas["人"]["repeticiones"], fechas["人"]["intervalo_dias"]) == (3, 7)
+    app.extensions["db"]["engine"].dispose()
