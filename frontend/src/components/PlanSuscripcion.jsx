@@ -116,6 +116,13 @@ export default function PlanSuscripcion({ usuarioId }) {
             })}
           </p>
 
+          {/* Revisión de #55: renovar solo aparece en los últimos 7 días; antes se dice desde cuándo */}
+          {suscripcion.plan === 'premium' && !acciones.includes('renovar') && suscripcion.renovable_desde && (
+            <p className="plan-texto">
+              {t('plan.renewableFrom', { fecha: formato.fecha(suscripcion.renovable_desde) })}
+            </p>
+          )}
+
           {exito && <p className="plan-exito" role="status">{exito}</p>}
           {errorAccion && <p className="hm-status hm-status--error" role="alert">{errorAccion}</p>}
 

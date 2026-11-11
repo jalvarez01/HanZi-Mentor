@@ -28,12 +28,42 @@ def test_sin_suscripcion_es_free_y_solo_puede_activar():
     assert estado.nivel_maximo == 3
 
 
-def test_premium_activa_puede_renovar_y_cancelar():
+def test_premium_recien_activada_solo_puede_cancelar():
+    # Revisión de #55: con 30 días por delante todavía no se renueva.
     estado = reglas.estado_actual(guardada(dias=30), INICIO)
 
     assert (estado.plan, estado.estado) == ("premium", "activa")
-    assert estado.acciones == ("renovar", "cancelar")
+    assert estado.acciones == ("cancelar",)
+    assert codigo("renovar", estado) == "RENOVACION_ANTICIPADA"
     assert estado.nivel_maximo == 6
+
+
+def test_la_ventana_de_renovacion_es_de_7_dias():
+    assert reglas.VENTANA_RENOVACION == timedelta(days=7)
+    assert reglas.PERIODO == timedelta(days=30)
+
+
+def test_premium_activa_dentro_de_la_ventana_puede_renovar_y_cancelar():
+    estado = reglas.estado_actual(guardada(dias=7), INICIO)
+
+    assert estado.acciones == ("renovar", "cancelar")
+
+
+def test_ocho_dias_antes_todavia_no_se_renueva():
+    estado = reglas.estado_actual(guardada(dias=8), INICIO)
+
+    assert estado.acciones == ("cancelar",)
+    assert codigo("renovar", estado) == "RENOVACION_ANTICIPADA"
+
+
+def test_el_borde_de_la_ventana_entra():
+    justo = SimpleNamespace(plan="premium", estado="activa", vence_en=INICIO + timedelta(days=7))
+    un_segundo_mas = SimpleNamespace(
+        plan="premium", estado="activa", vence_en=INICIO + timedelta(days=7, seconds=1)
+    )
+
+    assert "renovar" in reglas.estado_actual(justo, INICIO).acciones
+    assert "renovar" not in reglas.estado_actual(un_segundo_mas, INICIO).acciones
 
 
 def test_con_mas_de_un_periodo_por_delante_no_se_renueva():
@@ -47,6 +77,15 @@ def test_cancelada_sigue_premium_hasta_vencer():
     estado = reglas.estado_actual(guardada(estado="cancelada", dias=10), INICIO)
 
     assert (estado.plan, estado.estado) == ("premium", "cancelada")
+    # Fuera de la ventana de 7 días: todavía no se puede renovar.
+    assert estado.acciones == ()
+    assert codigo("cancelar", estado) == "YA_CANCELADA"
+    assert codigo("renovar", estado) == "RENOVACION_ANTICIPADA"
+
+
+def test_cancelada_dentro_de_la_ventana_puede_renovar():
+    estado = reglas.estado_actual(guardada(estado="cancelada", dias=7), INICIO)
+
     assert estado.acciones == ("renovar",)
     assert codigo("cancelar", estado) == "YA_CANCELADA"
 
@@ -82,3 +121,22 @@ def test_renovar_suma_el_periodo_a_lo_que_queda():
     assert reglas.vencimiento_al_renovar(quedan_diez, INICIO) == INICIO + timedelta(days=40)
     assert reglas.vencimiento_al_renovar(ya_vencio, INICIO) == INICIO + timedelta(days=30)
     assert reglas.vencimiento_al_activar(INICIO) == INICIO + timedelta(days=30)
+
+
+
+def test_renovable_desde_es_vence_en_menos_7_dias_en_premium_vigente():
+    activa = reglas.estado_actual(guardada(dias=30), INICIO)
+    cancelada = reglas.estado_actual(guardada(estado="cancelada", dias=10), INICIO)
+
+    assert activa.renovable_desde == INICIO + timedelta(days=23)
+    assert cancelada.renovable_desde == INICIO + timedelta(days=3)
+
+
+@pytest.mark.parametrize("guardada_", [None, "free", "vencida"])
+def test_renovable_desde_es_none_sin_premium_vigente(guardada_):
+    if guardada_ == "free":
+        guardada_ = guardada(plan="free")
+    elif guardada_ == "vencida":
+        guardada_ = guardada(dias=0)
+
+    assert reglas.estado_actual(guardada_, INICIO).renovable_desde is None

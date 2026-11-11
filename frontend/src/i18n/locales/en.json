@@ -265,6 +265,7 @@
     "activateWithPrice": "Go Premium · {{precio}} for 30 days",
     "renew": "Renew 30 days",
     "renewWithPrice": "Renew 30 days · {{precio}}",
+    "renewableFrom": "You can renew from {{fecha}}.",
     "cancel": "Cancel Premium",
     "cancelConfirm": "Cancel Premium? The payment is not refunded: you keep all levels until {{fecha}}.",
     "cancelYes": "Yes, cancel",

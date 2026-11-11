@@ -30,8 +30,12 @@ Practicar (sesiones y lecciones).
 | Premium cancelada | premium hasta `vence_en` | renovar (*) |
 | Premium vencida | free | activar |
 
-(*) Solo si faltan 30 días o menos para el vencimiento: un doble clic no
-cobra dos renovaciones seguidas.
+(*) Solo si faltan 7 días o menos para el vencimiento
+(`VENTANA_RENOVACION_DIAS` en `dominio/planes.py`). Así no se puede renovar
+justo después de activar o de renovar, y un doble clic no cobra dos periodos
+seguidos. Una suscripción cancelada puede renovarse cuando entra en esa
+ventana; antes no tiene ninguna acción. Fuera de la ventana, renovar
+responde 409 `RENOVACION_ANTICIPADA`. Cada periodo sigue siendo de 30 días.
 
 - **Renovar** suma 30 días a lo que queda y anula una cancelación.
 - **Cancelar** no devuelve dinero: Premium sigue hasta `vence_en`.
@@ -71,9 +75,17 @@ Estado del plan:
   "estado": "activa",
   "vence_en": "2026-12-11T15:00:00Z",
   "nivel_maximo": 6,
-  "acciones": ["renovar", "cancelar"]
+  "acciones": ["cancelar"],
+  "renovable_desde": "2026-12-04T15:00:00Z"
 }
 ```
+
+`renovable_desde` es `vence_en` menos la ventana de renovación (7 días), en
+el mismo formato que `vence_en`: desde esa fecha aparece `renovar` en
+`acciones`. Solo tiene valor en un Premium vigente, activo o cancelado; en
+Free, vencida o sin suscripción es `null`. Va al final, así que las demás
+claves conservan su orden. El panel de plan lo usa para decir "Podrás
+renovar desde el ..." mientras `renovar` todavía no está disponible.
 
 `activar` y `renovar` responden `{"suscripcion": {...}, "pago": {...}}`.
 El pago trae `referencia`, `monto`, `moneda`, `marca` y `ultimos4`: el número

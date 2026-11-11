@@ -13,6 +13,10 @@ FREE = "free"
 PREMIUM = "premium"
 
 PERIODO_DIAS = 30
+# Renovar solo se puede cuando faltan estos días o menos para el vencimiento.
+# Es menor que PERIODO_DIAS a propósito: con la misma cifra, renovar se podía
+# justo después de activar y se pagaban dos periodos seguidos.
+VENTANA_RENOVACION_DIAS = 7
 MONEDA = "COP"
 
 
