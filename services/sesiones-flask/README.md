@@ -377,6 +377,12 @@ cierra trae además `desempeno` al final, con la misma forma que
 depende de progreso-flask: con progreso caído el desempeño se registra
 igual y la respuesta trae `desempeno` y después `aviso`.
 
+`duracion_seg` y `aciertos` quedan para consultar la base directamente (un
+reporte o un `SELECT`) sin recorrer los ejercicios. El servicio no los lee:
+`calcular_desempeno()` cuenta los aciertos desde los ejercicios, porque ahí
+también saca el desglose por tipo y porque así las sesiones cerradas antes
+de RF-IA-05, que tienen esas columnas en NULL, dan el mismo resultado.
+
 Si progreso-flask no responde, la respuesta igual queda guardada:
 
 ```json

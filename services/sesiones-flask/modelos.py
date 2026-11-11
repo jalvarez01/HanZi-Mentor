@@ -76,7 +76,9 @@ class SesionEstudio(Base):
     duracion_estimada_min: Mapped[int] = mapped_column(SmallInteger, default=10)
     # RF-IA-05. Desempeño registrado al cerrar la sesión (dominio/desempeno.py).
     # NULL mientras está en curso y en las sesiones cerradas antes de RF-IA-05.
-    # Lo agrega migraciones.py en una base que ya existía.
+    # Lo agrega migraciones.py en una base que ya existía. duracion_seg y
+    # aciertos son para consultas directas a la base: calcular_desempeno()
+    # los vuelve a contar desde los ejercicios.
     completada_en: Mapped[datetime | None] = mapped_column(FechaUTC)
     duracion_seg: Mapped[int | None] = mapped_column(Integer)
     aciertos: Mapped[int | None] = mapped_column(SmallInteger)
