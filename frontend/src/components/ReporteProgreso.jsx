@@ -29,7 +29,9 @@ export default function ReporteProgreso({ usuarioId }) {
     enlace.href = url;
     enlace.download = `reporte-hanzimentor-${dia}.json`;
     enlace.click();
-    URL.revokeObjectURL(url);
+    // Liberar la URL después del clic: si se libera en el mismo instante,
+    // algunos navegadores cancelan la descarga.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   let textoBoton = t('report.generate');
