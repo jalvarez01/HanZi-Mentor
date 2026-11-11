@@ -410,7 +410,8 @@ def test_la_respuesta_de_crear_no_cambia_de_forma_con_vencidos(client, progreso)
 
     datos = client.post("/api/v2/sesiones/", json={"usuario_id": str(USUARIO), "nivel_hsk": 2}).get_json()
 
-    assert list(datos["ejercicios"][0]) == ["id", "caracter", "tipo", "dificultad", "es_refuerzo"]
+    # Las claves de v1 y, al final, `patron` (RF-IA-03).
+    assert list(datos["ejercicios"][0]) == ["id", "caracter", "tipo", "dificultad", "es_refuerzo", "patron"]
     assert datos["ejercicios"][0]["caracter"] == "人"
 
 

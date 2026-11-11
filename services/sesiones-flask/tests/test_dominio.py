@@ -65,8 +65,8 @@ def test_refuerzos_primero_con_tipo_trazo():
 
     datos, ejercicios = repo.guardados[0]
     assert datos["estado"] == "activa"
-    assert ejercicios[0] == {"caracter": "目", "tipo": "trazo", "dificultad": 3, "es_refuerzo": True}
-    assert ejercicios[1] == {"caracter": "学", "tipo": "significado", "dificultad": 3, "es_refuerzo": False}
+    assert ejercicios[0] == {"caracter": "目", "tipo": "trazo", "dificultad": 3, "es_refuerzo": True, "patron": None}
+    assert ejercicios[1] == {"caracter": "学", "tipo": "significado", "dificultad": 3, "es_refuerzo": False, "patron": None}
 
 
 def test_rechaza_nivel_bloqueado_con_el_mensaje_de_v1():

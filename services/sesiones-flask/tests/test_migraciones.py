@@ -95,9 +95,9 @@ def test_agrega_codigo_error_sin_tocar_los_datos(url_vieja):
     engine = create_engine(url_vieja)
     antes = filas(engine)
 
-    assert migraciones.aplicar(engine) == ["ejercicios.codigo_error"]
+    assert migraciones.aplicar(engine) == ["ejercicios.codigo_error", "ejercicios.patron"]
 
-    assert columnas(engine, "ejercicios")[-1] == "codigo_error"
+    assert columnas(engine, "ejercicios")[-2:] == ["codigo_error", "patron"]
     assert filas(engine) == antes == (SESIONES, EJERCICIOS)
     with engine.connect() as c:
         assert c.execute(text("SELECT codigo_error FROM ejercicios")).scalars().all() == [None, None, None]
@@ -172,4 +172,45 @@ def test_el_esquema_migrado_es_igual_al_de_una_base_nueva(url_vieja):
         return (columna["nullable"], columna["default"], str(columna["type"]))
 
     assert codigo_error(migrada) == codigo_error(nueva) == (True, None, "VARCHAR(40)")
+    migrada.dispose()
+
+
+# ---------- RF-IA-03: ejercicios.patron sobre una base de RF-IA-02 ----------
+
+
+@pytest.fixture
+def url_rf_ia_02(url_vieja):
+    """La base como queda hoy después de RF-IA-02: ya tiene codigo_error."""
+    engine = create_engine(url_vieja)
+    with engine.begin() as c:
+        c.execute(text("ALTER TABLE ejercicios ADD COLUMN codigo_error VARCHAR(40)"))
+        c.execute(text("UPDATE ejercicios SET codigo_error = 'NO_SABE' WHERE id = 1"))
+    engine.dispose()
+    return url_vieja
+
+
+def test_sobre_una_base_de_rf_ia_02_solo_agrega_patron(url_rf_ia_02):
+    engine = create_engine(url_rf_ia_02)
+    antes = filas(engine)
+
+    assert migraciones.aplicar(engine) == ["ejercicios.patron"]
+
+    assert filas(engine) == antes
+    with engine.connect() as c:
+        assert c.execute(text("SELECT codigo_error FROM ejercicios ORDER BY id")).scalars().all() == ["NO_SABE", None, None]
+        assert c.execute(text("SELECT patron FROM ejercicios")).scalars().all() == [None, None, None]
+    assert migraciones.aplicar(engine) == []
+    engine.dispose()
+
+
+def test_patron_migrado_es_igual_al_de_una_base_nueva(url_rf_ia_02):
+    migrada = create_engine(url_rf_ia_02)
+    migraciones.aplicar(migrada)
+    nueva = crear("sqlite://").extensions["db"]["engine"]
+
+    def patron(engine):
+        (columna,) = [c for c in inspect(engine).get_columns("ejercicios") if c["name"] == "patron"]
+        return (columna["nullable"], columna["default"], str(columna["type"]))
+
+    assert patron(migrada) == patron(nueva) == (True, None, "VARCHAR(40)")
     migrada.dispose()
