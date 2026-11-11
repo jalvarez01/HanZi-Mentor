@@ -34,6 +34,8 @@ export default function Practica() {
   const [terminada, setTerminada] = useState(false);
   // RF-IA-01: patrón principal del estudiante, para el aviso de fin de sesión.
   const [patronFinal, setPatronFinal] = useState(null);
+  // RF-IA-03: título de cada patrón de la sesión, por código, para los ejercicios adaptados.
+  const [titulosPatron, setTitulosPatron] = useState(null);
 
   const [leccion, setLeccion] = useState(null);
   const [indiceLeccion, setIndiceLeccion] = useState(0);
@@ -62,11 +64,13 @@ export default function Practica() {
     setTerminada(false);
     setUltimoResultado(null);
     setPatronFinal(null);
+    setTitulosPatron(null);
 
     try {
       const nueva = await crearSesion({ usuarioId, nivelHsk: nivel });
       setSesion(nueva);
       setIndice(0);
+      if (nueva?.ejercicios?.some((e) => e.patron)) cargarTitulosPatron(nueva.id);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -84,6 +88,17 @@ export default function Practica() {
       setTerminada(true);
       avisarPatron(sesion.id);
     }
+  }
+
+  // RF-IA-03: la sesión trae ejercicios dirigidos a un patrón de error. Se
+  // busca el título traducido de cada patrón; si falla, queda el texto genérico.
+  function cargarTitulosPatron(sesionId) {
+    obtenerPatrones(usuarioId)
+      .then((r) => {
+        const porCodigo = Object.fromEntries((r?.patrones ?? []).map((p) => [p.codigo, p.titulo]));
+        setTitulosPatron({ sesionId, porCodigo });
+      })
+      .catch(() => {});
   }
 
   // Al cerrar la sesión se busca el patrón principal para el aviso final. Es
@@ -326,10 +341,23 @@ export default function Practica() {
 
       <main className="hm-page practica">
         <Avance actual={indice} total={sesion.ejercicios.length}>
-          {ejercicio?.es_refuerzo && (
-            <span className="practica-refuerzo">{t('practice.reinforcement')}</span>
+          {ejercicio?.patron ? (
+            <span className="practica-refuerzo">{t('practice.adapted')}</span>
+          ) : (
+            ejercicio?.es_refuerzo && <span className="practica-refuerzo">{t('practice.reinforcement')}</span>
           )}
         </Avance>
+
+        {/* RF-IA-03: el ejercicio apunta a un patrón de error del estudiante. */}
+        {ejercicio?.patron && (
+          <p className="practica-adaptado">
+            {t('practice.adaptedFor')}{' '}
+            <strong>
+              {(titulosPatron?.sesionId === sesion.id && titulosPatron.porCodigo[ejercicio.patron]) ||
+                t('practice.adaptedGeneric')}
+            </strong>
+          </p>
+        )}
 
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 

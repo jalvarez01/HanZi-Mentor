@@ -123,6 +123,16 @@
   text-transform: uppercase;
 }
 
+.practica-adaptado {
+  margin: -8px 0 16px;
+  color: var(--ink-muted);
+  font: var(--fs-sm) var(--font-ui);
+}
+
+.practica-adaptado strong {
+  color: var(--ink);
+}
+
 /* Tarjeta del ejercicio */
 .practica-tarjeta {
   margin-bottom: 24px;
