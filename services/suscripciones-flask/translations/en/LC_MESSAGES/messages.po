@@ -1,0 +1,103 @@
+# Mensajes de suscripciones-flask en en.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: suscripciones-flask 1.0
+"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS
+"
+"POT-Creation-Date: 2026-11-11 00:00-0500
+"
+"PO-Revision-Date: 2026-11-11 00:00-0500
+"
+"Last-Translator: HanZi Mentor
+"
+"Language: en
+"
+"Language-Team: English
+"
+"Plural-Forms: nplurals=2; plural=(n != 1);
+"
+"MIME-Version: 1.0
+"
+"Content-Type: text/plain; charset=utf-8
+"
+"Content-Transfer-Encoding: 8bit
+"
+"Generated-By: Babel 2.17.0
+"
+
+msgid "Solicitud incorrecta"
+msgstr "Bad request"
+
+msgid "Recurso no encontrado"
+msgstr "Resource not found"
+
+msgid "Método no permitido"
+msgstr "Method not allowed"
+
+msgid "Error interno"
+msgstr "Internal error"
+
+msgid "Gratis"
+msgstr "Free"
+
+msgid "Practicá los niveles HSK 1 a 3."
+msgstr "Practice HSK levels 1 to 3."
+
+msgid "Premium"
+msgstr "Premium"
+
+msgid "Todos los niveles, de HSK 1 a 6, por 30 días."
+msgstr "All levels, HSK 1 to 6, for 30 days."
+
+msgid "Ya tenés Premium. Para extenderlo, renovalo."
+msgstr "You already have Premium. To extend it, renew it."
+
+msgid "No tenés una suscripción Premium vigente."
+msgstr "You do not have an active Premium subscription."
+
+msgid "La suscripción ya está cancelada: Premium sigue hasta que venza."
+msgstr "The subscription is already cancelled: Premium stays until it expires."
+
+msgid "Solo se puede renovar cuando faltan %(dias)s días o menos para el vencimiento."
+msgstr "You can only renew when %(dias)s days or fewer are left before it expires."
+
+msgid "El banco rechazó la tarjeta."
+msgstr "The bank declined the card."
+
+msgid "La tarjeta no tiene fondos suficientes."
+msgstr "The card has insufficient funds."
+
+msgid "La pasarela de pago no respondió. No se hizo ningún cobro."
+msgstr "The payment gateway did not respond. No charge was made."
+
+msgid "El usuario_id debe ser un UUID válido"
+msgstr "The usuario_id must be a valid UUID"
+
+msgid "El cuerpo debe ser un objeto JSON"
+msgstr "The body must be a JSON object"
+
+msgid "El campo 'pago' es obligatorio y debe ser un objeto"
+msgstr "The field 'pago' is required and must be an object"
+
+msgid "El número de tarjeta es obligatorio"
+msgstr "The card number is required"
+
+msgid "El número de tarjeta no es válido"
+msgstr "The card number is not valid"
+
+msgid "El nombre del titular debe tener entre %(minimo)s y %(maximo)s caracteres"
+msgstr "The cardholder name must have between %(minimo)s and %(maximo)s characters"
+
+msgid "El vencimiento debe tener el formato MM/AA"
+msgstr "The expiry date must have the format MM/YY"
+
+msgid "La tarjeta está vencida"
+msgstr "The card has expired"
+
+msgid "El código de seguridad debe tener 3 o 4 dígitos"
+msgstr "The security code must have 3 or 4 digits"
+
+msgid "El campo 'plan' debe ser 'premium': Free es el plan por defecto y no se activa"
+msgstr "The field 'plan' must be 'premium': Free is the default plan and is not activated"
