@@ -83,3 +83,15 @@ def test_contrato_responder_degradado_solo_agrega_aviso(client, crear_sesion, pr
     ).get_json()
 
     assert list(datos) == v1["ResultadoRespuestaSerializer"] + ["aviso"]
+
+
+def test_contrato_la_respuesta_que_cierra_solo_agrega_desempeno(client, crear_sesion, v1):
+    """RF-IA-05: las claves de v1 en su orden y `desempeno` al final."""
+    ejercicios = crear_sesion()["ejercicios"]
+    for ejercicio in ejercicios:
+        datos = client.post(
+            f"/api/v2/ejercicios/{ejercicio['id']}/responder/", json={"acerto": True}
+        ).get_json()
+
+    assert list(datos) == v1["ResultadoRespuestaSerializer"] + ["desempeno"]
+    assert list(datos["ejercicio"]) == v1["EjercicioSerializer"]

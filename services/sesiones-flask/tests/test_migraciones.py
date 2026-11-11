@@ -1,4 +1,5 @@
-"""Migración de `ejercicios` sobre una base que ya tiene datos (RF-IA-02).
+"""Migración de `ejercicios` (RF-IA-02) y de `sesiones` (RF-IA-05) sobre una
+base que ya tiene datos.
 
 Las tablas viejas se crean a mano con las columnas que tenían antes de
 RF-IA-02, igual que en db_sesiones, y se les cargan filas. La misma
@@ -52,6 +53,8 @@ EJERCICIOS = [
     (2, 1, "大", "significado", 2, 0, 1, 1, "2026-11-01 10:06:00.000000"),
     (3, 2, "学", "significado", 2, 0, 0, None, None),
 ]
+COLUMNAS_SESIONES = "id, usuario_id, nivel_hsk, dificultad, estado, creada_en, duracion_estimada_min"
+DESEMPENO = ["completada_en", "duracion_seg", "aciertos"]
 COLUMNAS_EJERCICIOS = (
     "id, sesion_id, caracter, tipo, dificultad, es_refuerzo, respondido, fue_correcto, respondido_en"
 )
@@ -77,7 +80,7 @@ def url_vieja(tmp_path):
 def filas(engine):
     with engine.connect() as c:
         return (
-            [tuple(f) for f in c.execute(text("SELECT * FROM sesiones ORDER BY id"))],
+            [tuple(f) for f in c.execute(text(f"SELECT {COLUMNAS_SESIONES} FROM sesiones ORDER BY id"))],
             [tuple(f) for f in c.execute(text(f"SELECT {COLUMNAS_EJERCICIOS} FROM ejercicios ORDER BY id"))],
         )
 
@@ -91,16 +94,21 @@ def crear(url):
     return create_app({"TESTING": True, "DATABASE_URL": url}, dependencias=deps)
 
 
-def test_agrega_codigo_error_sin_tocar_los_datos(url_vieja):
+def test_agrega_las_columnas_sin_tocar_los_datos(url_vieja):
     engine = create_engine(url_vieja)
     antes = filas(engine)
 
-    assert migraciones.aplicar(engine) == ["ejercicios.codigo_error"]
+    assert migraciones.aplicar(engine) == [
+        "ejercicios.codigo_error", "sesiones.completada_en", "sesiones.duracion_seg", "sesiones.aciertos",
+    ]
 
     assert columnas(engine, "ejercicios")[-1] == "codigo_error"
     assert filas(engine) == antes == (SESIONES, EJERCICIOS)
     with engine.connect() as c:
         assert c.execute(text("SELECT codigo_error FROM ejercicios")).scalars().all() == [None, None, None]
+        assert [tuple(f) for f in c.execute(text(f"SELECT {', '.join(DESEMPENO)} FROM sesiones"))] == [
+            (None, None, None), (None, None, None),
+        ]
     engine.dispose()
 
 
@@ -115,14 +123,13 @@ def test_la_segunda_ejecucion_no_hace_nada(url_vieja):
     engine.dispose()
 
 
-def test_la_tabla_sesiones_no_cambia(url_vieja):
+def test_sesiones_solo_suma_las_columnas_del_desempeno(url_vieja):
     engine = create_engine(url_vieja)
     antes = columnas(engine, "sesiones")
 
     migraciones.aplicar(engine)
 
-    assert columnas(engine, "sesiones") == antes
-    assert "curva_aplicada_en" not in antes
+    assert columnas(engine, "sesiones") == antes + DESEMPENO
     engine.dispose()
 
 
@@ -173,3 +180,43 @@ def test_el_esquema_migrado_es_igual_al_de_una_base_nueva(url_vieja):
 
     assert codigo_error(migrada) == codigo_error(nueva) == (True, None, "VARCHAR(40)")
     migrada.dispose()
+
+
+def test_las_columnas_del_desempeno_son_iguales_a_las_de_una_base_nueva(url_vieja):
+    migrada = create_engine(url_vieja)
+    migraciones.aplicar(migrada)
+    nueva = crear("sqlite://").extensions["db"]["engine"]
+
+    def desempeno(engine):
+        tipos = {c["name"]: c for c in inspect(engine).get_columns("sesiones")}
+        # SQLite no distingue tipos de fecha; en PostgreSQL las dos quedan timestamptz.
+        return [(tipos[n]["nullable"], tipos[n]["default"], n == "completada_en" or str(tipos[n]["type"]))
+                for n in DESEMPENO]
+
+    assert desempeno(migrada) == desempeno(nueva) == [(True, None, True), (True, None, "INTEGER"), (True, None, "SMALLINT")]
+    migrada.dispose()
+
+
+def test_una_sesion_cerrada_antes_tiene_desempeno_con_su_ultima_respuesta(url_vieja):
+    app = crear(url_vieja)
+
+    datos = app.test_client().get("/api/v2/sesiones/1/desempeno/").get_json()
+
+    assert (datos["completada_en"], datos["duracion_seg"], datos["total"], datos["aciertos"], datos["tasa_acierto"]) == (
+        "2026-11-01T10:06:00Z", 360, 2, 1, 0.5,
+    )
+    app.extensions["db"]["engine"].dispose()
+
+
+def test_cerrar_una_sesion_vieja_registra_el_desempeno(url_vieja):
+    app = crear(url_vieja)
+
+    resp = app.test_client().post("/api/v2/ejercicios/3/responder/", json={"acerto": True})
+
+    assert resp.get_json()["sesion_completada"] is True
+    with app.extensions["db"]["engine"].connect() as c:
+        completada_en, duracion, aciertos = c.execute(
+            text(f"SELECT {', '.join(DESEMPENO)} FROM sesiones WHERE id = 2")
+        ).one()
+    assert completada_en is not None and duracion > 0 and aciertos == 1
+    app.extensions["db"]["engine"].dispose()
