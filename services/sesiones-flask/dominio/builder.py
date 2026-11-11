@@ -21,6 +21,17 @@ MAX_EJERCICIOS = 20
 NIVELES_VALIDOS = range(1, 7)
 
 
+def sin_repetir(caracteres, excluir=()):
+    """Los caracteres en su orden, sin repetidos y sin los de `excluir`."""
+    vistos = set(excluir)
+    unicos = []
+    for caracter in caracteres or []:
+        if caracter not in vistos:
+            vistos.add(caracter)
+            unicos.append(caracter)
+    return unicos
+
+
 class SesionEstudioBuilder:
     """Fluent Interface: cada método devuelve self para poder encadenar."""
 
@@ -31,6 +42,9 @@ class SesionEstudioBuilder:
         self._dificultad = None
         self._duracion = 10
         self._ejercicios = []
+        # Un carácter aparece una sola vez en la sesión (RF-IA-02): antes un
+        # refuerzo podía repetirse como contenido nuevo.
+        self._caracteres = set()
 
     # ---------- pasos de construcción ----------
 
@@ -51,29 +65,39 @@ class SesionEstudioBuilder:
         self._duracion = minutos
         return self
 
+    def _agregar(self, caracter, tipo, dificultad, es_refuerzo):
+        """Agrega un ejercicio, salvo que el carácter ya esté en la sesión."""
+        if caracter in self._caracteres:
+            return
+        self._caracteres.add(caracter)
+        self._ejercicios.append(
+            {
+                "caracter": caracter,
+                "tipo": tipo,
+                "dificultad": dificultad,
+                "es_refuerzo": es_refuerzo,
+            }
+        )
+
+    def agregar_vencidos(self, caracteres_vencidos):
+        """Repasos vencidos de la curva de olvido (RF-IA-02): van primero.
+
+        Tipo `significado` (Práctica lo evalúa como pinyin en el servidor) y
+        `es_refuerzo` true, porque es un repaso y no contenido nuevo.
+        """
+        for caracter in caracteres_vencidos:
+            self._agregar(caracter, "significado", self._dificultad or 3, True)
+        return self
+
     def agregar_refuerzos(self, caracteres_fallados):
-        """Ejercicios nacidos de errores previos: máxima prioridad."""
+        """Ejercicios nacidos de errores previos."""
         for caracter in caracteres_fallados:
-            self._ejercicios.append(
-                {
-                    "caracter": caracter,
-                    "tipo": "trazo",
-                    "dificultad": self._dificultad or 3,
-                    "es_refuerzo": True,
-                }
-            )
+            self._agregar(caracter, "trazo", self._dificultad or 3, True)
         return self
 
     def agregar_contenido_nuevo(self, caracteres_nuevos, tipo="significado"):
         for caracter in caracteres_nuevos:
-            self._ejercicios.append(
-                {
-                    "caracter": caracter,
-                    "tipo": tipo,
-                    "dificultad": self._dificultad or 2,
-                    "es_refuerzo": False,
-                }
-            )
+            self._agregar(caracter, tipo, self._dificultad or 2, False)
         return self
 
     # ---------- validación ----------

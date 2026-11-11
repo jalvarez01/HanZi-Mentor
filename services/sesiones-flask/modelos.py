@@ -104,6 +104,10 @@ class Ejercicio(Base):
     respondido: Mapped[bool] = mapped_column(Boolean, default=False)
     fue_correcto: Mapped[bool | None] = mapped_column(Boolean)
     respondido_en: Mapped[datetime | None] = mapped_column(FechaUTC)
+    # RF-IA-02. Tipo de error de un fallo (dominio/codigos_error.py); NULL
+    # si acertó o si el fallo no trae código. Lo agrega migraciones.py en
+    # una base que ya existía.
+    codigo_error: Mapped[str | None] = mapped_column(String(40))
 
     sesion: Mapped[SesionEstudio] = relationship(back_populates="ejercicios")
 

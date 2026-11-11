@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from dominio import sesion as reglas
-from dominio.builder import MAX_EJERCICIOS, SesionEstudioBuilder
+from dominio.builder import MAX_EJERCICIOS, SesionEstudioBuilder, sin_repetir
 from dominio.excepciones import NivelNoPermitidoError, SesionInvalidaError
 from dominio.repaso import calcular_proximo_repaso, racha_previa
 
@@ -86,7 +86,9 @@ def test_rechaza_nivel_bloqueado_con_el_mensaje_de_v1():
 @pytest.mark.parametrize("ajuste, mensaje", [
     (lambda b: b.para_usuario(None, 3), "requiere un usuario"),
     (lambda b: b.en_nivel(7), "Nivel HSK inválido"),
-    (lambda b: b.agregar_contenido_nuevo(["人"] * MAX_EJERCICIOS), "no puede exceder"),
+    # Caracteres distintos: el Builder ya no agrega un carácter repetido (RF-IA-02).
+    (lambda b: b.agregar_contenido_nuevo([chr(0x4E00 + i) for i in range(MAX_EJERCICIOS)]),
+     "no puede exceder"),
 ])
 def test_validaciones(ajuste, mensaje):
     builder = builder_valido().agregar_contenido_nuevo(["学", "校", "老"])
@@ -134,7 +136,7 @@ def test_cerrar_si_completa():
 # ---------- repaso ----------
 
 
-def test_proximo_repaso_como_progreso_flask():
+def test_proximo_repaso_estimado_con_los_intervalos_fijos():
     assert calcular_proximo_repaso(0, True, AHORA) == AHORA + timedelta(days=1)
     assert calcular_proximo_repaso(2, True, AHORA) == AHORA + timedelta(days=7)
     assert calcular_proximo_repaso(99, True, AHORA) == AHORA + timedelta(days=90)
@@ -145,3 +147,51 @@ def test_racha_previa_desde_la_respuesta_de_progreso():
     assert racha_previa(1, acerto=True) == 0
     assert racha_previa(3, acerto=True) == 2
     assert racha_previa(0, acerto=False) == 0
+
+
+
+# ---------- Builder: vencidos y sin repetidos (RF-IA-02) ----------
+
+
+def test_vencidos_primero_luego_refuerzos_luego_nuevos():
+    repo = RepositorioEspia()
+
+    (
+        builder_valido()
+        .agregar_vencidos(["人", "大"])
+        .agregar_refuerzos(["目"])
+        .agregar_contenido_nuevo(["学"])
+        .build(repo)
+    )
+
+    ejercicios = repo.guardados[0][1]
+    assert [(e["caracter"], e["tipo"], e["es_refuerzo"]) for e in ejercicios] == [
+        ("人", "significado", True),
+        ("大", "significado", True),
+        ("目", "trazo", True),
+        ("学", "significado", False),
+    ]
+
+
+def test_el_builder_no_repite_caracteres_entre_listas_ni_dentro_de_una():
+    repo = RepositorioEspia()
+
+    (
+        builder_valido()
+        .agregar_vencidos(["人", "人"])
+        .agregar_refuerzos(["人", "目"])
+        .agregar_contenido_nuevo(["目", "学", "人", "校"])
+        .build(repo)
+    )
+
+    # El primero que llega se queda: 人 como vencido y 目 como refuerzo.
+    ejercicios = repo.guardados[0][1]
+    assert [(e["caracter"], e["tipo"]) for e in ejercicios] == [
+        ("人", "significado"), ("目", "trazo"), ("学", "significado"), ("校", "significado"),
+    ]
+
+
+def test_sin_repetir_conserva_el_orden_y_excluye():
+    assert sin_repetir(["学", "校", "学", "人"]) == ["学", "校", "人"]
+    assert sin_repetir(["学", "校", "人"], excluir=["校"]) == ["学", "人"]
+    assert sin_repetir(None) == []

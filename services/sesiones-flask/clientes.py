@@ -11,7 +11,9 @@ lo que necesita por HTTP con `ClienteHttp`, que aplica tres reglas:
    (`ServicioNoDisponible`) y cada cliente decide la respuesta degradada:
    - catálogo caído: lista local chica de caracteres por nivel HSK;
    - GET de progreso caído: valores iniciales del progreso;
-   - POST de progreso caído: None, y la ruta agrega un aviso.
+   - repasos vencidos o refuerzos caídos: la sesión va sin ellos;
+   - POST de una respuesta caído: None, y la ruta agrega un aviso;
+   - POST de la curva de olvido caído: None y una advertencia en el log.
 
 Solo se usa la biblioteca estándar (urllib).
 """
@@ -187,6 +189,36 @@ class ProgresoRemoto:
         except (ServicioNoDisponible, AttributeError, TypeError) as error:
             logger.warning("Refuerzos no disponibles, la sesión va sin refuerzos: %s", error)
             return []
+
+    def repasos_vencidos(self, usuario_id, limite=4):
+        """Caracteres con el repaso vencido, del más atrasado al menos (RF-IA-02).
+
+        Si progreso-flask no responde, lista vacía: la sesión se arma sin
+        vencidos, igual que sin refuerzos.
+        """
+        try:
+            datos = self._cliente.get(f"/api/v2/progreso/{usuario_id}/repasos/", {"limite": limite})
+            return [r["caracter"] for r in datos.get("vencidos", [])][:limite]
+        except (ServicioNoDisponible, AttributeError, KeyError, TypeError) as error:
+            logger.warning("Repasos no disponibles, la sesión va sin vencidos: %s", error)
+            return []
+
+    def aplicar_curva_olvido(self, usuario_id, sesion_id, cerrada_en, respuestas):
+        """Aplica la curva de olvido de una sesión cerrada (RF-IA-02).
+
+        Devuelve la respuesta de progreso-flask, o None si no respondió o
+        respondió un error. Es un POST: no se reintenta. Tampoco hay
+        reintentos más tarde (alcance de RF-IA-02); progreso-flask es
+        idempotente por sesión, así que repetirla no la aplicaría dos veces.
+        """
+        cuerpo = {"sesion_id": sesion_id, "cerrada_en": cerrada_en, "respuestas": respuestas}
+        try:
+            return self._cliente.post(f"/api/v2/progreso/{usuario_id}/curva-olvido/", cuerpo)
+        except ServicioNoDisponible as error:
+            logger.warning(
+                "No se pudo aplicar la curva de olvido de la sesión %s: %s", sesion_id, error
+            )
+            return None
 
     def registrar_respuesta(self, usuario_id, caracter, acerto, codigo_error=None):
         """Devuelve el progreso actualizado, o None si progreso-flask no respondió.

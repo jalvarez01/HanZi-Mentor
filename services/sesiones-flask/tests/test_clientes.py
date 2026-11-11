@@ -221,3 +221,58 @@ def test_registrar_respuesta_manda_el_codigo_error_si_existe():
     assert json.loads(transporte.llamadas[0][2]) == {
         "caracter": "学", "acerto": False, "codigo_error": "PINYIN_FINAL",
     }
+
+
+
+# ---------- RF-IA-02: repasos vencidos y curva de olvido ----------
+
+
+def test_repasos_vencidos_devuelve_los_caracteres_en_orden_y_con_limite():
+    transporte = TransporteFalso((200, {"vencidos": [
+        {"caracter": "人"}, {"caracter": "大"}, {"caracter": "水"},
+    ], "proximos": []}))
+    progreso = ProgresoRemoto(cliente(transporte)[0])
+
+    assert progreso.repasos_vencidos(USUARIO, limite=2) == ["人", "大"]
+    metodo, url, _, _ = transporte.llamadas[0]
+    assert metodo == "GET"
+    assert url.endswith(f"/api/v2/progreso/{USUARIO}/repasos/?limite=2")
+
+
+@pytest.mark.parametrize("respuesta", [
+    ConnectionRefusedError("caido"),
+    (500, {"error": "x"}),
+    (200, ["no", "es", "objeto"]),
+    (200, {"vencidos": [{"sin": "caracter"}]}),
+])
+def test_repasos_vencidos_caidos_o_mal_formados_devuelven_lista_vacia(respuesta):
+    # Sin reintentos para que un 500 no consuma respuestas de más.
+    progreso = ProgresoRemoto(cliente(TransporteFalso(respuesta), reintentos=0)[0])
+
+    assert progreso.repasos_vencidos(USUARIO) == []
+
+
+def test_aplicar_curva_olvido_manda_el_cuerpo_esperado_sin_reintentar():
+    transporte = TransporteFalso((200, {"aplicada": True}))
+    progreso = ProgresoRemoto(cliente(transporte)[0])
+    respuestas = [{"caracter": "学", "acerto": False, "codigo_error": "NO_SABE"}]
+
+    resultado = progreso.aplicar_curva_olvido(USUARIO, 7, "2026-11-10T12:00:00+00:00", respuestas)
+
+    assert resultado == {"aplicada": True}
+    metodo, url, cuerpo, _ = transporte.llamadas[0]
+    assert metodo == "POST"
+    assert url.endswith(f"/api/v2/progreso/{USUARIO}/curva-olvido/")
+    assert json.loads(cuerpo) == {
+        "sesion_id": 7, "cerrada_en": "2026-11-10T12:00:00+00:00", "respuestas": respuestas,
+    }
+
+
+@pytest.mark.parametrize("respuesta", [ConnectionRefusedError("caido"), (503, {"error": "x"}), (400, {"error": "x"})])
+def test_aplicar_curva_olvido_caido_o_con_error_devuelve_none_y_avisa(respuesta, caplog):
+    transporte = TransporteFalso(respuesta)
+    progreso = ProgresoRemoto(cliente(transporte)[0])
+
+    assert progreso.aplicar_curva_olvido(USUARIO, 7, "2026-11-10T12:00:00+00:00", []) is None
+    assert len(transporte.llamadas) == 1          # un POST no se reintenta
+    assert "curva de olvido de la sesión 7" in caplog.text

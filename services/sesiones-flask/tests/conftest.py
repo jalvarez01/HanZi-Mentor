@@ -34,10 +34,13 @@ class NotificadorEspia:
 class ProgresoFalso:
     """Imita a progreso-flask: lleva la racha y la tasa como el servicio real."""
 
-    def __init__(self, nivel_max=2, refuerzos=("目", "且"), caido=False):
+    def __init__(self, nivel_max=2, refuerzos=("目", "且"), caido=False, vencidos=()):
         self.nivel_max = nivel_max
         self.refuerzos = list(refuerzos)
         self.caido = caido
+        # RF-IA-02: repasos vencidos y las curvas pedidas al cerrar.
+        self.vencidos = list(vencidos)
+        self.curvas = []
         self.respuestas = []
         # El codigo_error de cada respuesta, en el mismo orden (RF-IA-01).
         self.codigos = []
@@ -54,6 +57,15 @@ class ProgresoFalso:
 
     def caracteres_a_reforzar(self, usuario_id, limite=3):
         return self.refuerzos[:limite]
+
+    def repasos_vencidos(self, usuario_id, limite=4):
+        return [] if self.caido else self.vencidos[:limite]
+
+    def aplicar_curva_olvido(self, usuario_id, sesion_id, cerrada_en, respuestas):
+        self.curvas.append((usuario_id, sesion_id, cerrada_en, respuestas))
+        if self.caido:
+            return None
+        return {"aplicada": True}
 
     def registrar_respuesta(self, usuario_id, caracter, acerto, codigo_error=None):
         self.respuestas.append((usuario_id, caracter, acerto))
