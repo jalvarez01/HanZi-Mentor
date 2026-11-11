@@ -245,6 +245,7 @@ flowchart TB
     worker -->|"HTTP"| progreso
     ejemplos -->|"Adapter"| tatoeba
     tutor -->|"HTTP"| catalogo
+    tutor -->|"validar trazos"| contenido
 
     contenido --> db
     catalogo --> db
@@ -303,10 +304,12 @@ sequenceDiagram
     S->>P: GET /api/v2/progreso/{usuario_id}/
     P-->>S: nivel, tasa de acierto, dominados
     S->>S: el motor del tutor sugiere la dificultad
-    S->>P: GET /api/v2/progreso/{usuario_id}/refuerzos/?limite=3
-    P-->>S: caracteres a reforzar
-    S->>C: GET /api/v2/caracteres/?nivel=...&excluir=...&limite=4
-    C-->>S: caracteres nuevos
+    S->>P: GET /api/v2/progreso/{usuario_id}/repasos/?limite=4
+    P-->>S: repasos vencidos (curva de olvido, RF-IA-02)
+    S->>P: GET /api/v2/progreso/{usuario_id}/refuerzos/?limite=...
+    P-->>S: caracteres a reforzar (hasta 3)
+    S->>C: GET /api/v2/caracteres/?nivel=...&excluir=...&limite=...
+    C-->>S: caracteres nuevos hasta completar 7 (al menos 1)
     S->>S: SesionEstudioBuilder valida y arma los ejercicios
 
     alt sesión inválida o nivel no desbloqueado
@@ -318,7 +321,7 @@ sequenceDiagram
         S-->>U: 201 sesión con sus ejercicios
     end
 
-    Note over S,C: Si progreso o catálogo no responden, la sesión se arma igual<br/>con el progreso inicial o la lista local, y la respuesta trae un aviso.
+    Note over S,C: Si progreso o catálogo no responden, la sesión se arma igual<br/>con el progreso inicial o la lista local. El aviso aparece al responder<br/>un ejercicio si progreso no registra la respuesta.
 ```
 
 ### API de terceros con el patrón Adapter
