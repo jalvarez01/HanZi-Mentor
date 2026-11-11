@@ -26,7 +26,8 @@ y parte de la plantilla `services/flask-base`.
 | `dominio/excepciones.py` | Errores de negocio con su estado HTTP y su código              |
 | `dominio/codigos_error.py` | Códigos que acepta `codigo_error` al responder (RF-IA-01)    |
 | `clientes.py`          | Cliente HTTP resiliente y clientes de catálogo y progreso        |
-| `motores.py`           | `MotorTutor` y `MotorTutorMock` (dificultad y caracteres nuevos) |
+| `motores.py`           | `MotorTutor` y `MotorTutorMock` (dificultad, caracteres nuevos y ejercicios adaptados) |
+| `dominio/adaptacion.py` | Ejercicios dirigidos a un patrón de error (RF-IA-03)            |
 | `notificadores.py`     | `Notificador` y los adaptadores de consola y de cola (Celery)    |
 | `fabricas.py`          | Elige motor, notificador y clientes según la configuración       |
 | `repositorio.py`       | Acceso a la base; guarda sesión y ejercicios en una transacción  |
@@ -51,7 +52,7 @@ El Builder no usa el ORM directamente: `build(repositorio)` valida todo y
 recién entonces llama a `repositorio.guardar_sesion()`, que guarda la sesión
 y sus ejercicios en una sola transacción.
 
-### Composición de una sesión (RF-IA-02)
+### Composición de una sesión (RF-IA-02 y RF-IA-03)
 
 `SesionEstudioService` arma la sesión en este orden, sin repetir ningún
 carácter entre los grupos ni dentro de uno:
@@ -59,14 +60,15 @@ carácter entre los grupos ni dentro de uno:
 | Orden | Grupo     | Cuántos | De dónde | Tipo | `es_refuerzo` |
 |-------|-----------|---------|----------|------|---------------|
 | 1     | Vencidos  | Hasta 4 | `GET .../repasos/?limite=4` de progreso-flask, del más atrasado al menos atrasado | `significado` | true |
-| 2     | Refuerzos | Hasta 3 | `GET .../refuerzos/`: los caracteres con más fallos | `trazo` | true |
-| 3     | Nuevos    | Hasta completar 7, con al menos 1 | Catálogo, sin los dominados | `significado` | false |
+| 2     | Adaptados | Hasta 3 | `GET .../patrones/`: los patrones de error, del más relevante al menos | según el patrón | true |
+| 3     | Refuerzos | Hasta 3 | `GET .../refuerzos/`: los caracteres con más fallos | `trazo` | true |
+| 4     | Nuevos    | Hasta completar 7, con al menos 1 | Catálogo, sin los dominados | `significado` | false |
 
-- Sin vencidos ni refuerzos son 7 nuevos; con 4 vencidos y 3 refuerzos va 1
-  nuevo, así que una sesión tiene de 7 a 8 ejercicios (menos si el catálogo
-  no alcanza; el mínimo del Builder sigue siendo 3).
-- Un carácter que es vencido y también refuerzo, o refuerzo y también nuevo,
-  aparece una sola vez, en el primer grupo. Cada grupo se pide con margen
+- Sin vencidos, adaptados ni refuerzos son 7 nuevos; con los tres grupos
+  llenos (4 + 3 + 3) va 1 nuevo, así que una sesión tiene de 7 a 11
+  ejercicios (menos si el catálogo no alcanza; el mínimo del Builder sigue
+  siendo 3).
+- Un carácter que está en dos grupos aparece una sola vez, en el primero. Cada grupo se pide con margen
   (uno de más por cada carácter ya elegido) para completar su cantidad
   después de quitar los repetidos. Antes de RF-IA-02 un refuerzo podía
   repetirse como nuevo.
@@ -75,6 +77,37 @@ carácter entre los grupos ni dentro de uno:
   dominado no volvía a practicarse.
 - Los vencidos son de tipo `significado` para que Práctica los evalúe en el
   servidor (como pinyin), y llevan `es_refuerzo` true porque son repasos.
+
+### Ejercicios adaptativos (RF-IA-03)
+
+Cuando progreso-flask detecta un patrón de error (RF-IA-01), el tutor
+ejecuta `generar_ejercicio_adaptado(patron, dificultad, cantidad)`
+(`generarEjercicioAdaptado(p)` del diagrama) y la sesión incluye ejercicios
+dirigidos a esa debilidad. La lógica es pura y está en
+`dominio/adaptacion.py`; `MotorTutor` la expone como método para que otro
+motor pueda redefinirla.
+
+| Patrón | Ejercicio |
+|--------|-----------|
+| `PATRON_TRAZO_INVERTIDO`, `_LONGITUD`, `_POSICION`, `_FORMA` | `trazo` |
+| `PATRON_PINYIN_INICIAL`, `_FINAL`, `_LECTURA`, `PATRON_NO_SABE` | `pinyin` |
+| `PATRON_SIGNIFICADO` | `significado` |
+| `PATRON_CARACTER_RECURRENTE` | `trazo` (el consejo del patrón es practicarlo en Trazos) |
+| `PATRON_RETROCESO` | `pinyin` (la lectura es lo primero que se olvida) |
+
+- Los caracteres son los del patrón, en su orden. Si el primer patrón no
+  alcanza para 3, se completa con los siguientes; un carácter queda con el
+  patrón más relevante que lo nombra.
+- Van después de los vencidos y antes de los refuerzos: un carácter que
+  falla seguido suele ser también refuerzo, y así se practica con el tipo
+  de ejercicio que ataca su error y no siempre con trazo.
+- La dificultad baja un punto (mínimo 1): es justo lo que le cuesta al
+  estudiante, así que empieza un paso más fácil que el resto.
+- Cada ejercicio guarda el código del patrón en la columna `patron` y lo
+  devuelve en el JSON (ver "Contrato"). Los demás quedan con `null`.
+- Un patrón con un código que no está en la tabla no genera nada, y
+  `tests/test_adaptacion.py` comprueba que la tabla cubre los once códigos
+  de `progreso-flask/dominio/patrones.py`.
 
 ## Motor y notificador
 
@@ -114,7 +147,7 @@ carácter entre los grupos ni dentro de uno:
 | Servicio      | Variable       | Rutas que usa                                                    |
 |---------------|----------------|------------------------------------------------------------------|
 | catalogo-flask| `CATALOGO_URL` | `GET /api/v2/caracteres/?nivel=&excluir=&limite=`                |
-| progreso-flask| `PROGRESO_URL` | `GET /api/v2/progreso/<id>/`, `GET .../repasos/?limite=4`, `GET .../refuerzos/`, `POST .../respuestas/`, `POST .../curva-olvido/` |
+| progreso-flask| `PROGRESO_URL` | `GET /api/v2/progreso/<id>/`, `GET .../repasos/?limite=4`, `GET .../patrones/`, `GET .../refuerzos/`, `POST .../respuestas/`, `POST .../curva-olvido/` |
 
 Las URL son la base del servicio, sin `/api/v2` (por ejemplo
 `http://flask_catalogo:5000`). Todo pasa por `clientes.ClienteHttp`:
@@ -131,6 +164,7 @@ Las URL son la base del servicio, sin `/api/v2` (por ejemplo
 | Catálogo caído o vacío        | Usa una lista local de 10 caracteres por nivel HSK (la de v1) |
 | GET de progreso caído         | Usa los valores iniciales (HSK1, tasa 0.5, sin dominados)     |
 | Repasos vencidos caídos       | La sesión se arma sin vencidos                                |
+| Patrones de error caídos      | La sesión se arma sin ejercicios adaptados                    |
 | Refuerzos caídos              | La sesión se arma sin refuerzos                               |
 | POST de respuesta caído       | La respuesta queda guardada en la sesión y se devuelve `aviso` |
 | POST de curva de olvido caído | Advertencia en el log; la respuesta no cambia y la sesión queda completada. No se reintenta |
@@ -187,18 +221,20 @@ servicio arranca igual y `/health` responde 503.
 
 ### Migración
 
-RF-IA-02 trae la primera migración de `db_sesiones`. `create_all` no altera
-una tabla que ya existe, así que `migraciones.aplicar()`, con el mismo
-patrón que progreso-flask, agrega la columna en una base con datos:
+RF-IA-02 trae la primera migración de `db_sesiones` y RF-IA-03 la segunda.
+`create_all` no altera una tabla que ya existe, así que
+`migraciones.aplicar()`, con el mismo patrón que progreso-flask, agrega las
+columnas en una base con datos:
 
 ```sql
-ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS codigo_error VARCHAR(40);
+ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS codigo_error VARCHAR(40);  -- RF-IA-02
+ALTER TABLE ejercicios ADD COLUMN IF NOT EXISTS patron VARCHAR(40);        -- RF-IA-03
 ```
 
 - La llama `iniciar_db` en cada arranque, después de `create_all`.
 - Es idempotente: si la columna ya está, no hace nada. En PostgreSQL,
   `IF NOT EXISTS` cubre además el caso de dos workers que arrancan a la vez.
-- La columna admite NULL y no tiene valor por defecto: las filas que ya
+- Las columnas admiten NULL y no tiene valor por defecto: las filas que ya
   existen quedan con NULL y la tabla no se reescribe. Una imagen anterior
   del servicio puede seguir insertando si hay que volver atrás.
 - `sesiones` no cambia.
@@ -207,6 +243,8 @@ Se probó sobre una copia de `db_sesiones` hecha con `pg_dump` (88 sesiones y
 372 ejercicios): la primera ejecución agregó la columna, la segunda y la
 tercera no hicieron nada, y la cantidad de filas y una huella md5 de las
 columnas anteriores de las dos tablas fueron idénticas antes y después.
+Con `patron` se repitió la prueba sobre una base de RF-IA-02 con datos (ver
+la descripción del PR).
 Antes del despliegue se respaldó la base con `pg_dump`, y después la huella
 de la base real siguió idéntica. `tests/test_migraciones.py` repite la
 prueba en SQLite con el esquema anterior.
@@ -229,21 +267,25 @@ curl -s http://localhost:5000/no/existe -H "Accept-Language: en"
 ## Contrato
 
 Las respuestas tienen las mismas claves, en el mismo orden, que los
-serializers de agente-tutor (`tests/test_contrato.py` lo comprueba).
+serializers de agente-tutor (`tests/test_contrato.py` lo comprueba). La
+única clave extra es `patron` en cada ejercicio (RF-IA-03), al final.
 
 ### `POST /api/v2/sesiones/`
 
 Cuerpo: `usuario_id` (UUID, o un entero como acepta DRF), `nivel_hsk` (1 a
 6) y `duracion_min` (5 a 60, por defecto 10). Responde `201`. Primero van los
-repasos vencidos y después los refuerzos (ver "Composición de una sesión").
-La forma de la respuesta no cambia.
+repasos vencidos, después los adaptados y los refuerzos (ver "Composición de
+una sesión"). Cada ejercicio trae al final `patron`, la única clave que v1 no
+tiene: el código del patrón de error al que apunta, o `null`. Va al final
+para que las claves de v1 conserven su orden.
 
 ```json
 {"id": 2, "usuario_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "nivel_hsk": 1, "dificultad": 2,
  "estado": "activa", "duracion_estimada_min": 10, "creada_en": "2026-10-23T20:32:45.598104Z",
  "ejercicios": [
-   {"id": 5, "caracter": "你", "tipo": "trazo", "dificultad": 2, "es_refuerzo": true},
-   {"id": 7, "caracter": "大", "tipo": "significado", "dificultad": 2, "es_refuerzo": false}]}
+   {"id": 5, "caracter": "水", "tipo": "trazo", "dificultad": 1, "es_refuerzo": true, "patron": "PATRON_TRAZO_INVERTIDO"},
+   {"id": 6, "caracter": "你", "tipo": "trazo", "dificultad": 2, "es_refuerzo": true, "patron": null},
+   {"id": 7, "caracter": "大", "tipo": "significado", "dificultad": 2, "es_refuerzo": false, "patron": null}]}
 ```
 
 Nivel bloqueado: `400 {"error": "HSK3 aún no está desbloqueado (máximo actual: HSK1).", "codigo": "NIVEL_NO_PERMITIDO"}`,

@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 # (tabla, columna, tipo SQL). Todas admiten NULL y no llevan valor por defecto.
 COLUMNAS_NUEVAS = (
     ("ejercicios", "codigo_error", "VARCHAR(40)"),
+    # RF-IA-03: el patrón de error que originó un ejercicio adaptado.
+    ("ejercicios", "patron", "VARCHAR(40)"),
 )
 
 

@@ -65,7 +65,7 @@ class SesionEstudioBuilder:
         self._duracion = minutos
         return self
 
-    def _agregar(self, caracter, tipo, dificultad, es_refuerzo):
+    def _agregar(self, caracter, tipo, dificultad, es_refuerzo, patron=None):
         """Agrega un ejercicio, salvo que el carácter ya esté en la sesión."""
         if caracter in self._caracteres:
             return
@@ -76,6 +76,7 @@ class SesionEstudioBuilder:
                 "tipo": tipo,
                 "dificultad": dificultad,
                 "es_refuerzo": es_refuerzo,
+                "patron": patron,
             }
         )
 
@@ -87,6 +88,14 @@ class SesionEstudioBuilder:
         """
         for caracter in caracteres_vencidos:
             self._agregar(caracter, "significado", self._dificultad or 3, True)
+        return self
+
+    def agregar_adaptados(self, ejercicios_adaptados):
+        """Ejercicios dirigidos a un patrón de error (RF-IA-03), después de
+        los vencidos. `es_refuerzo` true, porque nacen de errores previos, y
+        con el código del patrón que los originó."""
+        for e in ejercicios_adaptados:
+            self._agregar(e.caracter, e.tipo, e.dificultad, True, patron=e.patron)
         return self
 
     def agregar_refuerzos(self, caracteres_fallados):

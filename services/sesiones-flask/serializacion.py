@@ -18,13 +18,19 @@ def _fecha(valor):
 
 
 def ejercicio(e):
-    """EjercicioSerializer."""
+    """EjercicioSerializer, más `patron` (RF-IA-03).
+
+    `patron` es la única clave que no existe en v1 y va al final, así que las
+    de v1 quedan iguales y en el mismo orden: el código del patrón de error
+    que originó un ejercicio adaptado, o null.
+    """
     return {
         "id": e.id,
         "caracter": e.caracter,
         "tipo": e.tipo,
         "dificultad": e.dificultad,
         "es_refuerzo": e.es_refuerzo,
+        "patron": e.patron,
     }
 
 

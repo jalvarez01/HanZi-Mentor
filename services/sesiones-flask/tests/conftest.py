@@ -11,11 +11,13 @@ import pytest
 from app import create_app
 from i18n import compilar_traducciones
 from fabricas import Dependencias
+from motores import MotorTutor
 
 USUARIO = uuid.UUID("12345678-1234-5678-1234-567812345678")
 
 
-class MotorFalso:
+class MotorFalso(MotorTutor):
+    # Hereda generar_ejercicio_adaptado (RF-IA-03) tal cual lo usa el servicio.
     def sugerir_dificultad(self, progreso):
         return 3
 
@@ -34,12 +36,14 @@ class NotificadorEspia:
 class ProgresoFalso:
     """Imita a progreso-flask: lleva la racha y la tasa como el servicio real."""
 
-    def __init__(self, nivel_max=2, refuerzos=("目", "且"), caido=False, vencidos=()):
+    def __init__(self, nivel_max=2, refuerzos=("目", "且"), caido=False, vencidos=(), patrones=()):
         self.nivel_max = nivel_max
         self.refuerzos = list(refuerzos)
         self.caido = caido
         # RF-IA-02: repasos vencidos y las curvas pedidas al cerrar.
         self.vencidos = list(vencidos)
+        # RF-IA-03: patrones de error como los devuelve GET .../patrones/.
+        self.patrones = list(patrones)
         self.curvas = []
         self.respuestas = []
         # El codigo_error de cada respuesta, en el mismo orden (RF-IA-01).
@@ -60,6 +64,9 @@ class ProgresoFalso:
 
     def repasos_vencidos(self, usuario_id, limite=4):
         return [] if self.caido else self.vencidos[:limite]
+
+    def patrones_de_error(self, usuario_id):
+        return [] if self.caido else list(self.patrones)
 
     def aplicar_curva_olvido(self, usuario_id, sesion_id, cerrada_en, respuestas):
         self.curvas.append((usuario_id, sesion_id, cerrada_en, respuestas))

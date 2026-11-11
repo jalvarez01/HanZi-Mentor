@@ -8,6 +8,7 @@ una tabla local: se lee y se registra en progreso-flask por HTTP
 """
 
 from dominio import sesion as reglas
+from dominio.adaptacion import adaptar_a_patrones
 from dominio.builder import SesionEstudioBuilder, sin_repetir
 from dominio.excepciones import (
     EjercicioNoEncontradoError,
@@ -19,10 +20,12 @@ from mensajes import N_
 from modelos import ahora
 from repositorio import SesionesRepositorio
 
-# Composición de una sesión (RF-IA-02): primero hasta 4 repasos vencidos,
-# después hasta 3 refuerzos y los nuevos completan 7, con al menos 1 nuevo.
-# Como mucho 4 + 3 + 1 = 8 ejercicios. Ningún carácter se repite.
+# Composición de una sesión: primero hasta 4 repasos vencidos (RF-IA-02),
+# después hasta 3 ejercicios adaptados a los patrones de error (RF-IA-03),
+# hasta 3 refuerzos y los nuevos completan 7, con al menos 1 nuevo. Como
+# mucho 4 + 3 + 3 + 1 = 11 ejercicios. Ningún carácter se repite.
 CANTIDAD_VENCIDOS = 4
+CANTIDAD_ADAPTADOS = 3
 CANTIDAD_REFUERZOS = 3
 TOTAL_OBJETIVO = 7
 MINIMO_NUEVOS = 1
@@ -48,7 +51,9 @@ class SesionEstudioService:
         progreso = self._progreso.obtener(usuario_id)
 
         dificultad = self._motor.sugerir_dificultad(progreso)
-        vencidos, refuerzos, nuevos = self._elegir_caracteres(usuario_id, progreso)
+        vencidos, adaptados, refuerzos, nuevos = self._elegir_caracteres(
+            usuario_id, progreso, dificultad
+        )
 
         sesion = (
             SesionEstudioBuilder()
@@ -57,6 +62,7 @@ class SesionEstudioService:
             .con_dificultad(dificultad)
             .con_duracion(duracion_min)
             .agregar_vencidos(vencidos)
+            .agregar_adaptados(adaptados)
             .agregar_refuerzos(refuerzos)
             .agregar_contenido_nuevo(nuevos)
             .build(SesionesRepositorio(sesion_db))
@@ -65,30 +71,43 @@ class SesionEstudioService:
         self._notificador.sesion_lista(usuario_id, sesion)
         return sesion
 
-    def _elegir_caracteres(self, usuario_id, progreso):
-        """(vencidos, refuerzos, nuevos), sin repetir caracteres entre ellos.
+    def _elegir_caracteres(self, usuario_id, progreso, dificultad):
+        """(vencidos, adaptados, refuerzos, nuevos), sin repetir caracteres.
 
         Cada lista se pide con margen (tantos como los ya elegidos) para que
-        quitar repetidos no la deje más corta de lo necesario.
+        quitar repetidos no la deje más corta de lo necesario. Los adaptados
+        son EjercicioAdaptado; las demás, caracteres.
         """
         vencidos = sin_repetir(
             self._progreso.repasos_vencidos(usuario_id, limite=CANTIDAD_VENCIDOS)
         )[:CANTIDAD_VENCIDOS]
 
+        # RF-IA-03: si progreso-flask detecta patrones de error, el tutor
+        # ejecuta generarEjercicioAdaptado(p) sobre ellos, del más relevante
+        # al menos, hasta CANTIDAD_ADAPTADOS.
+        adaptados = adaptar_a_patrones(
+            self._progreso.patrones_de_error(usuario_id),
+            dificultad,
+            CANTIDAD_ADAPTADOS,
+            excluir=vencidos,
+            generar=self._motor.generar_ejercicio_adaptado,
+        )
+
+        ocupados = vencidos + [e.caracter for e in adaptados]
         refuerzos = sin_repetir(
             self._progreso.caracteres_a_reforzar(
-                usuario_id, limite=CANTIDAD_REFUERZOS + len(vencidos)
+                usuario_id, limite=CANTIDAD_REFUERZOS + len(ocupados)
             ),
-            excluir=vencidos,
+            excluir=ocupados,
         )[:CANTIDAD_REFUERZOS]
 
-        ocupados = vencidos + refuerzos
+        ocupados = ocupados + refuerzos
         cantidad = max(MINIMO_NUEVOS, TOTAL_OBJETIVO - len(ocupados))
         nuevos = sin_repetir(
             self._motor.seleccionar_caracteres_nuevos(progreso, cantidad=cantidad + len(ocupados)),
             excluir=ocupados,
         )[:cantidad]
-        return vencidos, refuerzos, nuevos
+        return vencidos, adaptados, refuerzos, nuevos
 
 
 class ResponderEjercicioService:
