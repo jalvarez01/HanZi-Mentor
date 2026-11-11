@@ -39,11 +39,13 @@ petición:
                         - flask_trazos
                         - flask_ejemplos ----> Tatoeba (API externa)
                         - flask_reportes
+                        - flask_suscripciones (pago simulado)
      |                         |
      v                         v
  +-----------------------------------------------------+
  | PostgreSQL `db`: una base por servicio              |
- |   contenido, db_catalogo, db_progreso, db_sesiones  |
+ |   contenido, db_catalogo, db_progreso, db_sesiones, |
+ |   db_suscripciones                                  |
  +-----------------------------------------------------+
  +-----------------------------------------------------+
  | redis: cola de Celery y resultados de los reportes  |
@@ -75,6 +77,7 @@ HanZi-Mentor/
 │   ├── trazos-flask/       # v2: compara un trazo con su mediana
 │   ├── ejemplos-flask/     # v2: oraciones de ejemplo de Tatoeba (patrón Adapter)
 │   ├── reportes-flask/     # v2: reportes asíncronos y notificaciones (Redis + Celery)
+│   ├── suscripciones-flask/ # v2: planes Free y Premium con pago simulado (patrón Adapter)
 │   └── flask-base/         # plantilla de los servicios Flask
 ├── frontend/               # React + Vite (PWA mobile-first)
 ├── infra/nginx/nginx.conf  # el gateway
@@ -103,6 +106,7 @@ Sacado de `infra/nginx/nginx.conf` y `docker-compose.yml`:
 | `flask_ejemplos`     | v2      | `/api/v2/ejemplos/`                          | `services/ejemplos-flask` |
 | `flask_reportes`     | v2      | `/api/v2/reportes/`                          | `services/reportes-flask` |
 | `worker`             | v2      | (sin ruta: lee la cola de redis)             | `services/reportes-flask` (misma imagen) |
+| `flask_suscripciones` | v2     | `/api/v2/suscripciones/`                     | `services/suscripciones-flask` |
 | `redis`              | -       | (sin ruta, solo red interna)                 | Redis 7 |
 | `frontend`           | -       | `/`                                          | `frontend` |
 | `db`                 | -       | (sin ruta, solo red interna)                 | PostgreSQL 16 |
@@ -308,8 +312,8 @@ Cada servicio se prueba por separado con su propio entorno virtual, desde su
 carpeta (en Windows, `.venv\Scripts\pytest` y `venv\Scripts\python`).
 
 Servicios Flask (`catalogo-flask`, `progreso-flask`, `sesiones-flask`,
-`evaluacion-flask`, `trazos-flask`, `ejemplos-flask`, `reportes-flask` y
-`flask-base`):
+`evaluacion-flask`, `trazos-flask`, `ejemplos-flask`, `reportes-flask`,
+`suscripciones-flask` y `flask-base`):
 
 ```bash
 cd services/catalogo-flask
@@ -338,10 +342,11 @@ Totales de hoy:
 | trazos-flask | 21 |
 | ejemplos-flask | 46 (+1 que se salta: la prueba en vivo contra Tatoeba) |
 | reportes-flask | 75 |
+| suscripciones-flask | 67 |
 | flask-base | 19 |
 | contenido | 39 |
 | agente-tutor | 53 |
-| **Total** | **666** |
+| **Total** | **733** |
 
 La prueba en vivo de ejemplos se activa con `TATOEBA_EN_VIVO=1`. Los tests
 de contrato de los servicios Flask leen los serializers de Django del mismo

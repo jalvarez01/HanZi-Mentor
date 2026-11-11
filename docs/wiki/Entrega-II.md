@@ -37,7 +37,7 @@ con el commit o el Pull Request que la resuelve.
 El enunciado exime del Parcial 02 a los equipos que migren más del 70 % de
 sus servicios y lógica de negocio a microservicios funcionales e
 independientes. HanZi Mentor migró a Flask **todos los endpoints de negocio
-del monolito**: el 100 % de los módulos existentes y el 83 % si se cuentan
+del monolito**: el 100 % de los módulos existentes y el 92 % si se cuentan
 también los módulos nuevos de esta entrega.
 
 ### Cómo se mide
@@ -69,7 +69,8 @@ todo esto:
 | Usuarios | `usuarios` | — | — | 0 | Permanece en Django | — | — |
 | Ejemplos de oraciones (API de terceros) | Nuevo | `ejemplos-flask` | `GET /api/v2/ejemplos/<hanzi>/` | 1 | Migrado | PR #27 (`f9ebcdc`), integrado en PR #30 (`dd82852`), consumo en PR #37 (`2d58af2`) | Frontend (pantalla de Trazos) |
 | Servicio para el equipo aliado | Nuevo | `catalogo-flask` | `GET /api/v2/publico/resumen/` | 1 | En progreso | PR #38 | Pendiente: equipo aliado |
-| Reportes y notificaciones | Nuevo | `flask_reportes` + worker de Celery | `/api/v2/reportes/` | 1 | Pendiente | — | Frontend |
+| Reportes y notificaciones | Nuevo | `flask_reportes` + worker de Celery | `/api/v2/reportes/` | 1 | Migrado | PR #42 (`f0b21cf`), consumo en PR #46 (`7c4b021`) | Frontend (Progreso) |
+| Suscripciones Free y Premium (RF-USR-01) | Nuevo | `suscripciones-flask` | `/api/v2/suscripciones/` (planes, consulta, activar, renovar, cancelar, pagos) | 1 | Migrado | PR #55 | Frontend (Practicar y Progreso) |
 
 Los dos módulos con peso 0 no tienen endpoints de negocio propios:
 
@@ -84,10 +85,10 @@ Los dos módulos con peso 0 no tienen endpoints de negocio propios:
 | Cálculo | Peso migrado | Peso total | Porcentaje |
 |---------|:------------:|:----------:|:----------:|
 | Solo los módulos que existían en el monolito | 9 | 9 | **100 %** |
-| Todos los módulos, incluidos los nuevos de esta entrega | 10 | 12 | **83 %** |
+| Todos los módulos, incluidos los nuevos de esta entrega | 12 | 13 | **92 %** |
 
 Los dos cálculos superan la meta del 70 %. Cuando el equipo aliado consuma
-el servicio público (T14), el segundo sube a 92 %.
+el servicio público (T14), el segundo sube a 100 %.
 
 ### Coexistencia con el monolito (Strangler Pattern)
 
@@ -187,14 +188,14 @@ siguen llegando a Django como respaldo:
 flowchart LR
     app(["Frontend React"]) --> nginx["Nginx<br/>gateway"]
     nginx -->|"/api/v1/"| v1["Django v1 (respaldo)<br/>contenido · agente_tutor"]
-    nginx -->|"/api/v2/"| v2["Microservicios Flask<br/>catálogo · sesiones · progreso · evaluación<br/>trazos · ejemplos · reportes"]
+    nginx -->|"/api/v2/"| v2["Microservicios Flask<br/>catálogo · sesiones · progreso · evaluación<br/>trazos · ejemplos · reportes · suscripciones"]
     v2 --> redis[("Redis<br/>broker de Celery")]
     redis --> worker["worker<br/>Celery"]
 ```
 
 ### Contenedores
 
-Las 14 piezas que levanta `docker-compose.yml` y cómo se comunican. Solo
+Las 15 piezas que levanta `docker-compose.yml` y cómo se comunican. Solo
 Nginx publica un puerto; el resto solo es accesible dentro de la red de
 Docker.
 
@@ -221,6 +222,7 @@ flowchart TB
             trazos["flask_trazos"]
             ejemplos["flask_ejemplos"]
             reportes["flask_reportes"]
+            suscripciones["flask_suscripciones<br/>planes Free y Premium"]
         end
 
         redis[("redis<br/>broker y resultados")]
@@ -250,11 +252,12 @@ flowchart TB
     catalogo --> db
     progreso --> db
     sesiones --> db
+    suscripciones --> db
     tutor --> sqlite
 ```
 
-Las bases de los servicios Flask son `db_catalogo`, `db_progreso` y
-`db_sesiones`, en el mismo servidor PostgreSQL que la de `contenido`.
+Las bases de los servicios Flask son `db_catalogo`, `db_progreso`,
+`db_sesiones` y `db_suscripciones`, en el mismo servidor PostgreSQL que la de `contenido`.
 `flask_trazos`, `flask_evaluacion` y `flask_ejemplos` no guardan estado.
 
 ### Despliegue en AWS
@@ -380,6 +383,13 @@ sequenceDiagram
 
     Note over A,T: Si Tatoeba no responde en 3 s, el adaptador lanza<br/>ProveedorNoDisponible y el servicio responde 503 PROVEEDOR_NO_DISPONIBLE.
 ```
+
+El mismo patrón se usa para los pagos de Premium (RF-USR-01):
+`suscripciones-flask` solo conoce el puerto `PasarelaPago` y la variable
+`PASARELA_PAGO` elige el adaptador. Hoy el único es `PasarelaSimulada`, que
+no mueve dinero; una pasarela real sería otro adaptador, sin tocar el caso
+de uso. Detalle en el
+[README del servicio](https://github.com/jalvarez01/HanZi-Mentor/blob/development/services/suscripciones-flask/README.md).
 
 ### Secuencia: tarea asíncrona (reporte de progreso)
 

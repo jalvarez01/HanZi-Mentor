@@ -11,10 +11,12 @@
 #   /api/v2/sesiones/*, /api/v2/ejercicios/* -> flask_sesiones (Flask)
 #   /api/v2/evaluacion/* -> flask_evaluacion (Flask, sin base)
 #   /api/v2/reportes/* -> flask_reportes (Flask, encola en Redis; `worker` ejecuta)
+#   /api/v2/suscripciones/* -> flask_suscripciones (Flask, planes Free y Premium)
 #   /*                -> frontend      (PWA estática)
 #
 # Bases de datos: un solo PostgreSQL (`db`) con una base por servicio:
-# `contenido` (Django), `db_catalogo`, `db_progreso` y `db_sesiones` (las
+# `contenido` (Django), `db_catalogo`, `db_progreso`, `db_sesiones` y
+# `db_suscripciones` (las
 # bases de los servicios Flask, que crea el arranque de cada uno).
 #
 # Tareas asíncronas (T18): `redis` es el broker de Celery y guarda los
@@ -139,6 +141,29 @@ services:
       interval: 10s
       timeout: 5s
       # No carga datos al arrancar: solo crea la base y las tablas.
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  flask_suscripciones:
+    build: ./services/suscripciones-flask
+    environment:
+      # Base propia dentro del PostgreSQL compartido; crear_base.py la crea
+      # en el arranque si no existe.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-hanzimentor}:${POSTGRES_PASSWORD:-hanzimentor}@db:5432/db_suscripciones
+      GUNICORN_WORKERS: ${SUSCRIPCIONES_WORKERS:-2}
+      # Adaptador de pagos (RF-USR-01): hoy solo "simulada", que no mueve
+      # dinero ni sale a internet.
+      PASARELA_PAGO: ${PASARELA_PAGO:-simulada}
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
       start_period: 20s
       retries: 5
     restart: unless-stopped
@@ -357,6 +382,8 @@ services:
       flask_evaluacion:
         condition: service_started
       flask_reportes:
+        condition: service_started
+      flask_suscripciones:
         condition: service_started
       agente_tutor:
         condition: service_started

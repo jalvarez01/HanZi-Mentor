@@ -44,6 +44,16 @@ export function useFormato() {
       return new Intl.NumberFormat(idioma, { style: 'percent', maximumFractionDigits: 0 }).format(valor ?? 0);
     },
 
+    /** Fecha larga: "11 de diciembre de 2026" / "December 11, 2026" */
+    fecha(iso) {
+      return new Intl.DateTimeFormat(idioma, { dateStyle: 'long' }).format(new Date(iso));
+    },
+
+    /** Precio sin decimales: "$ 14.900" (es) / "COP 14,900" (en) */
+    dinero(monto, moneda = 'COP') {
+      return new Intl.NumberFormat(idioma, { style: 'currency', currency: moneda, maximumFractionDigits: 0 }).format(monto);
+    },
+
     /** Fecha y hora media: "21 oct 2026, 17:30" / "Oct 21, 2026, 5:30 PM" */
     fechaHora(iso) {
       return new Intl.DateTimeFormat(idioma, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));

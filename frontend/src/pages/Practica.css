@@ -85,6 +85,32 @@
 
 .practica-nivel:disabled { opacity: 0.5; cursor: default; }
 
+/* RF-USR-01: niveles de Premium para quien tiene Free */
+.practica-nivel--premium {
+  background: var(--ink-tint);
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.practica-nivel--premium .practica-nivel__numeral { color: var(--ink-muted); }
+
+.practica-nivel--premium:hover {
+  transform: translateY(-3px) rotate(-1deg);
+  box-shadow: var(--shadow-offset-tile);
+}
+
+.practica-nivel__premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--jade);
+  font: 700 var(--fs-2xs)/1 var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.practica-nivel__premium svg { width: 11px; height: 11px; }
+
 .practica-modo:focus-visible,
 .practica-nivel:focus-visible,
 .practica-enlace:focus-visible {
