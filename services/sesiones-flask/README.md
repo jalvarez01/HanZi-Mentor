@@ -61,13 +61,17 @@ carácter entre los grupos ni dentro de uno:
 |-------|-----------|---------|----------|------|---------------|
 | 1     | Vencidos  | Hasta 4 | `GET .../repasos/?limite=4` de progreso-flask, del más atrasado al menos atrasado | `significado` | true |
 | 2     | Adaptados | Hasta 3 | `GET .../patrones/`: los patrones de error, del más relevante al menos | según el patrón | true |
-| 3     | Refuerzos | Hasta 3 | `GET .../refuerzos/`: los caracteres con más fallos | `trazo` | true |
+| 3     | Refuerzos | Lo que dejan libre los adaptados del cupo de 3 | `GET .../refuerzos/`: los caracteres con más fallos | `trazo` | true |
 | 4     | Nuevos    | Hasta completar 7, con al menos 1 | Catálogo, sin los dominados | `significado` | false |
 
-- Sin vencidos, adaptados ni refuerzos son 7 nuevos; con los tres grupos
-  llenos (4 + 3 + 3) va 1 nuevo, así que una sesión tiene de 7 a 11
-  ejercicios (menos si el catálogo no alcanza; el mínimo del Builder sigue
-  siendo 3).
+- Adaptados y refuerzos comparten un cupo de 3, con los adaptados
+  primero: 3 adaptados dejan 0 refuerzos, 1 adaptado deja hasta 2 y sin
+  adaptados (por ejemplo, con progreso caído) son hasta 3 refuerzos, como
+  en RF-IA-02.
+- Sin vencidos, adaptados ni refuerzos son 7 nuevos; con 4 vencidos y el
+  cupo de 3 lleno va 1 nuevo, así que una sesión tiene de 7 a 8 ejercicios,
+  el máximo de RF-IA-02 (menos si el catálogo no alcanza; el mínimo del
+  Builder sigue siendo 3).
 - Un carácter que está en dos grupos aparece una sola vez, en el primero. Cada grupo se pide con margen
   (uno de más por cada carácter ya elegido) para completar su cantidad
   después de quitar los repetidos. Antes de RF-IA-02 un refuerzo podía

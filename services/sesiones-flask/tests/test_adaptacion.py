@@ -238,3 +238,91 @@ def test_el_detalle_y_responder_devuelven_el_patron(client, progreso):
 
     assert sesion["ejercicios"][0]["patron"] == "PATRON_NO_SABE"
     assert respuesta["ejercicio"]["patron"] == "PATRON_NO_SABE"
+
+
+
+# ---------- cupo compartido de adaptados y refuerzos (revisión de #53) ----------
+
+
+def grupos(ejercicios):
+    """(vencidos, adaptados, refuerzos, nuevos) por carácter, según los campos del JSON."""
+    vencidos = [e["caracter"] for e in ejercicios if e["tipo"] == "significado" and e["es_refuerzo"]]
+    adaptados = [e["caracter"] for e in ejercicios if e["patron"]]
+    refuerzos = [e["caracter"] for e in ejercicios if e["tipo"] == "trazo" and e["es_refuerzo"] and not e["patron"]]
+    nuevos = [e["caracter"] for e in ejercicios if not e["es_refuerzo"]]
+    return vencidos, adaptados, refuerzos, nuevos
+
+
+def test_tres_adaptados_dejan_cero_refuerzos(client, progreso):
+    progreso.patrones = [INVERTIDO]
+    progreso.refuerzos = ["目", "且", "月"]
+    pedidos = []
+    original = progreso.caracteres_a_reforzar
+    progreso.caracteres_a_reforzar = lambda u, limite=3: (pedidos.append(limite), original(u, limite))[1]
+
+    _, adaptados, refuerzos, nuevos = grupos(crear(client, progreso))
+
+    assert adaptados == ["水", "大", "人"]
+    assert refuerzos == []
+    # Con el cupo lleno ni se piden refuerzos.
+    assert pedidos == []
+    assert len(nuevos) == 4
+
+
+def test_un_adaptado_deja_hasta_dos_refuerzos(client, progreso):
+    progreso.patrones = [RECURRENTE]
+    progreso.refuerzos = ["目", "且", "月"]
+
+    _, adaptados, refuerzos, nuevos = grupos(crear(client, progreso))
+
+    assert adaptados == ["一"]
+    assert refuerzos == ["目", "且"]
+    assert len(nuevos) == 4
+
+
+def test_un_refuerzo_repetido_no_ocupa_lugar_del_cupo(client, progreso):
+    # 一 es adaptado y también el primer refuerzo: se pide con margen y los
+    # 2 lugares libres quedan para 目 y 且.
+    progreso.patrones = [RECURRENTE]
+    progreso.refuerzos = ["一", "目", "且", "月"]
+
+    _, adaptados, refuerzos, _ = grupos(crear(client, progreso))
+
+    assert (adaptados, refuerzos) == (["一"], ["目", "且"])
+
+
+def test_cuatro_vencidos_y_tres_adaptados_dan_ocho_con_un_nuevo(client, progreso):
+    progreso.vencidos = ["一", "二", "三", "四"]
+    progreso.patrones = [INVERTIDO]
+    progreso.refuerzos = ["目", "且"]
+
+    ejercicios = crear(client, progreso)
+
+    vencidos, adaptados, refuerzos, nuevos = grupos(ejercicios)
+    assert len(ejercicios) == 8
+    assert (len(vencidos), len(adaptados), len(refuerzos), len(nuevos)) == (4, 3, 0, 1)
+    assert [e["caracter"] for e in ejercicios[:4]] == ["一", "二", "三", "四"]
+
+
+def test_nunca_pasa_de_ocho_ejercicios(client, progreso):
+    progreso.vencidos = ["一", "二", "三", "四", "五"]
+    progreso.patrones = [INVERTIDO, NO_SABE]
+    progreso.refuerzos = ["目", "且", "月"]
+
+    assert len(crear(client, progreso)) == 8
+
+
+def test_sin_patrones_por_progreso_caido_la_sesion_es_la_de_rf_ia_02(client, progreso):
+    # Solo falla patrones/ (ProgresoRemoto devuelve [] si no responde): vencidos
+    # primero, hasta 3 refuerzos y los nuevos completan 7.
+    progreso.vencidos = ["人"]
+    progreso.patrones = [INVERTIDO]
+    progreso.refuerzos = ["目", "且", "月"]
+    progreso.patrones_de_error = lambda usuario_id: []
+
+    ejercicios = crear(client, progreso)
+
+    vencidos, adaptados, refuerzos, nuevos = grupos(ejercicios)
+    assert (vencidos, adaptados, refuerzos) == (["人"], [], ["目", "且", "月"])
+    assert len(nuevos) == 3
+    assert len(ejercicios) == 7

@@ -309,8 +309,10 @@ sequenceDiagram
     S->>S: el motor del tutor sugiere la dificultad
     S->>P: GET /api/v2/progreso/{usuario_id}/repasos/?limite=4
     P-->>S: repasos vencidos (curva de olvido, RF-IA-02)
+    S->>P: GET /api/v2/progreso/{usuario_id}/patrones/
+    P-->>S: patrones de error: ejercicios adaptados (RF-IA-03, hasta 3)
     S->>P: GET /api/v2/progreso/{usuario_id}/refuerzos/?limite=...
-    P-->>S: caracteres a reforzar (hasta 3)
+    P-->>S: caracteres a reforzar (completan el cupo de 3 con los adaptados)
     S->>C: GET /api/v2/caracteres/?nivel=...&excluir=...&limite=...
     C-->>S: caracteres nuevos hasta completar 7 (al menos 1)
     S->>S: SesionEstudioBuilder valida y arma los ejercicios

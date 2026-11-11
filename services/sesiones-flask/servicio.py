@@ -20,10 +20,11 @@ from mensajes import N_
 from modelos import ahora
 from repositorio import SesionesRepositorio
 
-# Composición de una sesión: primero hasta 4 repasos vencidos (RF-IA-02),
-# después hasta 3 ejercicios adaptados a los patrones de error (RF-IA-03),
-# hasta 3 refuerzos y los nuevos completan 7, con al menos 1 nuevo. Como
-# mucho 4 + 3 + 3 + 1 = 11 ejercicios. Ningún carácter se repite.
+# Composición de una sesión: primero hasta 4 repasos vencidos (RF-IA-02);
+# después adaptados a los patrones de error (RF-IA-03) y refuerzos, que
+# comparten un cupo de 3, con los adaptados primero; y los nuevos completan
+# 7, con al menos 1 nuevo. Como mucho 4 + 3 + 1 = 8 ejercicios, el máximo
+# de RF-IA-02. Ningún carácter se repite.
 CANTIDAD_VENCIDOS = 4
 CANTIDAD_ADAPTADOS = 3
 CANTIDAD_REFUERZOS = 3
@@ -93,13 +94,18 @@ class SesionEstudioService:
             generar=self._motor.generar_ejercicio_adaptado,
         )
 
+        # Los refuerzos usan lo que dejan libre los adaptados del cupo
+        # compartido: 3 adaptados dejan 0 refuerzos y 1 adaptado, hasta 2.
         ocupados = vencidos + [e.caracter for e in adaptados]
-        refuerzos = sin_repetir(
-            self._progreso.caracteres_a_reforzar(
-                usuario_id, limite=CANTIDAD_REFUERZOS + len(ocupados)
-            ),
-            excluir=ocupados,
-        )[:CANTIDAD_REFUERZOS]
+        cupo_refuerzos = max(0, CANTIDAD_REFUERZOS - len(adaptados))
+        refuerzos = []
+        if cupo_refuerzos:
+            refuerzos = sin_repetir(
+                self._progreso.caracteres_a_reforzar(
+                    usuario_id, limite=cupo_refuerzos + len(ocupados)
+                ),
+                excluir=ocupados,
+            )[:cupo_refuerzos]
 
         ocupados = ocupados + refuerzos
         cantidad = max(MINIMO_NUEVOS, TOTAL_OBJETIVO - len(ocupados))
