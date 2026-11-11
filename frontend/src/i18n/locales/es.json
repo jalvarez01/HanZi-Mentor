@@ -152,7 +152,15 @@
     "correctAnswer": "La respuesta correcta es:",
     "strokeHint": "Repasá la dirección y el orden de cada trazo en Trazos.",
     "patternKicker": "Para tu próxima sesión",
-    "seePatterns": "Ver tus patrones"
+    "seePatterns": "Ver tus patrones",
+    "performanceTitle": "Tu desempeño",
+    "performanceTime": "Tiempo",
+    "performanceOnTime": "dentro de los {{minutos}} min estimados",
+    "performanceOverTime": "más que los {{minutos}} min estimados",
+    "performanceCorrect": "Aciertos",
+    "performanceCorrectValue": "{{aciertos}} de {{total}}",
+    "performancePace": "Ritmo",
+    "performancePaceValue": "{{tiempo}} por ejercicio"
   },
   "feedback": {
     "why": "Por qué",

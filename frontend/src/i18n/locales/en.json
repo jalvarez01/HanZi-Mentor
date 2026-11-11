@@ -152,7 +152,15 @@
     "correctAnswer": "The correct answer is:",
     "strokeHint": "Review the direction and order of each stroke in Strokes.",
     "patternKicker": "For your next session",
-    "seePatterns": "See your patterns"
+    "seePatterns": "See your patterns",
+    "performanceTitle": "Your performance",
+    "performanceTime": "Time",
+    "performanceOnTime": "within the estimated {{minutos}} min",
+    "performanceOverTime": "over the estimated {{minutos}} min",
+    "performanceCorrect": "Correct",
+    "performanceCorrectValue": "{{aciertos}} of {{total}}",
+    "performancePace": "Pace",
+    "performancePaceValue": "{{tiempo}} per exercise"
   },
   "feedback": {
     "why": "Why",

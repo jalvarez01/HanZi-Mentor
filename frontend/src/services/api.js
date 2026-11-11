@@ -133,6 +133,15 @@ export function responderEjercicio(ejercicioId, acerto, codigoError) {
   });
 }
 
+/**
+ * Desempeño de una sesión terminada (RF-IA-05): duración, fecha y
+ * resultados. La respuesta que cierra la sesión ya lo trae en `desempeno`;
+ * esto sirve para pedirlo después. 409 si la sesión sigue en curso.
+ */
+export function obtenerDesempeno(sesionId) {
+  return pedir(`${SESIONES_API}/sesiones/${sesionId}/desempeno/`);
+}
+
 // ---------------------------------------------------------------- progreso
 
 export function obtenerProgreso(usuarioId) {
