@@ -38,8 +38,20 @@ export default function EjemplosCaracter({ hanzi }) {
         </div>
       </div>
 
+      {/* Tatoeba tarda: tres oraciones de espera, con el alto de las reales. */}
       {cargando && (
-        <p className="hm-status hm-status--loading" role="status">{t('examples.loading')}</p>
+        <>
+          <span className="hm-sr" role="status">{t('examples.loading')}</span>
+          <ul className="ejemplos-lista" aria-hidden="true">
+            {[11, 8, 13].map((ancho) => (
+              <li key={ancho} className="ejemplo">
+                <p className="ejemplo__texto"><span className="hm-esqueleto ejemplos-esqueleto" style={{ width: `${ancho}ch` }} /></p>
+                <p className="ejemplo__pinyin"><span className="hm-esqueleto ejemplos-esqueleto" style={{ width: `${ancho + 6}ch` }} /></p>
+                <p className="ejemplo__traduccion"><span className="hm-esqueleto ejemplos-esqueleto" style={{ width: `${ancho + 10}ch` }} /></p>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {!cargando && error && (

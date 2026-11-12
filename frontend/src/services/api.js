@@ -255,17 +255,64 @@ export function cancelarPremium(usuarioId) {
 
 // --------------------------------------------------------------- contenido
 
+/**
+ * El catálogo (caracteres y sus trazos) no cambia mientras se usa la app y
+ * no depende del idioma, así que cada consulta se guarda en memoria durante
+ * la visita: volver a Inicio o a Trazos no espera otra vez a la red. Se
+ * guarda la promesa, para que dos pantallas que piden lo mismo a la vez
+ * compartan una sola petición. Un error no se guarda: el siguiente intento
+ * vuelve a pedir.
+ */
+const cacheCatalogo = new Map();
+
+function pedirCatalogo(url) {
+  if (!cacheCatalogo.has(url)) {
+    const promesa = pedir(url).catch((e) => {
+      cacheCatalogo.delete(url);
+      throw e;
+    });
+    cacheCatalogo.set(url, promesa);
+  }
+  return cacheCatalogo.get(url);
+}
+
 export function listarCaracteres({ nivel, excluir = [], limite = 20 } = {}) {
   const params = new URLSearchParams();
   if (nivel) params.set('nivel', nivel);
   if (excluir.length) params.set('excluir', excluir.join(','));
   params.set('limite', limite);
 
-  return pedir(`${CATALOGO_API}/caracteres/?${params}`);
+  return pedirCatalogo(`${CATALOGO_API}/caracteres/?${params}`);
 }
 
 export function obtenerCaracter(hanzi) {
-  return pedir(`${CATALOGO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
+  return pedirCatalogo(`${CATALOGO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
+}
+
+/** Pide un carácter en segundo plano (al pasar el puntero, o los de una sesión nueva). */
+export function precargarCaracter(hanzi) {
+  if (hanzi) obtenerCaracter(hanzi).catch(() => {});
+}
+
+/** Cuántos caracteres del nivel pide Inicio para elegir las palabras del día. */
+export const MUESTRA_PALABRAS = 60;
+
+/** Las palabras del día de un nivel, en segundo plano (ver App.jsx). */
+export function precargarPalabras(nivel) {
+  if (nivel) listarCaracteres({ nivel, limite: MUESTRA_PALABRAS }).catch(() => {});
+}
+
+/** Cuántos caracteres muestra la biblioteca de Trazos. */
+export const LIMITE_BIBLIOTECA = 30;
+
+/**
+ * La biblioteca de Trazos y su primer carácter, en segundo plano: al tocar la
+ * pestaña ya están en memoria y la página no espera a la red.
+ */
+export function precargarBiblioteca() {
+  listarCaracteres({ limite: LIMITE_BIBLIOTECA })
+    .then((r) => precargarCaracter(r?.caracteres?.[0]?.hanzi))
+    .catch(() => {});
 }
 
 // -------------------------------------------------------------- evaluación

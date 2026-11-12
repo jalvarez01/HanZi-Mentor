@@ -2,8 +2,8 @@
 
 .home {
   --home-pad: 22px;
-  --img-destacada: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0038.JPG-WPIYTMReohG1LTN6DQPy48OQkokinW.jpeg');
-  --img-mapa: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0036.JPG-qlu3HabmuNV8mKa6yaHzotQlawAT2e.jpeg');
+  --img-destacada: url('../assets/fondos/destacada.webp');
+  --img-mapa: url('../assets/fondos/mapa.webp');
   padding: 0 var(--home-pad);
 }
 
@@ -444,3 +444,17 @@
   .home-palabras .hm-tile { padding-left: 9px; padding-right: 9px; }
   .home-palabras .hm-tile__hanzi { left: 9px; }
 }
+
+/* ------------------------------------------------------ esperas sin saltos */
+
+.home-esqueleto {
+  display: inline-block;
+  max-width: 100%;
+  height: 0.85em;
+  vertical-align: middle;
+}
+
+/* El botón de la tarjeta de espera solo reserva su lugar. */
+.home-esqueleto-boton { visibility: hidden; }
+
+.home-palabras__esqueleto { border-color: transparent; box-shadow: none; }

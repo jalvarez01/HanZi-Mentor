@@ -13,6 +13,10 @@
     <meta name="apple-mobile-web-app-title" content="HanziMentor" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
 
+    <!-- Paisaje de fondo (tokens.css, --shell-image): es lo más grande de la primera
+         pantalla. Sin esto el navegador lo descubre recién cuando React pinta. -->
+    <link rel="preload" as="image" type="image/webp" href="/src/assets/fondos/fondo.webp" fetchpriority="high" />
+
     <title>HanziMentor</title>
   </head>
   <body>

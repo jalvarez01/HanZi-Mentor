@@ -82,8 +82,13 @@
  * el tinte de cada estado se pinta encima de ese papel.
  */
 .validando {
-  margin: -4px 0 14px;
+  /* Va dentro de .lienzo-wrap, arriba a la izquierda: no mueve la página. */
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  margin: 0;
   padding: 6px 10px;
+  pointer-events: none;
   background: var(--panel-bg);
   backdrop-filter: blur(var(--panel-blur));
   -webkit-backdrop-filter: blur(var(--panel-blur));
@@ -204,3 +209,24 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
+
+/* ------------------------------------------------- esperas sin saltos */
+
+/* Esqueletos de la ficha: mismo alto de línea que el texto que reemplazan. */
+.trazos-esqueleto {
+  display: inline-block;
+  height: 0.9em;
+  vertical-align: middle;
+}
+
+.trazos-esqueleto--hanzi { width: 1em; height: 1em; vertical-align: top; }
+
+/* Controles reservados mientras llega el primer carácter. */
+.trazos-controles--espera { visibility: hidden; }
+
+.trazos-celda--esqueleto {
+  display: block;
+  border-color: transparent;
+}
+
+.trazos-celda[aria-busy='true'] { cursor: progress; }
