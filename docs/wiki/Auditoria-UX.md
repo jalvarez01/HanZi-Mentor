@@ -50,7 +50,7 @@ Condiciones de cada captura: contexto nuevo, `serviceWorkers: 'block'`
 `deviceScaleFactor: 1` y solo el área visible. Inicio y Cómo funciona
 tienen además una captura `-fin` del final de la página en 375.
 
-Las herramientas están en [`tools/auditoria-ux/`](../../tools/auditoria-ux/),
+Las herramientas están en [`tools/auditoria-ux/`](https://github.com/jalvarez01/HanZi-Mentor/tree/main/tools/auditoria-ux),
 con su propio `package.json`; el frontend no gana dependencias.
 
 - **`capturar.mjs`:** capturas, reporte axe completo en JSON y chequeos
