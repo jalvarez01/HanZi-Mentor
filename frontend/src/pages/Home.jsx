@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import CajaAliado from '../components/CajaAliado';
 import TopBar from '../components/TopBar';
 import {
   IconoCandado,
@@ -36,6 +37,8 @@ export default function Home() {
         <LeccionHoy progreso={progreso} cargando={cargando} error={error} recargar={recargar} />
         <PalabrasDelDia nivel={nivel} />
         <MapaRuta progreso={progreso} cargando={cargando} error={error} recargar={recargar} />
+        {/* T26: servicio del equipo aliado (VaultDrop) */}
+        <CajaAliado />
       </main>
     </>
   );

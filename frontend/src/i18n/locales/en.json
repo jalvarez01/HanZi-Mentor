@@ -77,6 +77,20 @@
       }
     }
   },
+  "ally": {
+    "kicker": "Partner team",
+    "title": "VaultDrop box",
+    "description": "VaultDrop is another team's project in the course: a case-opening simulator. Open one: the item comes out with the odds they publish.",
+    "loading": "Loading VaultDrop boxes…",
+    "sample": "Sample data: VaultDrop is not connected yet.",
+    "fallback": "VaultDrop did not respond: these boxes are from the last time it did.",
+    "box": "Box",
+    "open": "Open {{caja}}",
+    "opening": "Opening…",
+    "won": "You got",
+    "detail": "{{rareza}} · value {{valor}} · odds {{probabilidad}} %",
+    "credit": "Data from VaultDrop, through HanZi Mentor's partner service. It is a simulation: no credits or accounts are used."
+  },
   "strokes": {
     "title": "Strokes",
     "cardKicker": "Current character",

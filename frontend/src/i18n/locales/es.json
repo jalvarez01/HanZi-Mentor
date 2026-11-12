@@ -77,6 +77,20 @@
       }
     }
   },
+  "ally": {
+    "kicker": "Equipo aliado",
+    "title": "Caja de VaultDrop",
+    "description": "VaultDrop es el proyecto de otro equipo del curso: un simulador de apertura de cajas. Abrí una: el ítem sale con las probabilidades que ellos publican.",
+    "loading": "Cargando las cajas de VaultDrop…",
+    "sample": "Datos de ejemplo: VaultDrop todavía no está conectado.",
+    "fallback": "VaultDrop no respondió: estas cajas son las de la última vez que respondió.",
+    "box": "Caja",
+    "open": "Abrir {{caja}}",
+    "opening": "Abriendo…",
+    "won": "Te salió",
+    "detail": "{{rareza}} · valor {{valor}} · probabilidad {{probabilidad}} %",
+    "credit": "Datos de VaultDrop, a través del servicio aliado de HanZi Mentor. Es una simulación: no usa créditos ni cuentas."
+  },
   "strokes": {
     "title": "Trazos",
     "cardKicker": "Carácter actual",
