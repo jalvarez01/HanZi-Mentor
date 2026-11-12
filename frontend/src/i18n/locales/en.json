@@ -6,7 +6,8 @@
   },
   "common": {
     "retry": "Retry",
-    "genericError": "Something went wrong."
+    "genericError": "Something went wrong.",
+    "loading": "Loading…"
   },
   "language": {
     "label": "Language",
