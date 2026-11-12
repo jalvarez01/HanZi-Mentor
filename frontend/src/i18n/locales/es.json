@@ -6,8 +6,7 @@
   },
   "common": {
     "retry": "Reintentar",
-    "genericError": "Algo salió mal.",
-    "loading": "Cargando…"
+    "genericError": "Algo salió mal."
   },
   "language": {
     "label": "Idioma",
