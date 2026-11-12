@@ -33,7 +33,8 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+          // webp: las imágenes de fondo (src/assets/fondos), que ahora sirve la propia app.
+          globPatterns: ['**/*.{js,css,html,png,svg,webp,woff2}'],
           // Noto Serif SC son ~100 archivos por rangos unicode (~4 MB): no se
           // precargan; se guardan solo los que el usuario llega a ver (regla abajo).
           globIgnores: ['**/noto-serif-sc-*'],
@@ -41,17 +42,6 @@ export default defineConfig(({ mode }) => {
           // La API comparte origen con la app: sus rutas nunca deben caer en el index.html.
           navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [
-            {
-              // Imágenes de fondo de la maqueta (dominio externo). Se piden desde
-              // CSS sin CORS, por eso se aceptan respuestas opacas (status 0).
-              urlPattern: /^https:\/\/hebbkx1anhila5yf\.public\.blob\.vercel-storage\.com\//,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'hanzi-imagenes-externas',
-                expiration: { maxEntries: 10, maxAgeSeconds: 30 * UN_DIA },
-                cacheableResponse: { statuses: [0, 200] },
-              },
-            },
             {
               // Tramos de Noto Serif SC excluidos del precache.
               urlPattern: /\/assets\/noto-serif-sc-[^/]+\.woff2?$/,

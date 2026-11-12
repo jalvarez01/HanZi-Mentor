@@ -136,7 +136,7 @@
   /* Shell: ancho máximo, imagen de fondo y velos de la maqueta */
   --shell-max: 560px;
   --cinnabar-fill: rgba(167, 46, 36, 0.12);
-  --shell-image: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0039.JPG-e8UyAdHjnJSmhPsIXajDs5b9SSTu6Y.jpeg');
+  --shell-image: url('../assets/fondos/fondo.webp');
   --shell-veil: linear-gradient(135deg, rgba(245, 232, 201, 0.76), rgba(231, 216, 181, 0.58) 52%, rgba(39, 79, 72, 0.38));
   --shell-glow:
     radial-gradient(circle at 12% 8%, rgba(255, 244, 210, 0.32), transparent 22%),

@@ -2,8 +2,8 @@
 
 .home {
   --home-pad: 22px;
-  --img-destacada: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0038.JPG-WPIYTMReohG1LTN6DQPy48OQkokinW.jpeg');
-  --img-mapa: url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0036.JPG-qlu3HabmuNV8mKa6yaHzotQlawAT2e.jpeg');
+  --img-destacada: url('../assets/fondos/destacada.webp');
+  --img-mapa: url('../assets/fondos/mapa.webp');
   padding: 0 var(--home-pad);
 }
 
