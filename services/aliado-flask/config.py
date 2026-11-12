@@ -21,6 +21,7 @@ def desde_entorno():
         "ALIADO_PROVEEDOR": os.environ.get("ALIADO_PROVEEDOR", "falso").strip().lower(),
         # URL base del aliado, sin /api: p. ej. http://<IP elástica de VaultDrop>.
         "ALIADO_URL": os.environ.get("ALIADO_URL", "").strip(),
-        # Segundos que se espera al aliado antes de usar el respaldo.
-        "ALIADO_TIMEOUT": float(os.environ.get("ALIADO_TIMEOUT", "3")),
+        # Segundos que se espera al aliado antes de usar el respaldo. VaultDrop
+        # a veces tarda más de 3 s (se midieron 4,4 s).
+        "ALIADO_TIMEOUT": float(os.environ.get("ALIADO_TIMEOUT", "6")),
     }

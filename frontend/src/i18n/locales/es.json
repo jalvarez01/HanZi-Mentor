@@ -83,7 +83,7 @@
     "description": "VaultDrop es el proyecto de otro equipo del curso: un simulador de apertura de cajas. Abrí una: el ítem sale con las probabilidades que ellos publican.",
     "loading": "Cargando las cajas de VaultDrop…",
     "sample": "Datos de ejemplo: VaultDrop todavía no está conectado.",
-    "fallback": "VaultDrop no respondió: estas cajas son las de la última vez que respondió.",
+    "fallback": "VaultDrop está tardando en responder: estas son sus cajas de hace un momento.",
     "box": "Caja",
     "open": "Abrir {{caja}}",
     "opening": "Abriendo…",

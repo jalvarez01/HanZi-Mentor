@@ -155,7 +155,8 @@ services:
       # no responde, usa el último catálogo que respondió.
       ALIADO_PROVEEDOR: ${ALIADO_PROVEEDOR:-vaultdrop}
       ALIADO_URL: ${ALIADO_URL:-http://3.217.19.101}
-      ALIADO_TIMEOUT: ${ALIADO_TIMEOUT:-3}
+      # VaultDrop a veces tarda más de 3 s (se midieron 4,4 s): se le dan 6.
+      ALIADO_TIMEOUT: ${ALIADO_TIMEOUT:-6}
     expose:
       - "5000"
     healthcheck:

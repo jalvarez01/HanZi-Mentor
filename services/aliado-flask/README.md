@@ -73,7 +73,7 @@ Si VaultDrop cambia su API, o se cambia de aliado, solo cambia el adaptador.
 
 ## Resiliencia
 
-- **Espera máxima:** `ALIADO_TIMEOUT` segundos (3 por defecto).
+- **Espera máxima:** `ALIADO_TIMEOUT` segundos (6 por defecto).
 - **Catálogo guardado:** el último que respondió se reutiliza 60 s sin volver
   a llamar a VaultDrop. Después se pide otra vez y, si VaultDrop no responde,
   se usa el guardado con `respaldo: true`. En la app aparece un aviso.
@@ -91,7 +91,7 @@ Si VaultDrop cambia su API, o se cambia de aliado, solo cambia el adaptador.
 |----------|-------------|----------|
 | `ALIADO_PROVEEDOR` | `falso` (en el compose, `vaultdrop`) | `vaultdrop` (su catálogo real) o `falso` (dos cajas fijas sin red) |
 | `ALIADO_URL` | vacía (en el compose, `http://3.217.19.101`) | URL base de VaultDrop sin `/api`: su IP elástica. Obligatoria con `vaultdrop` |
-| `ALIADO_TIMEOUT` | `3` | Segundos de espera |
+| `ALIADO_TIMEOUT` | `6` | Segundos de espera. VaultDrop a veces tarda más de 3 s (se midieron 4,4 s) |
 
 `docker-compose.yml` ya trae la IP elástica de VaultDrop, que nos pasó su
 equipo: en EC2 no hay que tocar el `.env`. Si la IP cambia, se pone la nueva
