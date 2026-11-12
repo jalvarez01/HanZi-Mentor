@@ -1,15 +1,18 @@
-"""Rutas públicas para el equipo aliado (T14).
+"""Rutas públicas para el equipo aliado (T14): el resumen y el reto de pinyin.
 
 Van en un blueprint aparte de `rutas.py` porque tienen otro consumidor (una
 aplicación de otro equipo) y otras reglas:
 
 - Aceptan peticiones desde cualquier origen (CORS), para que el aliado pueda
-  llamarlas también desde un navegador. Son de solo lectura y no usan
-  credenciales.
+  llamarlas también desde un navegador, incluido el POST con JSON del reto
+  (el navegador pregunta antes con OPTIONS). No cambian nada en la base y no
+  usan credenciales.
 - El parámetro `lang` del contrato elige el idioma de los errores. Lo normal
   es que el aliado llame desde su backend sin Accept-Language; con `lang`
   igual recibe los errores en el idioma que pidió.
 """
+
+from contextlib import nullcontext
 
 from flask import Blueprint, jsonify, request
 from flask_babel import force_locale
@@ -18,7 +21,8 @@ import publico
 from db import obtener_sesion
 from errores import ErrorDominio, respuesta_error
 from i18n import IDIOMAS, traducir
-from validacion import validar_consulta_resumen
+from mensajes import N_
+from validacion import validar_consulta_resumen, validar_respuesta_reto
 
 PREFIJO = "/api/v2/publico/"
 
@@ -33,6 +37,35 @@ def resumen():
     # el idioma de los errores (ver error_en_el_idioma_pedido).
     _idioma, nivel = validar_consulta_resumen(request.args)
     return jsonify(publico.resumen(obtener_sesion(), nivel)), 200
+
+
+@publico_bp.get(PREFIJO + "reto/")
+def reto():
+    """GET /api/v2/publico/reto/?lang=en&nivel=1
+
+    Un carácter con 4 opciones de pinyin y la pregunta en el idioma de
+    `lang` (o de Accept-Language). Cada llamada da un reto distinto.
+    """
+    idioma, nivel = validar_consulta_resumen(request.args)
+    datos = publico.reto(obtener_sesion(), nivel)
+    if datos is None:
+        raise ErrorDominio(N_("No hay caracteres para ese nivel."), "NO_ENCONTRADO", estado=404)
+    with _idioma(idioma):
+        datos["pregunta"] = traducir(datos["pregunta"], {"hanzi": datos["hanzi"]})
+    return jsonify(datos), 200
+
+
+@publico_bp.post(PREFIJO + "reto/responder/")
+def responder_reto():
+    """POST /api/v2/publico/reto/responder/ con {"hanzi": "人", "respuesta": "rén"}."""
+    validar_consulta_resumen(request.args)
+    hanzi, respuesta = validar_respuesta_reto(request.get_json(silent=True))
+    return jsonify(publico.verificar_reto(obtener_sesion(), hanzi, respuesta)), 200
+
+
+def _idioma(idioma):
+    """force_locale con `lang`; sin él, manda Accept-Language."""
+    return force_locale(idioma) if idioma else nullcontext()
 
 
 @publico_bp.errorhandler(ErrorDominio)
@@ -56,4 +89,7 @@ def permitir_cualquier_origen(respuesta):
     # método), y también tienen que llevar CORS. Las demás rutas, no.
     if request.path.startswith(PREFIJO):
         respuesta.headers["Access-Control-Allow-Origin"] = "*"
+        # Para la petición previa (OPTIONS) del POST con JSON del reto.
+        respuesta.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        respuesta.headers["Access-Control-Allow-Headers"] = "Content-Type, Accept-Language"
     return respuesta

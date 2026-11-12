@@ -71,3 +71,19 @@ msgstr ""
 #, python-format
 msgid "Idioma no soportado: use %(idiomas)s"
 msgstr ""
+
+#: publico.py rutas_publico.py validacion.py
+msgid "¿Cómo se lee %(hanzi)s?"
+msgstr ""
+
+#: publico.py rutas_publico.py validacion.py
+msgid "No hay caracteres para ese nivel."
+msgstr ""
+
+#: publico.py rutas_publico.py validacion.py
+msgid "El campo '%(campo)s' es obligatorio y debe ser texto"
+msgstr ""
+
+#: publico.py rutas_publico.py validacion.py
+msgid "El campo '%(campo)s' admite hasta %(maximo)s caracteres"
+msgstr ""
