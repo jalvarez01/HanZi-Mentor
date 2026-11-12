@@ -263,8 +263,11 @@ Las bases de los servicios Flask son `db_catalogo`, `db_progreso`,
 
 ### Despliegue en AWS
 
-> Pendiente de confirmar con el despliegue (T32 a T34): la IP elástica y las
-> reglas definitivas del security group.
+La app está desplegada en **http://52.44.136.85/**, desde la rama `main`
+(commit `e3425c3`).
+
+- Instancia EC2 t3.medium, Ubuntu 24.04, región us-east-1, disco de 30 GB gp3.
+- Security group: puerto 80 (HTTP) abierto; puerto 22 (SSH) solo desde una IP.
 
 ```mermaid
 flowchart LR
@@ -272,8 +275,8 @@ flowchart LR
     aliado(["Equipo aliado"]) -->|"HTTP :80"| eip
 
     subgraph aws["AWS Academy, us-east-1"]
-        eip["IP elástica"] --> sg{{"Security group<br/>entrada: 80 HTTP y 22 SSH"}}
-        subgraph ec2["EC2 t3.medium con Docker y Compose"]
+        eip["IP pública 52.44.136.85"] --> sg{{"Security group<br/>80 abierto; 22 solo para una IP"}}
+        subgraph ec2["EC2 t3.medium, Ubuntu 24.04, 30 GB gp3,<br/>con Docker y Compose"]
             nginx["nginx :80"]
             resto["frontend, Django, microservicios Flask,<br/>PostgreSQL, Redis y worker de Celery"]
         end
@@ -283,6 +286,54 @@ flowchart LR
 
     resto -->|"HTTPS saliente"| tatoeba(["api.tatoeba.org"])
 ```
+
+Pasos en la instancia, con Docker y Docker Compose instalados:
+
+1. Clonar `main`: `git clone https://github.com/jalvarez01/HanZi-Mentor.git`.
+2. Crear el `.env` desde `.env.example` y cambiar estas variables (los
+   valores no se publican):
+   - `DJANGO_DEBUG=0`;
+   - `ALLOWED_HOSTS`: la IP pública, más `localhost,contenido,agente_tutor`;
+   - `CONTENIDO_SECRET_KEY` y `TUTOR_SECRET_KEY`: una clave nueva para cada
+     una, obligatorias con `DJANGO_DEBUG=0`;
+   - `POSTGRES_PASSWORD`: una contraseña nueva;
+   - `TATOEBA_TIMEOUT=8` (el ejemplo trae 3).
+3. `docker compose up -d --build`.
+
+**Limitación sin HTTPS.** La app se sirve por HTTP en la IP, que no es un
+contexto seguro: el navegador no registra el service worker, así que la PWA
+no se instala ni funciona sin conexión. El resto funciona igual; el UUID del
+estudiante se genera con `crypto.getRandomValues`, que sí existe sin HTTPS.
+
+#### Evidencia
+
+La app abierta en el navegador con la IP pública en la barra de dirección:
+
+![Navegador con http://52.44.136.85/ en la barra de dirección](https://raw.githubusercontent.com/jalvarez01/HanZi-Mentor/main/docs/wiki/img/despliegue/navegador-ip.png)
+
+El recorrido lo hace
+[`tools/auditoria-ux/despliegue.mjs`](https://github.com/jalvarez01/HanZi-Mentor/blob/main/tools/auditoria-ux/despliegue.mjs)
+contra la IP pública, con un usuario nuevo creado por la app: Inicio sin
+errores en la consola, dos sesiones de Práctica, Trazos con oraciones de
+Tatoeba, patrones de error y repasos en Progreso, el reporte asíncrono, el
+cambio a inglés y Premium con la tarjeta de prueba. axe-core (WCAG 2.1 AA) a
+375 px no encontró violaciones en ninguna pantalla. El resultado de cada paso
+está en
+[`resumen.json`](https://github.com/jalvarez01/HanZi-Mentor/blob/main/tools/auditoria-ux/reportes/despliegue/resumen.json)
+y el estado de los contenedores y las respuestas de la API en
+[`infra.txt`](https://github.com/jalvarez01/HanZi-Mentor/blob/main/tools/auditoria-ux/reportes/despliegue/infra.txt).
+
+Fin de la segunda sesión, con el desempeño y el patrón principal:
+
+![Fin de la segunda sesión de Práctica en producción, 375 px](https://raw.githubusercontent.com/jalvarez01/HanZi-Mentor/main/docs/wiki/img/despliegue/c-fin-segunda-sesion-375.png)
+
+Progreso con los patrones de error de las dos sesiones:
+
+![Tus patrones de error en producción, 1280 px](https://raw.githubusercontent.com/jalvarez01/HanZi-Mentor/main/docs/wiki/img/despliegue/e-progreso-patrones-1280.png)
+
+Trazos con las oraciones de Tatoeba que entrega `flask_ejemplos`:
+
+![Trazos con oraciones de Tatoeba en producción, 375 px](https://raw.githubusercontent.com/jalvarez01/HanZi-Mentor/main/docs/wiki/img/despliegue/d-trazos-tatoeba-375.png)
 
 ### Secuencia: crear una sesión adaptativa
 
