@@ -5,7 +5,13 @@ import EjemplosCaracter from '../components/EjemplosCaracter';
 import PorQue from '../components/PorQue';
 import TopBar from '../components/TopBar';
 import { useUsuario } from '../hooks/useUsuario';
-import { evaluar, listarCaracteres, obtenerCaracter, registrarErrorDeTrazo } from '../services/api';
+import {
+  evaluar,
+  listarCaracteres,
+  obtenerCaracter,
+  precargarCaracter,
+  registrarErrorDeTrazo,
+} from '../services/api';
 import './Trazos.css';
 
 // Make Me a Hanzi usa un lienzo de 1024x1024 con el eje Y invertido:
@@ -30,49 +36,65 @@ export default function Trazos() {
   const { t } = useTranslation();
   const { usuarioId } = useUsuario();
 
-  const [lista, setLista] = useState([]);
+  // null mientras llega la lista; [] si llegó vacía o falló.
+  const [lista, setLista] = useState(null);
+  // El que se tocó en la biblioteca; se marca enseguida, antes de que llegue su detalle.
+  const [elegido, setElegido] = useState(null);
   const [caracter, setCaracter] = useState(null);
+  const [fallido, setFallido] = useState(null);
   const [trazoActual, setTrazoActual] = useState(0);
   const [error, setError] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  // Hanzi del carácter que está a la vista (para no volver a pedirlo).
+  const mostrado = caracter?.hanzi ?? null;
 
   // Carga la lista de caracteres disponibles.
   useEffect(() => {
     listarCaracteres({ limite: 30 })
       .then((r) => setLista(r.caracteres || []))
-      .catch((e) => setError(e.message))
-      .finally(() => setCargando(false));
+      .catch((e) => {
+        setLista([]);
+        setError(e.message);
+      });
   }, []);
 
-  // Carga el detalle (con trazos) del carácter elegido.
-  useEffect(() => {
-    const objetivo = pedido || lista[0]?.hanzi;
-    if (!objetivo) return;
+  // El carácter a mostrar: el elegido, el que vino en la URL o el primero de la lista.
+  const objetivo = elegido || pedido || lista?.[0]?.hanzi || null;
 
-    setCargando(true);
+  // Carga el detalle (con trazos) del carácter. Con ?caracter= no espera a la
+  // lista: las dos peticiones salen a la vez.
+  useEffect(() => {
+    if (!objetivo || mostrado === objetivo) return undefined;
+    let vigente = true;
     obtenerCaracter(objetivo)
       .then((c) => {
+        if (!vigente) return;
         setCaracter(c);
         setTrazoActual(0);
       })
-      .catch((e) => setError(e.message))
-      .finally(() => setCargando(false));
-  }, [pedido, lista]);
+      .catch((e) => {
+        if (!vigente) return;
+        setError(e.message);
+        setFallido(objetivo);
+        // La biblioteca vuelve a marcar el carácter que sigue a la vista.
+        setElegido(mostrado);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [objetivo, mostrado]);
 
   function elegir(hanzi) {
-    setCargando(true);
     setError(null);
-    obtenerCaracter(hanzi)
-      .then((c) => {
-        setCaracter(c);
-        setTrazoActual(0);
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setCargando(false));
+    setFallido(null);
+    setElegido(hanzi);
   }
 
+  const cargandoCaracter = Boolean(objetivo) && objetivo !== mostrado && objetivo !== fallido;
+  // Los ejemplos se piden con el carácter elegido, sin esperar su detalle.
+  const hanziVista = objetivo && objetivo !== fallido ? objetivo : caracter?.hanzi;
+
   const trazos = caracter?.trazos || [];
-  const sinTrazos = caracter && trazos.length === 0;
+  const sinTrazos = caracter && !cargandoCaracter && trazos.length === 0;
 
   return (
     <>
@@ -81,14 +103,24 @@ export default function Trazos() {
       <main className="hm-page trazos">
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
 
-        {caracter && (
-          <div className="hm-card trazos-ficha">
-            <span className="trazos-ficha__hanzi" lang="zh-Hans">{caracter.hanzi}</span>
+        {/* Mientras llega el primero, la ficha guarda su lugar con el mismo tamaño. */}
+        {(caracter || cargandoCaracter) && (
+          <div className="hm-card trazos-ficha" aria-busy={cargandoCaracter || undefined}>
+            <span className="trazos-ficha__hanzi" lang="zh-Hans">
+              {caracter ? caracter.hanzi : <span className="hm-esqueleto trazos-esqueleto trazos-esqueleto--hanzi" />}
+            </span>
             <div>
               <span className="hm-kicker">{t('strokes.cardKicker')}</span>
-              <p className="trazos-ficha__pinyin">{caracter.pinyin || '—'}</p>
-              <p className="trazos-ficha__def">{caracter.definicion || t('strokes.noDefinition')}</p>
+              <p className="trazos-ficha__pinyin">
+                {caracter ? caracter.pinyin || '—' : <span className="hm-esqueleto trazos-esqueleto" style={{ width: '4em' }} />}
+              </p>
+              <p className="trazos-ficha__def">
+                {caracter
+                  ? caracter.definicion || t('strokes.noDefinition')
+                  : <span className="hm-esqueleto trazos-esqueleto" style={{ width: '12em' }} />}
+              </p>
             </div>
+            {cargandoCaracter && <span className="hm-sr" role="status">{t('strokes.loading')}</span>}
           </div>
         )}
 
@@ -105,8 +137,12 @@ export default function Trazos() {
               key={caracter?.hanzi}
             />
 
-            {trazos.length > 0 && (
-              <div className="trazos-controles">
+            {/* Sin trazos todavía, los controles ocupan su lugar sin verse. */}
+            {(trazos.length > 0 || cargandoCaracter) && (
+              <div
+                className={`trazos-controles ${trazos.length ? '' : 'trazos-controles--espera'}`}
+                aria-hidden={trazos.length ? undefined : true}
+              >
                 <button
                   type="button"
                   className="trazos-control"
@@ -131,9 +167,7 @@ export default function Trazos() {
           </>
         )}
 
-        {cargando && <p className="hm-status hm-status--loading" role="status">{t('strokes.loading')}</p>}
-
-        {caracter && <EjemplosCaracter hanzi={caracter.hanzi} />}
+        {hanziVista && <EjemplosCaracter hanzi={hanziVista} />}
 
         <section className="hm-panel trazos-lista" aria-labelledby="trazos-lista-titulo">
           <div className="hm-section-head">
@@ -143,24 +177,30 @@ export default function Trazos() {
             </div>
           </div>
 
-          <div className="trazos-grilla">
-            {lista.map((c) => (
-              <button
-                key={c.hanzi}
-                type="button"
-                lang="zh-Hans"
-                className={`trazos-celda ${caracter?.hanzi === c.hanzi ? 'is-activa' : ''}`}
-                aria-pressed={caracter?.hanzi === c.hanzi}
-                onClick={() => elegir(c.hanzi)}
-              >
-                {c.hanzi}
-              </button>
-            ))}
+          <div className="trazos-grilla" aria-busy={lista === null || undefined}>
+            {lista === null
+              ? Array.from({ length: 30 }, (_, i) => (
+                  <span key={i} className="trazos-celda trazos-celda--esqueleto hm-esqueleto" aria-hidden="true" />
+                ))
+              : lista.map((c) => (
+                  <button
+                    key={c.hanzi}
+                    type="button"
+                    lang="zh-Hans"
+                    className={`trazos-celda ${objetivo === c.hanzi ? 'is-activa' : ''}`}
+                    aria-pressed={objetivo === c.hanzi}
+                    aria-busy={(cargandoCaracter && objetivo === c.hanzi) || undefined}
+                    // Al pasar el puntero o enfocar ya se pide: al tocar suele estar listo.
+                    onPointerEnter={() => precargarCaracter(c.hanzi)}
+                    onFocus={() => precargarCaracter(c.hanzi)}
+                    onClick={() => elegir(c.hanzi)}
+                  >
+                    {c.hanzi}
+                  </button>
+                ))}
           </div>
 
-          {!cargando && lista.length === 0 && (
-            <p className="hm-status hm-status--empty">{t('strokes.listEmpty')}</p>
-          )}
+          {lista?.length === 0 && <p className="hm-status hm-status--empty">{t('strokes.listEmpty')}</p>}
         </section>
       </main>
     </>
@@ -185,6 +225,9 @@ function LienzoTrazos({ trazos, hasta, hanzi, usuarioId, onAprobado }) {
   const canvasRef = useRef(null);
   const dibujando = useRef(false);
   const puntosRef = useRef([]);
+  // Posición del lienzo, medida al empezar cada trazo: medirla en cada
+  // movimiento obliga al navegador a recalcular el layout mientras se dibuja.
+  const rectRef = useRef(null);
   const [tieneDibujo, setTieneDibujo] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [validando, setValidando] = useState(false);
@@ -221,7 +264,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, usuarioId, onAprobado }) {
   }, [hasta]);
 
   function posicion(evento) {
-    const rect = canvasRef.current.getBoundingClientRect();
+    const rect = rectRef.current ?? canvasRef.current.getBoundingClientRect();
     const punto = evento.touches?.[0] || evento;
     return {
       x: punto.clientX - rect.left,
@@ -231,6 +274,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, usuarioId, onAprobado }) {
 
   function empezar(evento) {
     evento.preventDefault();
+    rectRef.current = canvasRef.current.getBoundingClientRect();
     dibujando.current = true;
     setTieneDibujo(true);
     setResultado(null);
@@ -263,7 +307,7 @@ function LienzoTrazos({ trazos, hasta, hanzi, usuarioId, onAprobado }) {
     const puntos = puntosRef.current;
     if (puntos.length < 2 || !trazoActual || !hanzi) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
+    const rect = rectRef.current ?? canvasRef.current.getBoundingClientRect();
 
     setValidando(true);
     try {
@@ -348,9 +392,10 @@ function LienzoTrazos({ trazos, hasta, hanzi, usuarioId, onAprobado }) {
             {t('strokes.clear')}
           </button>
         )}
-      </div>
 
-      {validando && <p className="validando" role="status">{t('strokes.checking')}</p>}
+        {/* Sobre el lienzo, apenas se suelta: no empuja lo de abajo mientras llega el veredicto. */}
+        {validando && <p className="validando" role="status">{t('strokes.checking')}</p>}
+      </div>
 
       {sinEvaluar && (
         <p className="hm-status hm-status--empty" role="status">{t('strokes.unavailable')}</p>
