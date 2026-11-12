@@ -137,7 +137,7 @@ export default function RespuestaPinyin({ caracter, onResponder }) {
         <button type="button" className="hm-btn" onClick={noLoSe} disabled={enviando}>
           {t('pinyinForm.dontKnow')}
         </button>
-        <button type="submit" className="hm-btn hm-btn--jade" disabled={enviando}>
+        <button type="submit" className="hm-btn hm-btn--jade" disabled={enviando} aria-busy={enviando || undefined}>
           {enviando ? t('pinyinForm.checking') : t('pinyinForm.check')}
         </button>
       </div>

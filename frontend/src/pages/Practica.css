@@ -334,3 +334,11 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
+
+/* Línea de espera del próximo repaso y la tasa, hasta que responde el servidor. */
+.practica-esqueleto {
+  display: inline-block;
+  width: 7ch;
+  height: 0.8em;
+  vertical-align: middle;
+}
