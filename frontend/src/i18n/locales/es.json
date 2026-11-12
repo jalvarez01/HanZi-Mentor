@@ -89,7 +89,13 @@
     "opening": "Abriendo…",
     "won": "Te salió",
     "detail": "{{rareza}} · valor {{valor}} · probabilidad {{probabilidad}} %",
-    "credit": "Datos de VaultDrop, a través del servicio aliado de HanZi Mentor. Es una simulación: no usa créditos ni cuentas."
+    "credit": "Datos de VaultDrop, a través del servicio aliado de HanZi Mentor. Es una simulación: no usa créditos ni cuentas.",
+    "rarity": {
+      "comun": "Común",
+      "raro": "Raro",
+      "epico": "Épico",
+      "legendario": "Legendario"
+    }
   },
   "strokes": {
     "title": "Trazos",

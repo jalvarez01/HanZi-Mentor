@@ -89,18 +89,16 @@ Si VaultDrop cambia su API, o se cambia de aliado, solo cambia el adaptador.
 
 | Variable | Por defecto | Para qué |
 |----------|-------------|----------|
-| `ALIADO_PROVEEDOR` | `falso` | `vaultdrop` (su catálogo real) o `falso` (dos cajas fijas sin red) |
-| `ALIADO_URL` | vacía | URL base de VaultDrop sin `/api`, p. ej. `http://<su IP elástica>`. Obligatoria con `vaultdrop` |
+| `ALIADO_PROVEEDOR` | `falso` (en el compose, `vaultdrop`) | `vaultdrop` (su catálogo real) o `falso` (dos cajas fijas sin red) |
+| `ALIADO_URL` | vacía (en el compose, `http://3.217.19.101`) | URL base de VaultDrop sin `/api`: su IP elástica. Obligatoria con `vaultdrop` |
 | `ALIADO_TIMEOUT` | `3` | Segundos de espera |
 
-En EC2, en el `.env` de la raíz:
+`docker-compose.yml` ya trae la IP elástica de VaultDrop, que nos pasó su
+equipo: en EC2 no hay que tocar el `.env`. Si la IP cambia, se pone la nueva
+en `ALIADO_URL` del `.env` y `docker compose up -d flask_aliado`.
 
-```
-ALIADO_PROVEEDOR=vaultdrop
-ALIADO_URL=http://<IP elástica de VaultDrop>
-```
-
-y `docker compose up -d flask_aliado`.
+VaultDrop usa cuatro rarezas: `COMUN`, `RARO`, `EPICO` y `LEGENDARIO`. El
+frontend las traduce y les da un color; una rareza nueva se muestra tal cual.
 
 ## Pruebas
 
@@ -109,14 +107,15 @@ docker build -t aliado-flask services/aliado-flask
 docker run --rm -u root --entrypoint python aliado-flask -m pytest -q -p no:cacheprovider
 ```
 
-24 pruebas:
+26 pruebas:
 - el adaptador con el formato real de VaultDrop (de `services/catalog_service/repository.py` en su repo), sin red;
 - el sorteo con sus probabilidades;
-- el respaldo con el último catálogo;
+- el respaldo con el último catálogo, que se reutiliza 60 s también cuando el último intento falló;
 - las rutas, los errores en es y en, y que todos los textos tengan traducción.
 
-Además se probó de punta a punta, con un VaultDrop de prueba que respondía el
-mismo JSON, en cuatro casos:
+Además se probó de punta a punta contra el VaultDrop real
+(`http://3.217.19.101`: 4 cajas, imágenes y rarezas), y con un VaultDrop de
+prueba que respondía el mismo JSON en cuatro casos:
 1. VaultDrop arriba;
 2. VaultDrop caído con catálogo guardado (`respaldo: true`);
 3. VaultDrop caído desde el arranque (503 y "Reintentar");

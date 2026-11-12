@@ -1,4 +1,5 @@
-"""Adaptador falso: dos cajas fijas, sin red.
+"""Adaptador falso: dos cajas fijas, sin red, con las rarezas de VaultDrop
+(COMUN, RARO, EPICO y LEGENDARIO).
 
 Para las pruebas y para correr la app en local sin la IP del aliado. La
 respuesta lleva `proveedor: "falso"` y el frontend avisa que son datos de
@@ -22,9 +23,9 @@ CAJAS = (
         precio="10.00",
         imagen_url="",
         items=(
-            _item("AK-47 | Redline", "classified", "85.00", "15"),
-            _item("Glock-18 | Water Elemental", "restricted", "12.00", "35"),
-            _item("P250 | Sand Dune", "consumer", "0.50", "50"),
+            _item("AK-47 | Redline", "EPICO", "85.00", "15"),
+            _item("Glock-18 | Water Elemental", "RARO", "12.00", "35"),
+            _item("P250 | Sand Dune", "COMUN", "0.50", "50"),
         ),
     ),
     Caja(
@@ -33,9 +34,9 @@ CAJAS = (
         precio="50.00",
         imagen_url="",
         items=(
-            _item("AWP | Dragon Lore", "contraband", "850.00", "1"),
-            _item("M4A4 | Howl", "covert", "320.00", "9"),
-            _item("USP-S | Orion", "classified", "40.00", "90"),
+            _item("AWP | Dragon Lore", "LEGENDARIO", "850.00", "1"),
+            _item("M4A4 | Howl", "LEGENDARIO", "320.00", "9"),
+            _item("USP-S | Orion", "EPICO", "40.00", "90"),
         ),
     ),
 )

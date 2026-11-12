@@ -25,7 +25,7 @@ CATALOGO = [
                     "id": 1,
                     "nombre": "AK-47 | Redline",
                     "imagen_url": "/static/core/images/catalog/skin-1.png",
-                    "rareza": "classified",
+                    "rareza": "EPICO",
                     "valor_estimado": "85.00",
                 },
                 "probabilidad": "20.00",
@@ -35,7 +35,7 @@ CATALOGO = [
                     "id": 2,
                     "nombre": "AWP | Dragon Lore",
                     "imagen_url": "",
-                    "rareza": "contraband",
+                    "rareza": "LEGENDARIO",
                     "valor_estimado": "850.00",
                 },
                 "probabilidad": "0.50",
@@ -71,7 +71,7 @@ def test_traduce_la_respuesta_al_dominio():
     assert (caja.id, caja.nombre, caja.precio) == (3, "Caja Dragón", "25.00")
     assert caja.imagen_url == "http://10.0.0.5/static/core/images/catalog/caja-dragon.png"
     ak, awp = caja.items
-    assert (ak.nombre, ak.rareza, ak.valor_estimado) == ("AK-47 | Redline", "classified", "85.00")
+    assert (ak.nombre, ak.rareza, ak.valor_estimado) == ("AK-47 | Redline", "EPICO", "85.00")
     assert ak.probabilidad == Decimal("20.00")
     assert ak.imagen_url == "http://10.0.0.5/static/core/images/catalog/skin-1.png"
     assert awp.imagen_url == ""

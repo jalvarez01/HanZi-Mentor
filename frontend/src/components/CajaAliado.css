@@ -80,13 +80,11 @@
   animation: aliado-aparecer 0.35s ease-out;
 }
 
-.aliado-premio--consumer,
-.aliado-premio--industrial { border-left-color: var(--line); }
-.aliado-premio--mil-spec,
-.aliado-premio--restricted { border-left-color: var(--jade); }
-.aliado-premio--classified { border-left-color: var(--ochre); }
-.aliado-premio--covert,
-.aliado-premio--contraband { border-left-color: var(--cinnabar); }
+/* Rarezas de VaultDrop */
+.aliado-premio--comun { border-left-color: var(--line); }
+.aliado-premio--raro { border-left-color: var(--jade); }
+.aliado-premio--epico { border-left-color: var(--ochre); }
+.aliado-premio--legendario { border-left-color: var(--cinnabar); }
 
 .aliado-premio__imagen {
   width: 72px;

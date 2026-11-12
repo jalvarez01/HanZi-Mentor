@@ -150,10 +150,11 @@ services:
     build: ./services/aliado-flask
     environment:
       # Sin base: no guarda estado. Consume el catálogo público del equipo
-      # aliado (VaultDrop, T26). Con "falso" responde dos cajas fijas sin red;
-      # con "vaultdrop" necesita ALIADO_URL (su IP elástica, sin /api).
-      ALIADO_PROVEEDOR: ${ALIADO_PROVEEDOR:-falso}
-      ALIADO_URL: ${ALIADO_URL:-}
+      # aliado (VaultDrop, T26) en su IP elástica, sin /api. Con
+      # ALIADO_PROVEEDOR=falso responde dos cajas fijas sin red. Si VaultDrop
+      # no responde, usa el último catálogo que respondió.
+      ALIADO_PROVEEDOR: ${ALIADO_PROVEEDOR:-vaultdrop}
+      ALIADO_URL: ${ALIADO_URL:-http://3.217.19.101}
       ALIADO_TIMEOUT: ${ALIADO_TIMEOUT:-3}
     expose:
       - "5000"

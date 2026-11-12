@@ -350,11 +350,11 @@ Totales de hoy:
 | ejemplos-flask | 46 (+1 que se salta: la prueba en vivo contra Tatoeba) |
 | reportes-flask | 75 |
 | suscripciones-flask | 84 |
-| aliado-flask | 24 |
+| aliado-flask | 26 |
 | flask-base | 19 |
 | contenido | 39 |
 | agente-tutor | 53 |
-| **Total** | **1277** |
+| **Total** | **1279** |
 
 La prueba en vivo de ejemplos se activa con `TATOEBA_EN_VIVO=1`. Los tests
 de contrato de los servicios Flask leen los serializers de Django del mismo

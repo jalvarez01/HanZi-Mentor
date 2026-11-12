@@ -89,7 +89,13 @@
     "opening": "Opening…",
     "won": "You got",
     "detail": "{{rareza}} · value {{valor}} · odds {{probabilidad}} %",
-    "credit": "Data from VaultDrop, through HanZi Mentor's partner service. It is a simulation: no credits or accounts are used."
+    "credit": "Data from VaultDrop, through HanZi Mentor's partner service. It is a simulation: no credits or accounts are used.",
+    "rarity": {
+      "comun": "Common",
+      "raro": "Rare",
+      "epico": "Epic",
+      "legendario": "Legendary"
+    }
   },
   "strokes": {
     "title": "Strokes",

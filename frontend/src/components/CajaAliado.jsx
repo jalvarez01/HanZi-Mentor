@@ -44,6 +44,8 @@ export default function CajaAliado() {
   }
 
   const respaldo = premio?.respaldo ?? datos?.respaldo;
+  // VaultDrop usa COMUN, RARO, EPICO y LEGENDARIO; otra rareza se muestra tal cual.
+  const rareza = premio?.item.rareza.toLowerCase();
 
   return (
     <section className="home-seccion hm-panel aliado" aria-labelledby="aliado-titulo">
@@ -94,14 +96,14 @@ export default function CajaAliado() {
 
           <div aria-live="polite">
             {premio && !errorAbrir && (
-              <div key={tirada} className={`aliado-premio aliado-premio--${premio.item.rareza}`}>
+              <div key={tirada} className={`aliado-premio aliado-premio--${rareza}`}>
                 {premio.item.imagen_url && <ImagenPremio src={premio.item.imagen_url} />}
                 <div>
                   <p className="aliado-premio__titulo">{t('ally.won')}</p>
                   <p className="aliado-premio__nombre">{premio.item.nombre}</p>
                   <p className="aliado-premio__detalle">
                     {t('ally.detail', {
-                      rareza: premio.item.rareza,
+                      rareza: t(`ally.rarity.${rareza}`, { defaultValue: premio.item.rareza }),
                       valor: premio.item.valor_estimado,
                       probabilidad: premio.item.probabilidad,
                     })}

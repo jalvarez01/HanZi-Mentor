@@ -102,6 +102,41 @@ def test_si_el_aliado_cae_usa_el_ultimo_catalogo():
     assert [c.id for c in cajas] == [1, 2]
 
 
+def test_el_respaldo_se_reutiliza_sin_volver_a_esperar_al_aliado():
+    # Revisión de #65: con VaultDrop caído, solo el primer intento espera el timeout.
+    proveedor, reloj = Proveedor(), Reloj()
+    catalogo = CatalogoAliado(proveedor, reloj=reloj, fresco_seg=60)
+    catalogo.cajas()
+    proveedor.falla = True
+    reloj.segundos = 120
+    catalogo.cajas()  # falla y pasa a respaldo
+
+    reloj.segundos = 179
+    for _ in range(5):
+        _, respaldo = catalogo.cajas()
+        assert respaldo is True
+    assert proveedor.llamadas == 2
+
+    reloj.segundos = 180
+    catalogo.cajas()
+    assert proveedor.llamadas == 3
+
+
+def test_cuando_el_aliado_vuelve_deja_de_ser_respaldo():
+    proveedor, reloj = Proveedor(), Reloj()
+    catalogo = CatalogoAliado(proveedor, reloj=reloj, fresco_seg=60)
+    catalogo.cajas()
+    proveedor.falla = True
+    reloj.segundos = 61
+    catalogo.cajas()
+
+    proveedor.falla = False
+    reloj.segundos = 122
+    _, respaldo = catalogo.cajas()
+
+    assert respaldo is False
+
+
 def test_sin_ningun_catalogo_es_503():
     proveedor = Proveedor()
     proveedor.falla = True

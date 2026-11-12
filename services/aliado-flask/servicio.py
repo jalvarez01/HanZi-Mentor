@@ -3,7 +3,9 @@
 `CatalogoAliado` guarda el último catálogo que respondió:
 - durante FRESCO_SEG segundos lo reutiliza sin volver a llamar al aliado;
 - después lo vuelve a pedir, y si el aliado no responde usa el guardado
-  (`respaldo: true`), así la sección no se cae aunque VaultDrop esté apagado;
+  (`respaldo: true`), así la sección no se cae aunque VaultDrop esté apagado.
+  Ese intento fallido también cuenta: el respaldo se reutiliza FRESCO_SEG
+  segundos sin volver a esperar el timeout en cada petición;
 - si el aliado nunca respondió, no hay nada que mostrar: 503.
 
 Vive en memoria. Por eso el Dockerfile usa un solo proceso de gunicorn con
@@ -30,6 +32,8 @@ class CatalogoAliado:
         self._fresco_seg = fresco_seg
         self._cajas = None
         self._pedido_en = None
+        # True si el catálogo guardado es de respaldo (el último intento falló).
+        self._respaldo = False
         self._candado = threading.Lock()
 
     def cajas(self):
@@ -37,10 +41,11 @@ class CatalogoAliado:
         with self._candado:
             ahora = self._reloj()
             if self._cajas is not None and ahora - self._pedido_en < self._fresco_seg:
-                return self._cajas, False
+                return self._cajas, self._respaldo
             try:
                 self._cajas = self.proveedor.obtener_cajas()
                 self._pedido_en = ahora
+                self._respaldo = False
                 return self._cajas, False
             except AliadoNoDisponible:
                 if self._cajas is None:
@@ -49,6 +54,10 @@ class CatalogoAliado:
                         "ALIADO_NO_DISPONIBLE",
                         estado=503,
                     ) from None
+                # Revisión de #65: sin esto, cada petición volvía a esperar el
+                # timeout dentro del candado y las concurrentes se encolaban.
+                self._pedido_en = ahora
+                self._respaldo = True
                 return self._cajas, True
 
 
