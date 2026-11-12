@@ -294,6 +294,27 @@ export function precargarCaracter(hanzi) {
   if (hanzi) obtenerCaracter(hanzi).catch(() => {});
 }
 
+/** Cuántos caracteres del nivel pide Inicio para elegir las palabras del día. */
+export const MUESTRA_PALABRAS = 60;
+
+/** Las palabras del día de un nivel, en segundo plano (ver App.jsx). */
+export function precargarPalabras(nivel) {
+  if (nivel) listarCaracteres({ nivel, limite: MUESTRA_PALABRAS }).catch(() => {});
+}
+
+/** Cuántos caracteres muestra la biblioteca de Trazos. */
+export const LIMITE_BIBLIOTECA = 30;
+
+/**
+ * La biblioteca de Trazos y su primer carácter, en segundo plano: al tocar la
+ * pestaña ya están en memoria y la página no espera a la red.
+ */
+export function precargarBiblioteca() {
+  listarCaracteres({ limite: LIMITE_BIBLIOTECA })
+    .then((r) => precargarCaracter(r?.caracteres?.[0]?.hanzi))
+    .catch(() => {});
+}
+
 // -------------------------------------------------------------- evaluación
 
 /**

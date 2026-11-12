@@ -10,15 +10,13 @@ import {
 } from '../components/Iconos';
 import { useAsync } from '../hooks/useAsync';
 import { useProgreso } from '../hooks/useProgreso';
-import { listarCaracteres } from '../services/api';
+import { MUESTRA_PALABRAS, listarCaracteres } from '../services/api';
 import './Home.css';
 
 const NIVELES = [1, 2, 3, 4, 5, 6];
 const NUMERALES = ['一', '二', '三', '四', '五', '六'];
 const COLORES_BALDOSA = ['', 'hm-tile--jade', 'hm-tile--red'];
 
-// Cuántos caracteres del nivel se piden para elegir las palabras del día.
-const MUESTRA_PALABRAS = 60;
 
 export default function Home() {
   const { datos: progreso, cargando, error, recargar } = useProgreso();

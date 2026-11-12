@@ -8,10 +8,13 @@ import Home from './pages/Home';
 import TabBar from './components/TabBar';
 import TopBar from './components/TopBar';
 import { ProgresoProvider } from './hooks/ProgresoContext';
+import { useProgreso } from './hooks/useProgreso';
+import { precargarBiblioteca, precargarPalabras } from './services/api';
 
 // Inicio va en el paquete principal: es la primera pantalla. Las demás se
-// bajan aparte y se precargan cuando el navegador queda libre, así que al
-// tocar una pestaña ya están (ver precargarRutas).
+// bajan aparte y se precargan cuando el navegador queda libre, junto con los
+// datos de la biblioteca de Trazos, así que al tocar una pestaña ya están
+// (ver precargarRutas).
 const cargarComoFunciona = () => import('./pages/HowItWorks');
 const cargarPractica = () => import('./pages/Practica');
 const cargarProgreso = () => import('./pages/Progreso');
@@ -22,14 +25,18 @@ const Practica = lazy(cargarPractica);
 const Progreso = lazy(cargarProgreso);
 const Trazos = lazy(cargarTrazos);
 
+function cuandoQuedeLibre(tarea) {
+  if ('requestIdleCallback' in window) requestIdleCallback(tarea, { timeout: 3000 });
+  else setTimeout(tarea, 1500);
+}
+
 function precargarRutas() {
-  const precargar = () => {
+  cuandoQuedeLibre(() => {
     for (const cargar of [cargarPractica, cargarTrazos, cargarProgreso, cargarComoFunciona]) {
       cargar().catch(() => {});
     }
-  };
-  if ('requestIdleCallback' in window) requestIdleCallback(precargar, { timeout: 3000 });
-  else setTimeout(precargar, 1500);
+    precargarBiblioteca();
+  });
 }
 
 /** Mientras baja el código de una página (solo si se toca antes de la precarga). */
@@ -52,6 +59,8 @@ function RutaCargando() {
  */
 function Paginas() {
   const { pathname, hash } = useLocation();
+  const { datos: progreso } = useProgreso();
+  const nivel = progreso?.nivel_hsk;
   const [inicial] = useState(pathname);
   const [navego, setNavego] = useState(false);
   if (!navego && pathname !== inicial) setNavego(true);
@@ -60,6 +69,11 @@ function Paginas() {
     if (document.readyState === 'complete') precargarRutas();
     else window.addEventListener('load', precargarRutas, { once: true });
   }, []);
+
+  // Las palabras del día dependen del nivel: se piden apenas se conoce.
+  useEffect(() => {
+    if (nivel) cuandoQuedeLibre(() => precargarPalabras(nivel));
+  }, [nivel]);
 
   // El navegador conserva el scroll de la página anterior: sin esto, venir
   // desde abajo de Progreso deja Trazos a mitad de camino. Con #ancla (por

@@ -6,6 +6,7 @@ import PorQue from '../components/PorQue';
 import TopBar from '../components/TopBar';
 import { useUsuario } from '../hooks/useUsuario';
 import {
+  LIMITE_BIBLIOTECA,
   evaluar,
   listarCaracteres,
   obtenerCaracter,
@@ -49,7 +50,7 @@ export default function Trazos() {
 
   // Carga la lista de caracteres disponibles.
   useEffect(() => {
-    listarCaracteres({ limite: 30 })
+    listarCaracteres({ limite: LIMITE_BIBLIOTECA })
       .then((r) => setLista(r.caracteres || []))
       .catch((e) => {
         setLista([]);
@@ -179,7 +180,7 @@ export default function Trazos() {
 
           <div className="trazos-grilla" aria-busy={lista === null || undefined}>
             {lista === null
-              ? Array.from({ length: 30 }, (_, i) => (
+              ? Array.from({ length: LIMITE_BIBLIOTECA }, (_, i) => (
                   <span key={i} className="trazos-celda trazos-celda--esqueleto hm-esqueleto" aria-hidden="true" />
                 ))
               : lista.map((c) => (
