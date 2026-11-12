@@ -120,8 +120,25 @@ function LeccionHoy({ progreso, cargando, error, recargar }) {
         <EstadoError mensaje={t('home.lesson.error')} recargar={recargar} />
       )}
 
+      {/* Mientras llega el nivel, la tarjeta ya ocupa su lugar: nada se corre al llegar. */}
       {!error && (cargando || !progreso) && (
-        <p className="hm-status hm-status--loading" role="status">{t('home.lesson.loading')}</p>
+        <>
+          <span className="hm-sr" role="status">{t('home.lesson.loading')}</span>
+          <article className="home-destacada hm-card" aria-hidden="true">
+            <div className="home-destacada__imagen">
+              <div className="home-destacada__tejado" />
+              <div className="home-destacada__sol" />
+            </div>
+            <div className="home-destacada__contenido">
+              <span className="hm-kicker"><span className="hm-esqueleto home-esqueleto" style={{ width: '8em' }} /></span>
+              <h3><span className="hm-esqueleto home-esqueleto" style={{ width: '6em' }} /></h3>
+              <p>{t('home.lesson.cardText')}</p>
+              <span className="hm-btn home-esqueleto-boton">
+                {t('home.lesson.start')} <IconoPlay />
+              </span>
+            </div>
+          </article>
+        </>
       )}
 
       {!error && progreso && !cargando && (
@@ -185,8 +202,23 @@ function PalabrasDelDia({ nivel }) {
 
       {error && <EstadoError mensaje={t('home.words.error')} recargar={recargar} />}
 
+      {/* Tres baldosas de espera, del tamaño de las reales. */}
       {!error && !listo && (
-        <p className="hm-status hm-status--loading" role="status">{t('home.words.loading')}</p>
+        <>
+          <span className="hm-sr" role="status">{t('home.words.loading')}</span>
+          <ul className="home-palabras" aria-hidden="true">
+            {[0, 1, 2].map((i) => (
+              <li key={i}>
+                <span className="hm-tile hm-esqueleto home-palabras__esqueleto">
+                  <span className="hm-tile__hanzi">&nbsp;</span>
+                  <span className="hm-tile__pinyin">&nbsp;</span>
+                  <span className="hm-tile__meaning home-palabras__significado">&nbsp;</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="home-nota">{t('home.words.note')}</p>
+        </>
       )}
 
       {listo && palabras.length === 0 && (
@@ -247,8 +279,9 @@ function MapaRuta({ progreso, cargando, error, recargar }) {
 
       {error && <EstadoError mensaje={t('home.map.error')} recargar={recargar} />}
 
+      {/* El mapa se dibuja igual (niveles pendientes): el aviso de carga es solo para lectores de pantalla. */}
       {!error && !listo && (
-        <p className="hm-status hm-status--loading" role="status">{t('home.map.loading')}</p>
+        <span className="hm-sr" role="status">{t('home.map.loading')}</span>
       )}
 
       <div className="home-mapa">
