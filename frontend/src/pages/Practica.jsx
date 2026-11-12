@@ -241,20 +241,22 @@ export default function Practica() {
             <div className="practica-niveles">
               {NIVELES.map((n) =>
                 nivelMaximo !== null && n > nivelMaximo ? (
-                  // Nivel de Premium: lleva al panel del plan en Progreso.
+                  // Nivel de Premium: lleva al panel del plan en Progreso. El nombre
+                  // accesible sale del texto visible ("HSK 4 Premium", WCAG 2.5.3)
+                  // más el destino, solo para lectores de pantalla.
                   <Link
                     key={n}
                     to="/progreso#plan"
                     className="practica-nivel practica-nivel--premium"
-                    aria-label={t('practice.premiumLevel', { nivel: n })}
                   >
                     <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
                       {NUMERALES[n - 1]}
                     </span>
                     <span>HSK {n}</span>
-                    <span className="practica-nivel__premium" aria-hidden="true">
+                    <span className="practica-nivel__premium">
                       <IconoCandado /> {t('practice.premiumTag')}
                     </span>
+                    <span className="hm-sr">{t('practice.premiumLevel')}</span>
                   </Link>
                 ) : (
                   <button

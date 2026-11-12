@@ -157,7 +157,7 @@
     "patternKicker": "Para tu próxima sesión",
     "seePatterns": "Ver tus patrones",
     "premiumTag": "Premium",
-    "premiumLevel": "HSK {{nivel}}: requiere Premium. Ver tu plan",
+    "premiumLevel": ". Ver tu plan",
     "premiumNote": "Con el plan Gratis practicás HSK 1 a 3. HSK 4 a 6 son parte de Premium.",
     "premiumLink": "Ver planes",
     "planUnknown": "No pudimos confirmar tu plan: por ahora están todos los niveles abiertos.",
