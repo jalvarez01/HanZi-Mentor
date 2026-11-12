@@ -152,3 +152,11 @@
   text-align: center;
   word-break: break-all;
 }
+
+/* Valor de una métrica en espera: mismo alto que el número. */
+.progreso-esqueleto {
+  display: inline-block;
+  width: 2.2em;
+  height: 0.8em;
+  vertical-align: middle;
+}
