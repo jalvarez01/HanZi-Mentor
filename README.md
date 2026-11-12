@@ -454,7 +454,50 @@ El frontend es una PWA: se instala en el celular sin pasar por las tiendas.
 
 ## Despliegue en AWS
 
-Se completa con el despliegue en EC2.
+La app está desplegada en **http://52.44.136.85/** (rama `main`).
+
+| Recurso | Valor |
+|---|---|
+| Instancia | EC2 t3.medium, Ubuntu 24.04, us-east-1 |
+| Disco | 30 GB gp3 |
+| Security group | 80 (HTTP) abierto; 22 (SSH) solo desde una IP |
+
+Pasos en la instancia, con Docker y Docker Compose instalados:
+
+1. Clonar `main`:
+
+   ```bash
+   git clone https://github.com/jalvarez01/HanZi-Mentor.git
+   cd HanZi-Mentor
+   ```
+
+2. Crear el `.env` a partir del ejemplo (`cp .env.example .env`) y cambiar:
+
+   | Variable | En EC2 |
+   |---|---|
+   | `DJANGO_DEBUG` | `0` |
+   | `ALLOWED_HOSTS` | la IP pública, más `localhost,contenido,agente_tutor` |
+   | `CONTENIDO_SECRET_KEY` y `TUTOR_SECRET_KEY` | una clave nueva para cada una (obligatorias con `DJANGO_DEBUG=0`) |
+   | `POSTGRES_PASSWORD` | una contraseña nueva |
+   | `TATOEBA_TIMEOUT` | `8` (más margen para la latencia de Tatoeba; el ejemplo trae `3`) |
+
+   El `.env` no se sube al repositorio.
+
+3. Construir y levantar:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+**Limitación sin HTTPS.** La app se sirve por HTTP en la IP, que no es un
+contexto seguro: el navegador no registra el service worker, así que la PWA
+no se instala ni funciona sin conexión. El resto de la app funciona igual.
+Para instalarla hace falta un dominio con certificado.
+
+La evidencia del despliegue (recorrido, capturas, axe y estado de los
+contenedores) está en la Wiki,
+[Entrega II](docs/wiki/Entrega-II.md#despliegue-en-aws), y en
+[`tools/auditoria-ux/reportes/despliegue/`](tools/auditoria-ux/reportes/despliegue/).
 
 ---
 

@@ -1,0 +1,33 @@
+Evidencia de infraestructura del despliegue en AWS (http://52.44.136.85/)
+
+=== 2026-11-11 19:12:58 -05:00
+$ ssh hanzi-aws "cd HanZi-Mentor && git log --oneline -1 && docker compose ps"
+e3425c3 Merge pull request #58 from jalvarez01/development
+NAME                                 IMAGE                              COMMAND                  SERVICE               CREATED          STATUS                    PORTS
+hanzi-mentor-agente_tutor-1          hanzi-mentor-agente_tutor          "sh docker-entrypoin…"   agente_tutor          15 minutes ago   Up 15 minutes (healthy)   8003/tcp
+hanzi-mentor-contenido-1             hanzi-mentor-contenido             "sh docker-entrypoin…"   contenido             15 minutes ago   Up 15 minutes             8002/tcp
+hanzi-mentor-db-1                    postgres:16-alpine                 "docker-entrypoint.s…"   db                    15 minutes ago   Up 15 minutes (healthy)   5432/tcp
+hanzi-mentor-flask_catalogo-1        hanzi-mentor-flask_catalogo        "sh docker-entrypoin…"   flask_catalogo        15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-flask_ejemplos-1        hanzi-mentor-flask_ejemplos        "gunicorn -w 2 -b 0.…"   flask_ejemplos        15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-flask_evaluacion-1      hanzi-mentor-flask_evaluacion      "sh -c 'exec gunicor…"   flask_evaluacion      15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-flask_progreso-1        hanzi-mentor-flask_progreso        "sh docker-entrypoin…"   flask_progreso        15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-flask_reportes-1        hanzi-mentor-reportes:local        "sh -c 'exec gunicor…"   flask_reportes        15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-flask_sesiones-1        hanzi-mentor-flask_sesiones        "sh docker-entrypoin…"   flask_sesiones        15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-flask_suscripciones-1   hanzi-mentor-flask_suscripciones   "sh docker-entrypoin…"   flask_suscripciones   15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-flask_trazos-1          hanzi-mentor-flask_trazos          "gunicorn -w 2 -b 0.…"   flask_trazos          15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+hanzi-mentor-frontend-1              hanzi-mentor-frontend              "/docker-entrypoint.…"   frontend              15 minutes ago   Up 15 minutes (healthy)   80/tcp
+hanzi-mentor-nginx-1                 nginx:1.27-alpine                  "/docker-entrypoint.…"   nginx                 15 minutes ago   Up 15 minutes             0.0.0.0:80->80/tcp, [::]:80->80/tcp
+hanzi-mentor-redis-1                 redis:7-alpine                     "docker-entrypoint.s…"   redis                 15 minutes ago   Up 15 minutes (healthy)   6379/tcp
+hanzi-mentor-worker-1                hanzi-mentor-reportes:local        "celery -A tareas wo…"   worker                15 minutes ago   Up 15 minutes (healthy)   5000/tcp
+
+=== 2026-11-11 19:13:01 -05:00
+$ curl.exe -s -o NUL -w "%{http_code}" http://52.44.136.85/api/v1/caracteres/
+200
+
+=== 2026-11-11 19:13:01 -05:00
+$ curl.exe -s "http://52.44.136.85/api/v2/ejemplos/%E5%AD%A6/?limite=2"
+{"atribucion":"Oraciones de Tatoeba.org (CC BY 2.0 FR)","ejemplos":[{"pinyin":"Xué ba!","texto":"学吧！","traduccion":"Estudiad."},{"pinyin":"Wǒ xuéxí.","texto":"我学习。","traduccion":"Estudio."}],"hanzi":"学","idioma":"es","proveedor":"tatoeba"}
+
+=== 2026-11-11 19:13:08 -05:00
+$ curl.exe -s "http://52.44.136.85/api/v2/publico/resumen/?lang=es"
+{"sistema":"HanziMentor","caracteres_totales":696,"por_nivel_hsk":{"1":83,"2":71,"3":92,"4":117,"5":183,"6":150},"caracter_del_dia":{"hanzi":"蹲","pinyin":"dūn","definicion":"to squat, to crouch","nivel_hsk":5},"generado_en":"2026-11-12T00:13:08Z"}

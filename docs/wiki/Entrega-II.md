@@ -5,13 +5,11 @@ un ecosistema híbrido de microservicios Flask detrás de Nginx, desplegado en
 AWS Academy, con integración con un equipo aliado y una API de terceros,
 tareas asíncronas e internacionalización.
 
-> **Estado de esta página (04/11/2026):** por ahora incluye las correcciones
-> de la Entrega 1, la justificación del bono de excelencia, que se adelantó
-> para revisarla antes del Parcial 02, la auditoría de UX y accesibilidad, y
-> la arquitectura con sus diagramas (el de despliegue se confirma con la
-> instancia de AWS). Las secciones de servicios (aliado y API de terceros),
-> despliegue en AWS, tareas asíncronas y evidencias se agregan antes de la
-> entrega del 12 de noviembre.
+> **Estado de esta página (11/11/2026):** incluye las correcciones de la
+> Entrega 1, el bono de excelencia, la auditoría de UX y accesibilidad, la
+> arquitectura con sus diagramas, el despliegue en AWS con su evidencia, la
+> API de terceros, las tareas asíncronas y el servicio para el equipo aliado.
+> Solo falta el consumo del servicio del equipo aliado desde HanZi Mentor.
 
 ---
 
@@ -48,8 +46,8 @@ todo esto:
 
 - Servicio Flask propio, con su Dockerfile.
 - Base de datos propia si guarda estado (un PostgreSQL compartido con una
-  base por servicio: `db_catalogo`, `db_progreso`, `db_sesiones`). Si no
-  guarda estado, sin base.
+  base por servicio: `db_catalogo`, `db_progreso`, `db_sesiones` y
+  `db_suscripciones`). Si no guarda estado, sin base.
 - `GET /health`, errores en JSON y pruebas con pytest.
 - Ningún `import django`: la lógica se copió y se adaptó, no se importa.
 - Ruta `/api/v2/...` publicada en Nginx.
@@ -99,18 +97,38 @@ responde. Se retirarán cuando se apaguen esos servicios Django.
 
 ### Verificación
 
-Verificado el 26/10/2026 sobre `development` (commit `728db41`), en local
-con Docker. El consumo de `ejemplos-flask` desde la pantalla de Trazos
-(PR #37) se verificó el mismo día en el navegador, en español y en inglés.
-Falta repetirlo en la instancia de AWS.
+Verificado el 11/11/2026 en la instancia de AWS, sobre `main` (commit
+`e3425c3`). El detalle y las capturas están en
+[Despliegue en AWS](#despliegue-en-aws).
 
-- `docker compose up -d --build` levanta los 11 contenedores y todos los
+- `docker compose up -d --build` levanta los 15 contenedores y todos los
   que tienen healthcheck quedan `healthy`.
-- Pruebas de cada servicio con pytest: 21 (trazos), 71 (catálogo),
-  67 (progreso), 89 (sesiones), 85 (evaluación) y 42 (ejemplos); 375 en
-  total, todas pasan.
-- Ninguno de los seis servicios importa Django.
-- Cada ruta v2 responde a través de Nginx, en un flujo real:
+- Pruebas con pytest (Django con su runner de tests), todas pasan:
+
+| Servicio | Tests |
+|----------|------:|
+| catalogo-flask | 117 |
+| progreso-flask | 248 |
+| sesiones-flask | 250 |
+| evaluacion-flask | 247 |
+| trazos-flask | 55 |
+| ejemplos-flask | 46 (+1 que se salta: la prueba en vivo contra Tatoeba) |
+| reportes-flask | 75 |
+| suscripciones-flask | 84 |
+| flask-base | 19 |
+| contenido | 39 |
+| agente-tutor | 53 |
+| **Total** | **1233** |
+
+- Ninguno de los ocho servicios Flask importa Django.
+- En AWS, `GET /api/v1/caracteres/` responde 200 con `DJANGO_DEBUG=0` (el
+  respaldo v1 sigue activo), el adaptador de Tatoeba devuelve oraciones y
+  `GET /api/v2/publico/resumen/` responde
+  ([`infra.txt`](https://github.com/jalvarez01/HanZi-Mentor/blob/main/tools/auditoria-ux/reportes/despliegue/infra.txt)).
+
+La primera verificación se hizo el 26/10/2026 sobre `development` (commit
+`728db41`), en local con Docker. Cada ruta v2 respondió a través de Nginx,
+en un flujo real:
 
 | Petición por Nginx | Respuesta |
 |--------------------|-----------|
@@ -263,8 +281,11 @@ Las bases de los servicios Flask son `db_catalogo`, `db_progreso`,
 
 ### Despliegue en AWS
 
-> Pendiente de confirmar con el despliegue (T32 a T34): la IP elástica y las
-> reglas definitivas del security group.
+La app está desplegada en **http://52.44.136.85/**, desde la rama `main`
+(commit `e3425c3`).
+
+- Instancia EC2 t3.medium, Ubuntu 24.04, región us-east-1, disco de 30 GB gp3.
+- Security group: puerto 80 (HTTP) abierto; puerto 22 (SSH) solo desde una IP.
 
 ```mermaid
 flowchart LR
@@ -272,8 +293,8 @@ flowchart LR
     aliado(["Equipo aliado"]) -->|"HTTP :80"| eip
 
     subgraph aws["AWS Academy, us-east-1"]
-        eip["IP elástica"] --> sg{{"Security group<br/>entrada: 80 HTTP y 22 SSH"}}
-        subgraph ec2["EC2 t3.medium con Docker y Compose"]
+        eip["IP elástica 52.44.136.85"] --> sg{{"Security group<br/>80 abierto; 22 solo para una IP"}}
+        subgraph ec2["EC2 t3.medium, Ubuntu 24.04, 30 GB gp3,<br/>con Docker y Compose"]
             nginx["nginx :80"]
             resto["frontend, Django, microservicios Flask,<br/>PostgreSQL, Redis y worker de Celery"]
         end
@@ -283,6 +304,54 @@ flowchart LR
 
     resto -->|"HTTPS saliente"| tatoeba(["api.tatoeba.org"])
 ```
+
+Pasos en la instancia, con Docker y Docker Compose instalados:
+
+1. Clonar `main`: `git clone https://github.com/jalvarez01/HanZi-Mentor.git`.
+2. Crear el `.env` desde `.env.example` y cambiar estas variables (los
+   valores no se publican):
+   - `DJANGO_DEBUG=0`;
+   - `ALLOWED_HOSTS`: la IP elástica, más `localhost,contenido,agente_tutor`;
+   - `CONTENIDO_SECRET_KEY` y `TUTOR_SECRET_KEY`: una clave nueva para cada
+     una, obligatorias con `DJANGO_DEBUG=0`;
+   - `POSTGRES_PASSWORD`: una contraseña nueva;
+   - `TATOEBA_TIMEOUT=8` (el ejemplo trae 3).
+3. `docker compose up -d --build`.
+
+**Limitación sin HTTPS.** La app se sirve por HTTP en la IP, que no es un
+contexto seguro: el navegador no registra el service worker, así que la PWA
+no se instala ni funciona sin conexión. El resto funciona igual; el UUID del
+estudiante se genera con `crypto.getRandomValues`, que sí existe sin HTTPS.
+
+#### Evidencia
+
+La app abierta en el navegador con la IP elástica en la barra de dirección:
+
+![Navegador con http://52.44.136.85/ en la barra de dirección](img/despliegue/navegador-ip.png)
+
+El recorrido lo hace
+[`tools/auditoria-ux/despliegue.mjs`](https://github.com/jalvarez01/HanZi-Mentor/blob/main/tools/auditoria-ux/despliegue.mjs)
+contra la IP elástica, con un usuario nuevo creado por la app: Inicio sin
+errores en la consola, dos sesiones de Práctica, Trazos con oraciones de
+Tatoeba, patrones de error y repasos en Progreso, el reporte asíncrono, el
+cambio a inglés y Premium con la tarjeta de prueba. axe-core (WCAG 2.1 AA) a
+375 px no encontró violaciones en ninguna pantalla. El resultado de cada paso
+está en
+[`resumen.json`](https://github.com/jalvarez01/HanZi-Mentor/blob/main/tools/auditoria-ux/reportes/despliegue/resumen.json)
+y el estado de los contenedores y las respuestas de la API en
+[`infra.txt`](https://github.com/jalvarez01/HanZi-Mentor/blob/main/tools/auditoria-ux/reportes/despliegue/infra.txt).
+
+Fin de la segunda sesión, con el desempeño y el patrón principal:
+
+![Fin de la segunda sesión de Práctica en producción, 375 px](img/despliegue/c-fin-segunda-sesion-375.png)
+
+Progreso con los patrones de error de las dos sesiones:
+
+![Tus patrones de error en producción, 1280 px](img/despliegue/e-progreso-patrones-1280.png)
+
+Trazos con las oraciones de Tatoeba que entrega `flask_ejemplos`:
+
+![Trazos con oraciones de Tatoeba en producción, 375 px](img/despliegue/d-trazos-tatoeba-375.png)
 
 ### Secuencia: crear una sesión adaptativa
 
@@ -386,7 +455,7 @@ sequenceDiagram
     S-->>R: hanzi, idioma, proveedor, atribución y ejemplos
     R-->>F: 200 JSON
 
-    Note over A,T: Si Tatoeba no responde en 3 s, el adaptador lanza<br/>ProveedorNoDisponible y el servicio responde 503 PROVEEDOR_NO_DISPONIBLE.
+    Note over A,T: Si Tatoeba no responde en TATOEBA_TIMEOUT (3 s por defecto,<br/>8 s en AWS), el adaptador lanza ProveedorNoDisponible<br/>y el servicio responde 503 PROVEEDOR_NO_DISPONIBLE.
 ```
 
 El mismo patrón se usa para los pagos de Premium (RF-USR-01):
