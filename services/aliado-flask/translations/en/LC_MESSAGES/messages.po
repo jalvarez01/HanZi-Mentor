@@ -1,0 +1,49 @@
+# Mensajes de aliado-flask en en.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aliado-flask 1.0
+"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS
+"
+"POT-Creation-Date: 2026-11-12 00:00-0500
+"
+"PO-Revision-Date: 2026-11-12 00:00-0500
+"
+"Last-Translator: HanZi Mentor
+"
+"Language: en
+"
+"Language-Team: English
+"
+"Plural-Forms: nplurals=2; plural=(n != 1);
+"
+"MIME-Version: 1.0
+"
+"Content-Type: text/plain; charset=utf-8
+"
+"Content-Transfer-Encoding: 8bit
+"
+"Generated-By: Babel 2.17.0
+"
+
+msgid "Solicitud incorrecta"
+msgstr "Bad request"
+
+msgid "Recurso no encontrado"
+msgstr "Resource not found"
+
+msgid "Método no permitido"
+msgstr "Method not allowed"
+
+msgid "Error interno"
+msgstr "Internal error"
+
+msgid "VaultDrop no respondió. Intentá de nuevo en un momento."
+msgstr "VaultDrop did not respond. Try again in a moment."
+
+msgid "Caja no encontrada."
+msgstr "Box not found."
+
+msgid "La caja no tiene ítems para sortear."
+msgstr "The box has no items to draw."
