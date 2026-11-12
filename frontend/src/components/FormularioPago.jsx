@@ -5,6 +5,21 @@ const VACIO = { titular: '', numero: '', vencimiento: '', cvc: '' };
 const CAMPOS = ['titular', 'numero', 'vencimiento', 'cvc'];
 const VENCIMIENTO = /^(\d{2})\s*\/\s*(\d{2})$/;
 
+/**
+ * Formato mientras se escribe. El teclado numérico de iOS (inputMode
+ * numeric) no tiene espacio ni "/", así que el campo los pone solo: el
+ * número en grupos de 4 y el vencimiento como MM/AA. Cualquier otro
+ * carácter se descarta.
+ */
+const FORMATOS = {
+  numero: (texto) => texto.replace(/\D/g, '').slice(0, 19).replace(/(\d{4})(?=\d)/g, '$1 '),
+  vencimiento: (texto) => {
+    const digitos = texto.replace(/\D/g, '').slice(0, 4);
+    return digitos.length > 2 ? `${digitos.slice(0, 2)}/${digitos.slice(2)}` : digitos;
+  },
+  cvc: (texto) => texto.replace(/\D/g, '').slice(0, 4),
+};
+
 /** Dígito verificador de las tarjetas (algoritmo de Luhn), igual que el servidor. */
 function luhnValido(digitos) {
   let total = 0;
@@ -70,7 +85,9 @@ export default function FormularioPago({ titulo, textoBoton, onPagar, onCancelar
 
   function cambiar(campo) {
     return (evento) => {
-      setDatos((d) => ({ ...d, [campo]: evento.target.value }));
+      const formato = FORMATOS[campo];
+      const valor = formato ? formato(evento.target.value) : evento.target.value;
+      setDatos((d) => ({ ...d, [campo]: valor }));
       // El error de un campo se borra al corregirlo; los demás se mantienen.
       if (errores[campo]) setErrores((e) => ({ ...e, [campo]: undefined }));
     };

@@ -1,0 +1,215 @@
+{
+  "url": "http://52.44.136.85",
+  "fecha": "2026-11-12T00:15:33.098Z",
+  "commitDesplegado": "e3425c3",
+  "usuario": "89ddd3c2-d490-4a89-9803-60e863f28491",
+  "pasos": {
+    "a-inicio": {
+      "ok": true,
+      "detalle": {
+        "usuario": "89ddd3c2-d490-4a89-9803-60e863f28491",
+        "isSecureContext": false,
+        "erroresConsola": []
+      }
+    },
+    "b-practica-en-curso": {
+      "ok": true,
+      "detalle": "sesión 6, 7 ejercicios"
+    },
+    "c-dos-sesiones": {
+      "ok": true,
+      "detalle": {
+        "sesiones": [
+          6,
+          7
+        ],
+        "panelDesempeno": true,
+        "avisoPatron": true,
+        "segundaSesion": {
+          "adaptadosAPatron": 3,
+          "refuerzos": 3
+        }
+      }
+    },
+    "d-trazos-tatoeba": {
+      "ok": true,
+      "detalle": {
+        "caracter": "上",
+        "oraciones": 3,
+        "ms": 8,
+        "estado": "con oraciones"
+      }
+    },
+    "e-progreso-patrones-repasos": {
+      "ok": true,
+      "detalle": {
+        "patrones": [
+          "PATRON_NO_SABE",
+          "PATRON_PINYIN_LECTURA"
+        ],
+        "repasos": 7,
+        "grupos": [
+          "proximos"
+        ]
+      }
+    },
+    "f-reporte-asincrono": {
+      "ok": true,
+      "detalle": {
+        "ms": 876,
+        "estado": "listo"
+      }
+    },
+    "g-progreso-en-ingles": {
+      "ok": true,
+      "detalle": {
+        "htmlLang": "en",
+        "tituloPatrones": "Your error patterns"
+      }
+    },
+    "h-premium": {
+      "ok": true,
+      "detalle": {
+        "insignia": "PREMIUM",
+        "textos": [
+          "Tenés todos los niveles abiertos. Se vence el 11 de diciembre de 2026.",
+          "Podrás renovar desde el 4 de diciembre de 2026.",
+          "¡Listo! Premium activo hasta el 11 de diciembre de 2026. Referencia del pago: SIM-E0125ED991DE."
+        ]
+      }
+    }
+  },
+  "sesiones": [
+    {
+      "id": 6,
+      "ejercicios": [
+        "一 significado",
+        "七 significado",
+        "三 significado",
+        "上 significado",
+        "下 significado",
+        "不 significado",
+        "个 significado"
+      ],
+      "respuestas": [
+        "一 pinyin: No lo sé",
+        "七 pinyin: zhuang",
+        "三 pinyin: No lo sé",
+        "上 pinyin: zhuang",
+        "下 pinyin: No lo sé",
+        "不 pinyin: zhuang",
+        "个 pinyin: No lo sé"
+      ]
+    },
+    {
+      "id": 7,
+      "ejercicios": [
+        "个 pinyin patron:PATRON_NO_SABE refuerzo",
+        "下 pinyin patron:PATRON_NO_SABE refuerzo",
+        "三 pinyin patron:PATRON_NO_SABE refuerzo",
+        "一 significado",
+        "七 significado",
+        "上 significado",
+        "不 significado"
+      ],
+      "respuestas": [
+        "个 pinyin: No lo sé",
+        "下 pinyin: zhuang",
+        "三 pinyin: No lo sé",
+        "一 pinyin: zhuang",
+        "七 pinyin: No lo sé",
+        "上 pinyin: zhuang",
+        "不 pinyin: No lo sé"
+      ]
+    }
+  ],
+  "axe": {
+    "a-inicio": [],
+    "b-practica-en-curso": [],
+    "c-fin-segunda-sesion": [],
+    "d-trazos-tatoeba": [],
+    "e-progreso-patrones": [],
+    "e-progreso-repasos": [],
+    "f-progreso-reporte": [],
+    "g-progreso-ingles": [],
+    "h-plan-premium": []
+  },
+  "notas": [],
+  "capturas": [
+    {
+      "archivo": "a-inicio-375.png",
+      "bytes": 116527
+    },
+    {
+      "archivo": "a-inicio-1280.png",
+      "bytes": 160321
+    },
+    {
+      "archivo": "b-practica-en-curso-375.png",
+      "bytes": 83696
+    },
+    {
+      "archivo": "b-practica-en-curso-1280.png",
+      "bytes": 99032
+    },
+    {
+      "archivo": "c-fin-segunda-sesion-375.png",
+      "bytes": 139953
+    },
+    {
+      "archivo": "c-fin-segunda-sesion-1280.png",
+      "bytes": 182850
+    },
+    {
+      "archivo": "d-trazos-tatoeba-375.png",
+      "bytes": 100444
+    },
+    {
+      "archivo": "d-trazos-tatoeba-1280.png",
+      "bytes": 112763
+    },
+    {
+      "archivo": "e-progreso-patrones-375.png",
+      "bytes": 101986
+    },
+    {
+      "archivo": "e-progreso-patrones-1280.png",
+      "bytes": 122135
+    },
+    {
+      "archivo": "e-progreso-repasos-375.png",
+      "bytes": 92068
+    },
+    {
+      "archivo": "e-progreso-repasos-1280.png",
+      "bytes": 118389
+    },
+    {
+      "archivo": "f-progreso-reporte-375.png",
+      "bytes": 100537
+    },
+    {
+      "archivo": "f-progreso-reporte-1280.png",
+      "bytes": 115969
+    },
+    {
+      "archivo": "g-progreso-ingles-375.png",
+      "bytes": 103754
+    },
+    {
+      "archivo": "g-progreso-ingles-1280.png",
+      "bytes": 132030
+    },
+    {
+      "archivo": "h-plan-premium-375.png",
+      "bytes": 99695
+    },
+    {
+      "archivo": "h-plan-premium-1280.png",
+      "bytes": 128750
+    }
+  ],
+  "erroresConsola": [],
+  "violacionesAxe": 0,
+  "bytesCapturas": 2110899
+}
