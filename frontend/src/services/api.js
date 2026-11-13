@@ -16,6 +16,8 @@
  *                             en segundo plano un worker de Celery
  *   - /api/v2/suscripciones/* -> suscripciones-flask: planes Free y Premium
  *                             con pago simulado (RF-USR-01)
+ *   - /api/v2/aliado/*     -> aliado-flask: cajas de VaultDrop, el equipo
+ *                             aliado (T26), a través de nuestro backend
  *
  * v2 responde los mismos campos que v1 (contenido y agente-tutor);
  * /api/v1/ sigue en el gateway solo como respaldo. La única diferencia es
@@ -41,6 +43,7 @@ const EVALUACION_URL = import.meta.env.VITE_EVALUACION_URL || '';
 const EJEMPLOS_URL = import.meta.env.VITE_EJEMPLOS_URL || '';
 const REPORTES_URL = import.meta.env.VITE_REPORTES_URL || '';
 const SUSCRIPCIONES_URL = import.meta.env.VITE_SUSCRIPCIONES_URL || '';
+const ALIADO_URL = import.meta.env.VITE_ALIADO_URL || '';
 
 const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
 const SESIONES_API = `${SESIONES_URL}/api/v2`;
@@ -49,6 +52,7 @@ const EVALUACION_API = `${EVALUACION_URL}/api/v2`;
 const EJEMPLOS_API = `${EJEMPLOS_URL}/api/v2`;
 const REPORTES_API = `${REPORTES_URL}/api/v2`;
 const SUSCRIPCIONES_API = `${SUSCRIPCIONES_URL}/api/v2/suscripciones`;
+const ALIADO_API = `${ALIADO_URL}/api/v2/aliado`;
 
 class ErrorApi extends Error {
   constructor(mensaje, status, cuerpo) {
@@ -253,7 +257,45 @@ export function cancelarPremium(usuarioId) {
   return pedir(`${SUSCRIPCIONES_API}/${usuarioId}/cancelar/`, { method: 'POST' });
 }
 
+// ------------------------------------------------------------------ aliado
+
+/**
+ * Cajas de VaultDrop (T26): { aliado, proveedor, respaldo, cajas: [{ id,
+ * nombre, precio, imagen_url, items }] }. `proveedor` "falso" son datos de
+ * ejemplo; `respaldo` true quiere decir que VaultDrop no respondió y son las
+ * de la última vez. Un 503 ALIADO_NO_DISPONIBLE: nunca respondió.
+ */
+export function listarCajasAliado() {
+  return pedir(`${ALIADO_API}/cajas/`);
+}
+
+/** Sortea un ítem con las probabilidades de VaultDrop: { ..., caja, item }. */
+export function abrirCajaAliado(cajaId) {
+  return pedir(`${ALIADO_API}/cajas/${cajaId}/abrir/`, { method: 'POST' });
+}
+
 // --------------------------------------------------------------- contenido
+
+/**
+ * El catálogo (caracteres y sus trazos) no cambia mientras se usa la app y
+ * no depende del idioma, así que cada consulta se guarda en memoria durante
+ * la visita: volver a Inicio o a Trazos no espera otra vez a la red. Se
+ * guarda la promesa, para que dos pantallas que piden lo mismo a la vez
+ * compartan una sola petición. Un error no se guarda: el siguiente intento
+ * vuelve a pedir.
+ */
+const cacheCatalogo = new Map();
+
+function pedirCatalogo(url) {
+  if (!cacheCatalogo.has(url)) {
+    const promesa = pedir(url).catch((e) => {
+      cacheCatalogo.delete(url);
+      throw e;
+    });
+    cacheCatalogo.set(url, promesa);
+  }
+  return cacheCatalogo.get(url);
+}
 
 export function listarCaracteres({ nivel, excluir = [], limite = 20 } = {}) {
   const params = new URLSearchParams();
@@ -261,11 +303,37 @@ export function listarCaracteres({ nivel, excluir = [], limite = 20 } = {}) {
   if (excluir.length) params.set('excluir', excluir.join(','));
   params.set('limite', limite);
 
-  return pedir(`${CATALOGO_API}/caracteres/?${params}`);
+  return pedirCatalogo(`${CATALOGO_API}/caracteres/?${params}`);
 }
 
 export function obtenerCaracter(hanzi) {
-  return pedir(`${CATALOGO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
+  return pedirCatalogo(`${CATALOGO_API}/caracteres/${encodeURIComponent(hanzi)}/`);
+}
+
+/** Pide un carácter en segundo plano (al pasar el puntero, o los de una sesión nueva). */
+export function precargarCaracter(hanzi) {
+  if (hanzi) obtenerCaracter(hanzi).catch(() => {});
+}
+
+/** Cuántos caracteres del nivel pide Inicio para elegir las palabras del día. */
+export const MUESTRA_PALABRAS = 60;
+
+/** Las palabras del día de un nivel, en segundo plano (ver App.jsx). */
+export function precargarPalabras(nivel) {
+  if (nivel) listarCaracteres({ nivel, limite: MUESTRA_PALABRAS }).catch(() => {});
+}
+
+/** Cuántos caracteres muestra la biblioteca de Trazos. */
+export const LIMITE_BIBLIOTECA = 30;
+
+/**
+ * La biblioteca de Trazos y su primer carácter, en segundo plano: al tocar la
+ * pestaña ya están en memoria y la página no espera a la red.
+ */
+export function precargarBiblioteca() {
+  listarCaracteres({ limite: LIMITE_BIBLIOTECA })
+    .then((r) => precargarCaracter(r?.caracteres?.[0]?.hanzi))
+    .catch(() => {});
 }
 
 // -------------------------------------------------------------- evaluación

@@ -9,8 +9,10 @@ como respaldo mientras conviven las dos (T17).
 Sigue el estándar de [`docs/arquitectura/estandar-flask.md`](../../docs/arquitectura/estandar-flask.md)
 y parte de la plantilla `services/flask-base`.
 
-También expone `GET /api/v2/publico/resumen/` (T14), el servicio que consume
-el equipo aliado: un resumen del catálogo con CORS abierto (ver abajo).
+También expone lo que consume el equipo aliado (VaultDrop), con CORS abierto
+(ver abajo): `GET /api/v2/publico/resumen/` (T14), un resumen del catálogo, y
+el reto de pinyin, `GET /api/v2/publico/reto/` y
+`POST /api/v2/publico/reto/responder/`.
 
 La validación de trazos **no** está acá: vive en `services/trazos-flask`
 (`POST /api/v2/trazos/validar/`). Este servicio entrega la mediana de cada
@@ -295,6 +297,42 @@ curl -s "http://localhost/api/v2/publico/resumen/?lang=en&nivel=9"
 Si `flask_catalogo` está caído, el 502 lo arma Nginx (`infra/nginx/nginx.conf`)
 y no lleva CORS: desde un navegador el aliado no puede leer ese error, solo ve
 que la petición falló. Desde un backend sí lo recibe completo.
+
+### Reto de pinyin para el equipo aliado
+
+Un juego de selección múltiple para la app del aliado: un carácter, cuatro
+lecturas y una sola correcta. No guarda nada: verificar solo necesita el
+carácter y la respuesta elegida.
+
+`GET /api/v2/publico/reto/?lang=&nivel=`: los dos parámetros son opcionales,
+con las mismas reglas que el resumen. `lang` elige el idioma de `pregunta`
+(sin él, manda `Accept-Language`). Cada llamada da un reto distinto.
+
+```json
+{"hanzi": "和", "nivel_hsk": 1, "pregunta": "¿Cómo se lee 和?", "opciones": ["mǎi", "hé", "dà", "xiǎo"]}
+```
+
+Las opciones falsas son el pinyin de otros caracteres del mismo nivel y nunca
+coinciden con otra lectura del carácter: para 长 no aparece "cháng" como
+falsa. Un nivel sin caracteres responde 404.
+
+`POST /api/v2/publico/reto/responder/` con `{"hanzi": "和", "respuesta": "hé"}`:
+
+```json
+{"hanzi": "和", "respuesta": "hé", "correcta": true, "pinyin": "hé", "lecturas": ["hé", "hè", "hú", "huó", "huò"], "definicion": "harmony, peace; calm, peaceful"}
+```
+
+- Vale cualquier lectura del carácter, con su tono: "ren" sin tono no es
+  ninguna de las opciones. Mayúsculas y espacios no cuentan.
+- `hanzi` y `respuesta` son texto obligatorio (hasta 4 y 30 caracteres).
+- Un carácter que no existe responde 404.
+- El POST con JSON hace que el navegador pregunte antes con `OPTIONS`: la
+  respuesta lleva `Access-Control-Allow-Methods` y `Access-Control-Allow-Headers`.
+
+```bash
+curl -s "http://localhost/api/v2/publico/reto/?nivel=1&lang=es"
+curl -s -X POST http://localhost/api/v2/publico/reto/responder/   -H "Content-Type: application/json" -d '{"hanzi": "和", "respuesta": "hé"}'
+```
 
 ### `GET /health`
 

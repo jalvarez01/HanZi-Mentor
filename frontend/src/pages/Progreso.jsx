@@ -17,9 +17,12 @@ export default function Progreso() {
   // "Actualizar" también vuelve a pedir los patrones de error (RF-IA-01) y
   // los repasos (RF-IA-02), que tienen su propia petición.
   const [recargaSecciones, setRecargaSecciones] = useState(0);
+  // Los datos siguen a la vista mientras se actualizan: el botón muestra que está trabajando.
+  const [actualizando, setActualizando] = useState(false);
 
   function actualizar() {
-    recargar();
+    setActualizando(true);
+    Promise.resolve(recargar()).finally(() => setActualizando(false));
     setRecargaSecciones((n) => n + 1);
   }
 
@@ -29,7 +32,21 @@ export default function Progreso() {
 
       <main className="hm-page progreso">
         {error && <p className="hm-status hm-status--error" role="alert">{error}</p>}
-        {cargando && <p className="hm-status hm-status--loading" role="status">{t('progress.loading')}</p>}
+        {/* Sin datos todavía: las tres métricas ya ocupan su lugar, con el valor en espera. */}
+        {cargando && !datos && (
+          <>
+            <span className="hm-sr" role="status">{t('progress.loading')}</span>
+            <div className="progreso-metricas" aria-hidden="true">
+              <Metrica valor={<span className="hm-esqueleto progreso-esqueleto" />} etiqueta={t('progress.accuracy')} tono="jade" />
+              <Metrica valor={<span className="hm-esqueleto progreso-esqueleto" />} etiqueta={t('progress.mastered')} tono="ochre" />
+              <Metrica
+                valor={<span className="hm-esqueleto progreso-esqueleto" />}
+                etiqueta={t('progress.toReinforce')}
+                tono="cinnabar"
+              />
+            </div>
+          </>
+        )}
 
         {/* Sin datos no se pintan las acciones de abajo: aquí queda cómo reintentar */}
         {error && !datos && !cargando && (
@@ -126,7 +143,13 @@ export default function Progreso() {
             <PlanSuscripcion key={usuarioId} usuarioId={usuarioId} />
 
             <div className="progreso-acciones">
-              <button type="button" className="hm-btn hm-btn--block" onClick={actualizar}>
+              <button
+                type="button"
+                className="hm-btn hm-btn--block"
+                onClick={actualizar}
+                disabled={actualizando}
+                aria-busy={actualizando || undefined}
+              >
                 {t('progress.refresh')}
               </button>
               <button type="button" className="progreso-reiniciar" onClick={reiniciar}>

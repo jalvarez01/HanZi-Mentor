@@ -71,3 +71,19 @@ msgstr "The field '%(campo)s' must be a valid UUID"
 #, python-format
 msgid "Idioma no soportado: use %(idiomas)s"
 msgstr "Unsupported language: use %(idiomas)s"
+
+#: publico.py rutas_publico.py validacion.py
+msgid "¿Cómo se lee %(hanzi)s?"
+msgstr "How do you read %(hanzi)s?"
+
+#: publico.py rutas_publico.py validacion.py
+msgid "No hay caracteres para ese nivel."
+msgstr "There are no characters for that level."
+
+#: publico.py rutas_publico.py validacion.py
+msgid "El campo '%(campo)s' es obligatorio y debe ser texto"
+msgstr "The field '%(campo)s' is required and must be text"
+
+#: publico.py rutas_publico.py validacion.py
+msgid "El campo '%(campo)s' admite hasta %(maximo)s caracteres"
+msgstr "The field '%(campo)s' allows up to %(maximo)s characters"

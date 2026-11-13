@@ -5,11 +5,13 @@ un ecosistema híbrido de microservicios Flask detrás de Nginx, desplegado en
 AWS Academy, con integración con un equipo aliado y una API de terceros,
 tareas asíncronas e internacionalización.
 
-> **Estado de esta página (11/11/2026):** incluye las correcciones de la
-> Entrega 1, el bono de excelencia, la auditoría de UX y accesibilidad, la
-> arquitectura con sus diagramas, el despliegue en AWS con su evidencia, la
-> API de terceros, las tareas asíncronas y el servicio para el equipo aliado.
-> Solo falta el consumo del servicio del equipo aliado desde HanZi Mentor.
+Contenido: [1. Correcciones de la Entrega 1](#1-correcciones-de-la-entrega-1) ·
+[2. Bono de excelencia](#2-bono-de-excelencia-más-del-70--migrado-a-microservicios) ·
+[3. Resiliencia y UX](#3-resiliencia-y-ux) ·
+[4. Arquitectura](#4-arquitectura) ·
+[5. Servicios e integración](#5-servicios-e-integración) ·
+[6. Internacionalización](#6-internacionalización-i18n) ·
+[7. Requisitos funcionales](#7-requisitos-funcionales-del-backlog)
 
 ---
 
@@ -35,7 +37,7 @@ con el commit o el Pull Request que la resuelve.
 El enunciado exime del Parcial 02 a los equipos que migren más del 70 % de
 sus servicios y lógica de negocio a microservicios funcionales e
 independientes. HanZi Mentor migró a Flask **todos los endpoints de negocio
-del monolito**: el 100 % de los módulos existentes y el 92 % si se cuentan
+del monolito**: el 100 % de los módulos existentes y el 93 % si se cuentan
 también los módulos nuevos de esta entrega.
 
 ### Cómo se mide
@@ -66,7 +68,8 @@ todo esto:
 | Agente tutor (LangGraph) | `agente-tutor` | — | — | 0 | Permanece en Django | — | — |
 | Usuarios | `usuarios` | — | — | 0 | Permanece en Django | — | — |
 | Ejemplos de oraciones (API de terceros) | Nuevo | `ejemplos-flask` | `GET /api/v2/ejemplos/<hanzi>/` | 1 | Migrado | PR #27 (`f9ebcdc`), integrado en PR #30 (`dd82852`), consumo en PR #37 (`2d58af2`) | Frontend (pantalla de Trazos) |
-| Servicio para el equipo aliado | Nuevo | `catalogo-flask` | `GET /api/v2/publico/resumen/` | 1 | En progreso | PR #38 | Pendiente: equipo aliado |
+| Servicio para el equipo aliado | Nuevo | `catalogo-flask` | `GET /api/v2/publico/resumen/`, `GET /api/v2/publico/reto/`, `POST /api/v2/publico/reto/responder/` | 1 | En progreso | PR #38, reto en PR #65 | VaultDrop (integración en curso) |
+| Consumo del equipo aliado (T26) | Nuevo | `aliado-flask` | `GET /api/v2/aliado/cajas/`, `POST /api/v2/aliado/cajas/<id>/abrir/` | 1 | Migrado | PR #65 | Frontend (Inicio) |
 | Reportes y notificaciones | Nuevo | `flask_reportes` + worker de Celery | `/api/v2/reportes/` | 1 | Migrado | PR #42 (`f0b21cf`), consumo en PR #46 (`7c4b021`) | Frontend (Progreso) |
 | Suscripciones Free y Premium (RF-USR-01) | Nuevo | `suscripciones-flask` | `/api/v2/suscripciones/` (planes, consulta, activar, renovar, cancelar, pagos) | 1 | Migrado | PR #55 | Frontend (Practicar y Progreso) |
 
@@ -83,10 +86,11 @@ Los dos módulos con peso 0 no tienen endpoints de negocio propios:
 | Cálculo | Peso migrado | Peso total | Porcentaje |
 |---------|:------------:|:----------:|:----------:|
 | Solo los módulos que existían en el monolito | 9 | 9 | **100 %** |
-| Todos los módulos, incluidos los nuevos de esta entrega | 12 | 13 | **92 %** |
+| Todos los módulos, incluidos los nuevos de esta entrega | 13 | 14 | **93 %** |
 
-Los dos cálculos superan la meta del 70 %. Cuando el equipo aliado consuma
-el servicio público (T14), el segundo sube a 100 %.
+Los dos cálculos superan la meta del 70 %. Cuando VaultDrop, el equipo
+aliado, consuma el servicio público (el resumen o el reto), el segundo sube
+a 100 %.
 
 ### Coexistencia con el monolito (Strangler Pattern)
 
@@ -213,14 +217,14 @@ flowchart LR
 
 ### Contenedores
 
-Las 15 piezas que levanta `docker-compose.yml` y cómo se comunican. Solo
+Las 16 piezas que levanta `docker-compose.yml` y cómo se comunican. Solo
 Nginx publica un puerto; el resto solo es accesible dentro de la red de
 Docker.
 
 ```mermaid
 flowchart TB
     usuario(["Navegador o celular"])
-    aliado(["Equipo aliado"])
+    aliado(["VaultDrop, equipo aliado<br/>EC2 3.217.19.101"])
     tatoeba(["API de Tatoeba"])
 
     subgraph docker["Docker Compose: misma red interna"]
@@ -241,6 +245,7 @@ flowchart TB
             ejemplos["flask_ejemplos"]
             reportes["flask_reportes"]
             suscripciones["flask_suscripciones<br/>planes Free y Premium"]
+            aliadosvc["flask_aliado<br/>consume a VaultDrop"]
         end
 
         redis[("redis<br/>broker y resultados")]
@@ -250,7 +255,7 @@ flowchart TB
     end
 
     usuario -->|"HTTP :80"| nginx
-    aliado -->|"/api/v2/publico/resumen/"| nginx
+    aliado -->|"/api/v2/publico/: resumen y reto"| nginx
     nginx -->|"/"| frontend
     nginx -->|"/api/v1/"| v1
     nginx -->|"/api/v2/"| v2
@@ -264,6 +269,7 @@ flowchart TB
     redis -->|"tareas"| worker
     worker -->|"HTTP"| progreso
     ejemplos -->|"Adapter"| tatoeba
+    aliadosvc -->|"Adapter, GET /api/v2/catalogo/"| aliado
     tutor -->|"HTTP"| catalogo
     tutor -->|"validar trazos"| contenido
 
@@ -290,7 +296,7 @@ La app está desplegada en **http://52.44.136.85/**, desde la rama `main`
 ```mermaid
 flowchart LR
     usuario(["Usuario"]) -->|"HTTP :80"| eip
-    aliado(["Equipo aliado"]) -->|"HTTP :80"| eip
+    aliado(["VaultDrop, equipo aliado<br/>IP elástica 3.217.19.101"]) -->|"HTTP :80, resumen y reto"| eip
 
     subgraph aws["AWS Academy, us-east-1"]
         eip["IP elástica 52.44.136.85"] --> sg{{"Security group<br/>80 abierto; 22 solo para una IP"}}
@@ -303,6 +309,7 @@ flowchart LR
     end
 
     resto -->|"HTTPS saliente"| tatoeba(["api.tatoeba.org"])
+    resto -->|"HTTP saliente, catálogo"| aliado
 ```
 
 Pasos en la instancia, con Docker y Docker Compose instalados:
@@ -316,6 +323,9 @@ Pasos en la instancia, con Docker y Docker Compose instalados:
      una, obligatorias con `DJANGO_DEBUG=0`;
    - `POSTGRES_PASSWORD`: una contraseña nueva;
    - `TATOEBA_TIMEOUT=8` (el ejemplo trae 3).
+
+   La IP de VaultDrop (`ALIADO_URL`) ya viene por defecto en
+   `docker-compose.yml`: no hay que agregarla.
 3. `docker compose up -d --build`.
 
 **Limitación sin HTTPS.** La app se sirve por HTTP en la IP, que no es un
@@ -502,28 +512,181 @@ sequenceDiagram
     end
 ```
 
-### Secuencia: servicio para el equipo aliado
+### Secuencias: integración con el equipo aliado
 
-El equipo aliado consume el resumen público de `flask_catalogo`. El consumo
-del servicio del aliado desde HanZi Mentor (T26) se agrega cuando se acuerde
-el contrato (T03).
+VaultDrop (un simulador de apertura de cajas de otro equipo del curso)
+consume el reto de pinyin de `flask_catalogo`. Es de selección múltiple y no
+guarda estado: verificar solo necesita el carácter y la respuesta.
 
 ```mermaid
 sequenceDiagram
-    participant A as App del equipo aliado
+    participant A as App de VaultDrop
     participant N as Nginx
     participant C as flask_catalogo
     participant DB as db_catalogo
 
-    A->>N: GET /api/v2/publico/resumen/?lang=es&nivel=2
+    A->>N: GET /api/v2/publico/reto/?lang=es&nivel=1
     N->>C: misma ruta
-    C->>C: validar lang y nivel
+    C->>DB: un carácter del nivel y el pinyin de otros 3
+    DB-->>C: carácter y opciones falsas (ninguna es otra lectura suya)
+    C-->>A: 200 {hanzi, pregunta, opciones} con Access-Control-Allow-Origin: *
 
-    alt parámetro inválido
-        C-->>A: 400 ENTRADA_INVALIDA, en el idioma de lang
-    else parámetros válidos
-        C->>DB: contar caracteres por nivel y elegir el carácter del día
-        DB-->>C: totales y carácter
-        C-->>A: 200 JSON con Access-Control-Allow-Origin: *
-    end
+    Note over A: el usuario elige una opción
+
+    A->>N: OPTIONS /api/v2/publico/reto/responder/ (petición previa del navegador)
+    N->>C: misma ruta
+    C-->>A: 200 con Allow-Methods y Allow-Headers
+    A->>N: POST /api/v2/publico/reto/responder/ {hanzi, respuesta}
+    N->>C: misma ruta
+    C->>DB: lecturas del carácter
+    C-->>A: 200 {correcta, pinyin, lecturas, definicion}
 ```
+
+HanZi Mentor consume el catálogo público de VaultDrop desde `flask_aliado`,
+con el patrón Adapter. El navegador nunca llama a VaultDrop directo: así
+ellos no necesitan CORS y el respaldo es nuestro.
+
+```mermaid
+sequenceDiagram
+    participant F as Frontend (Inicio)
+    participant N as Nginx
+    participant S as flask_aliado
+    participant V as VaultDrop (3.217.19.101)
+
+    F->>N: POST /api/v2/aliado/cajas/4/abrir/
+    N->>S: misma ruta
+
+    alt catálogo guardado hace menos de 60 s
+        S->>S: reutiliza el catálogo
+    else catálogo viejo o sin catálogo
+        S->>V: GET /api/v2/catalogo/ (espera hasta 6 s)
+        alt VaultDrop responde
+            V-->>S: cajas con sus ítems y probabilidades
+            S->>S: guarda el catálogo
+        else VaultDrop no responde y hay catálogo guardado
+            S->>S: usa el guardado, respaldo: true
+        else VaultDrop no responde y nunca respondió
+            S-->>F: 503 ALIADO_NO_DISPONIBLE, traducido
+        end
+    end
+
+    S->>S: sortea un ítem con las probabilidades de la caja
+    S-->>F: 200 {caja, item, respaldo}
+```
+
+---
+
+## 5. Servicios e integración
+
+La rúbrica pide exponer una API, consumir el servicio de un equipo aliado y
+consumir una API de terceros con el patrón Adapter. El equipo aliado es
+**VaultDrop**, un simulador académico de apertura de cajas
+([github.com/jrestrepoc/VaultDrop](https://github.com/jrestrepoc/VaultDrop)).
+
+| Contrato | Quién consume a quién | Endpoint | Servicio | Si falla |
+|----------|-----------------------|----------|----------|----------|
+| Resumen y reto de pinyin | VaultDrop consume a HanZi Mentor | `GET /api/v2/publico/resumen/`, `GET /api/v2/publico/reto/`, `POST /api/v2/publico/reto/responder/` | `flask_catalogo` | Errores en JSON, en el idioma de `lang`. CORS abierto, incluida la petición previa del POST |
+| Catálogo de VaultDrop | HanZi Mentor consume a VaultDrop | `GET http://3.217.19.101/api/v2/catalogo/` | `flask_aliado` (Adapter) | Espera 6 s; usa el último catálogo que respondió; sin ninguno, 503 traducido |
+| Oraciones de Tatoeba | HanZi Mentor consume una API de terceros | `GET https://api.tatoeba.org/v1/sentences` | `flask_ejemplos` (Adapter) | 503 `PROVEEDOR_NO_DISPONIBLE`; la pantalla de Trazos sigue funcionando |
+
+### Lo que exponemos para el aliado
+
+Los dos endpoints son públicos (sin login ni token) y tienen CORS abierto,
+así que VaultDrop los puede llamar desde su navegador o su backend.
+
+- **Resumen (T14):** total de caracteres, cuántos hay por nivel HSK y un
+  carácter del día con su pinyin y significado.
+- **Reto de pinyin:** un carácter con cuatro lecturas posibles y una sola
+  correcta. Las opciones falsas nunca coinciden con otra lectura del
+  carácter, y al responder vale cualquier lectura (和 se acepta como "hé" o
+  como "huó").
+
+```json
+GET /api/v2/publico/reto/?lang=es
+{"hanzi": "和", "nivel_hsk": 1, "pregunta": "¿Cómo se lee 和?", "opciones": ["mǎi", "hé", "dà", "xiǎo"]}
+
+POST /api/v2/publico/reto/responder/  {"hanzi": "和", "respuesta": "hé"}
+{"hanzi": "和", "respuesta": "hé", "correcta": true, "pinyin": "hé", "lecturas": ["hé", "hè", "hú", "huó", "huò"], "definicion": "harmony, peace; calm, peaceful"}
+```
+
+Detalle y pruebas: [README de catalogo-flask](https://github.com/jalvarez01/HanZi-Mentor/blob/main/services/catalogo-flask/README.md).
+
+### Lo que consumimos del aliado (T26)
+
+En Inicio, la sección **"Caja de VaultDrop"** muestra sus cajas y deja abrir
+una. Abrir una caja de verdad en VaultDrop exige una cuenta y gasta
+créditos, así que aquí es un sorteo con las probabilidades que ellos
+publican: no usa cuentas de VaultDrop y no guarda nada. La secuencia está
+en [Integración con el equipo aliado](#secuencias-integración-con-el-equipo-aliado).
+
+- **Patrón Adapter:** puerto `ProveedorCajas`, con `AdaptadorVaultDrop` (su
+  catálogo) y `CajasFalsas` (pruebas, o sin red). `ALIADO_PROVEEDOR` elige.
+- **Coordinación:** se intercambiaron las IP elásticas (la nuestra,
+  `52.44.136.85`; la de VaultDrop, `3.217.19.101`) y los formatos de
+  respuesta por el chat de los dos equipos, y quedaron registrados en la
+  hoja "Contratos" del plan.
+- **Probado contra su instancia real:** sus 4 cajas (Dreams & Nightmares,
+  Fracture Case, Operation Riptide y Recoil Case), el sorteo, sus imágenes
+  cargando desde su servidor y sus rarezas (`COMUN`, `RARO`, `EPICO`,
+  `LEGENDARIO`), que la app traduce y colorea.
+- **Ajuste por la prueba real:** VaultDrop a veces tarda más de 3 s (se
+  midieron 4,4 s en 1 de 5 consultas), así que la espera quedó en 6 s.
+
+Detalle y pruebas: [README de aliado-flask](https://github.com/jalvarez01/HanZi-Mentor/blob/main/services/aliado-flask/README.md).
+
+### API de terceros con Adapter
+
+Las oraciones de ejemplo de Tatoeba (T15 y T27): el diagrama de clases y la
+secuencia están en
+[API de terceros con el patrón Adapter](#api-de-terceros-con-el-patrón-adapter).
+Detalle: [README de ejemplos-flask](https://github.com/jalvarez01/HanZi-Mentor/blob/main/services/ejemplos-flask/README.md).
+
+---
+
+## 6. Internacionalización (i18n)
+
+Toda la app funciona en español y en inglés.
+
+- **Frontend (T23):**
+  - react-i18next, con todos los textos de la interfaz en `es.json` y `en.json`;
+  - el selector ES/EN de la barra superior guarda el idioma en el navegador;
+  - cada petición manda ese idioma en `Accept-Language`.
+- **Servicios Flask (T22):** Flask-Babel en los nueve servicios.
+  - El dominio marca sus textos con `N_` y se traducen al responder, según `Accept-Language`.
+  - Solo se traduce el texto para personas (`error`, `aviso`, `pregunta`…); las claves del JSON, los códigos y los estados HTTP no cambian.
+  - Cada servicio tiene su catálogo `.po` en es y en, y el `.mo` se compila al construir la imagen.
+  - Cada servicio prueba sus mensajes con `Accept-Language` en los dos idiomas.
+  - En los endpoints públicos del aliado, `lang` elige el idioma aunque la petición traiga otro `Accept-Language`.
+- **Django (T21):** `contenido` y `agente-tutor` usan `LocaleMiddleware`,
+  `LANGUAGES` (es, en) y sus catálogos en `locale/`.
+- **Gateway:** los errores de Nginx (404, 502, 503 y 504) también salen en
+  inglés si `Accept-Language` empieza por `en`.
+
+```bash
+curl -s "http://52.44.136.85/api/v2/caracteres/?limite=abc" -H "Accept-Language: en"
+# {"error": "The limit must be an integer between 1 and 100", "codigo": "ENTRADA_INVALIDA"}
+```
+
+---
+
+## 7. Requisitos funcionales del backlog
+
+Además de la migración, la entrega cierra los requisitos funcionales que
+estaban abiertos en el backlog (issues de GitHub):
+
+| Requisito | Issue | Qué hace | Dónde | PR |
+|-----------|-------|----------|-------|----|
+| RF-IA-01: detección de patrones de error | #9 | Cada fallo guarda su tipo (`codigo_error`). `progreso-flask` detecta patrones por tipo de error (trazo, pinyin, significado) y por carácter, y Progreso los muestra con un consejo | `progreso-flask`, `sesiones-flask`, frontend | #51 |
+| RF-IA-02: curva de olvido | #10 | Al cerrar la sesión, SM-2 agenda el próximo repaso de cada carácter, y las sesiones empiezan por los repasos vencidos | `progreso-flask`, `sesiones-flask`, frontend | #52 |
+| RF-IA-03: ejercicios adaptativos | #11 | Cada patrón de error genera ejercicios del tipo que lo ataca, hasta 3 por sesión | `sesiones-flask`, frontend | #53 |
+| RF-IA-04: feedback pedagógico | #12 | Al fallar, la evaluación explica por qué y da una pista; al acertar el pinyin, una nota sobre el tono | `evaluacion-flask`, `trazos-flask`, frontend | #50 |
+| RF-IA-05: cálculo de desempeño | #13 | Al terminar la sesión se registran la duración, la fecha y los aciertos, y Práctica muestra "Tu desempeño" | `sesiones-flask`, frontend | #54 |
+| RF-USR-01: gestión de suscripciones | #2 | Planes Free y Premium con pago simulado (patrón Adapter): activar, renovar y cancelar. Premium abre HSK 4 a 6 | `suscripciones-flask`, frontend | #55, ajustes en #57 y #60 |
+
+Patrones de error en Progreso (RF-IA-01) y próximos repasos (RF-IA-02):
+
+<img src="img/rf-ia-01/progreso-patrones-375.png" width="300" alt="Tus patrones de error en Progreso, 375 px"> <img src="img/rf-ia-02/progreso-repasos-375.png" width="300" alt="Próximos repasos en Progreso, 375 px">
+
+El plan Premium en producción (RF-USR-01):
+
+<img src="img/despliegue/h-plan-premium-375.png" width="300" alt="Tu plan con Premium activo en producción, 375 px">

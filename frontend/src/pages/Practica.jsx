@@ -15,6 +15,7 @@ import {
   obtenerCaracter,
   obtenerDesempeno,
   obtenerPatrones,
+  precargarCaracter,
   responderEjercicio,
 } from '../services/api';
 import './Practica.css';
@@ -35,6 +36,8 @@ export default function Practica() {
   const [indice, setIndice] = useState(0);
   const [ultimoResultado, setUltimoResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
+  // Nivel que se tocó: su botón muestra que está trabajando.
+  const [nivelPedido, setNivelPedido] = useState(null);
   const [error, setError] = useState(null);
   const [terminada, setTerminada] = useState(false);
   // RF-IA-01: patrón principal del estudiante, para el aviso de fin de sesión.
@@ -52,6 +55,7 @@ export default function Practica() {
 
   async function empezarLeccion(nivel) {
     setCargando(true);
+    setNivelPedido(nivel);
     setError(null);
 
     try {
@@ -67,6 +71,7 @@ export default function Practica() {
 
   async function empezar(nivel) {
     setCargando(true);
+    setNivelPedido(nivel);
     setError(null);
     setTerminada(false);
     setUltimoResultado(null);
@@ -79,6 +84,8 @@ export default function Practica() {
       setSesion(nueva);
       setIndice(0);
       if (nueva?.ejercicios?.some((e) => e.patron)) cargarTitulosPatron(nueva.id);
+      // En segundo plano: la respuesta correcta tras un fallo y "Ver trazos" ya no esperan al catálogo.
+      nueva?.ejercicios?.forEach((e) => precargarCaracter(e.caracter));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -88,9 +95,23 @@ export default function Practica() {
 
   // Registra la respuesta en sesiones-flask. Lanza si falla: quien llama decide cómo mostrarlo.
   // `codigoError` (RF-IA-01) es el tipo de error de un fallo, si se conoce.
+  //
+  // Si acertó o no ya se sabe antes de enviar, así que se muestra enseguida
+  // (`pendiente`); el próximo repaso y la tasa llegan con la respuesta. Si el
+  // envío falla, se deshace: vuelven los botones o el formulario con el error.
   async function registrar(acerto, extra = {}, codigoError) {
-    const resultado = await responderEjercicio(ejercicio.id, acerto, codigoError);
-    setUltimoResultado({ ...resultado, acerto, ejercicioId: ejercicio.id, ...extra });
+    const ejercicioId = ejercicio.id;
+    setUltimoResultado({ acerto, ejercicioId, ...extra, pendiente: true });
+
+    let resultado;
+    try {
+      resultado = await responderEjercicio(ejercicioId, acerto, codigoError);
+    } catch (e) {
+      setUltimoResultado((r) => (r?.ejercicioId === ejercicioId && r.pendiente ? null : r));
+      throw e;
+    }
+    // Se conserva lo que llegó mientras tanto (la respuesta correcta tras un fallo).
+    setUltimoResultado((r) => ({ ...r, ...resultado, acerto, ejercicioId, ...extra, pendiente: false }));
 
     if (resultado.sesion_completada) {
       setTerminada(true);
@@ -152,10 +173,9 @@ export default function Practica() {
   // Sin explicación (el explicador falló) no se manda ninguno.
   async function responderPinyin({ acerto, respuesta, explicacion, nota, codigoError }) {
     const ejercicioId = ejercicio.id;
-    await registrar(acerto, { respuesta, explicacion, nota }, codigoError ?? explicacion?.codigo);
 
-    // Si falló, se muestra la respuesta correcta. Si el catálogo no responde,
-    // el aviso de acierto o fallo ya está y basta con eso.
+    // Si falló, se muestra la respuesta correcta (ya suele estar precargada).
+    // Si el catálogo no responde, el aviso de acierto o fallo basta.
     if (!acerto) {
       obtenerCaracter(ejercicio.caracter)
         .then((c) =>
@@ -163,6 +183,8 @@ export default function Practica() {
         )
         .catch(() => {});
     }
+
+    await registrar(acerto, { respuesta, explicacion, nota }, codigoError ?? explicacion?.codigo);
   }
 
   function siguiente() {
@@ -219,20 +241,22 @@ export default function Practica() {
             <div className="practica-niveles">
               {NIVELES.map((n) =>
                 nivelMaximo !== null && n > nivelMaximo ? (
-                  // Nivel de Premium: lleva al panel del plan en Progreso.
+                  // Nivel de Premium: lleva al panel del plan en Progreso. El nombre
+                  // accesible sale del texto visible ("HSK 4 Premium", WCAG 2.5.3)
+                  // más el destino, solo para lectores de pantalla.
                   <Link
                     key={n}
                     to="/progreso#plan"
                     className="practica-nivel practica-nivel--premium"
-                    aria-label={t('practice.premiumLevel', { nivel: n })}
                   >
                     <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
                       {NUMERALES[n - 1]}
                     </span>
                     <span>HSK {n}</span>
-                    <span className="practica-nivel__premium" aria-hidden="true">
+                    <span className="practica-nivel__premium">
                       <IconoCandado /> {t('practice.premiumTag')}
                     </span>
+                    <span className="hm-sr">{t('practice.premiumLevel')}</span>
                   </Link>
                 ) : (
                   <button
@@ -240,6 +264,7 @@ export default function Practica() {
                     type="button"
                     className="practica-nivel"
                     disabled={cargando}
+                    aria-busy={(cargando && nivelPedido === n) || undefined}
                     onClick={() => (modo === 'sesion' ? empezar(n) : empezarLeccion(n))}
                   >
                     <span className="practica-nivel__numeral" lang="zh-Hans" aria-hidden="true">
@@ -451,10 +476,16 @@ export default function Practica() {
           <CuadriculaHanzi hanzi={ejercicio?.caracter} />
         </article>
 
-        {!ultimoResultado && ejercicio?.tipo !== 'trazo' ? (
-          // key: un formulario nuevo (vacío) por ejercicio.
-          <RespuestaPinyin key={ejercicio?.id} caracter={ejercicio?.caracter} onResponder={responderPinyin} />
-        ) : !ultimoResultado ? (
+        {/* Pinyin. Mientras se confirma la respuesta el formulario sigue montado
+            (oculto): si el envío falla, vuelve con lo escrito y su error. */}
+        {ejercicio?.tipo !== 'trazo' && (!ultimoResultado || ultimoResultado.pendiente) && (
+          <div hidden={Boolean(ultimoResultado)}>
+            {/* key: un formulario nuevo (vacío) por ejercicio. */}
+            <RespuestaPinyin key={ejercicio?.id} caracter={ejercicio?.caracter} onResponder={responderPinyin} />
+          </div>
+        )}
+
+        {ejercicio?.tipo === 'trazo' && !ultimoResultado && (
           <>
             <p className="practica-pregunta">{t('practice.question')}</p>
             <div className="practica-acciones">
@@ -475,13 +506,13 @@ export default function Practica() {
                 {t('practice.correct')}
               </button>
             </div>
-            {ejercicio?.tipo === 'trazo' && (
-              <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="practica-enlace">
-                {t('practice.seeStrokes')}
-              </Link>
-            )}
+            <Link to={`/trazos?caracter=${ejercicio.caracter}`} className="practica-enlace">
+              {t('practice.seeStrokes')}
+            </Link>
           </>
-        ) : (
+        )}
+
+        {ultimoResultado && (
           <div className="hm-panel practica-feedback" role="status">
             <p className={ultimoResultado.acerto ? 'practica-ok' : 'practica-fallo'}>
               {ultimoResultado.acerto ? t('practice.feedbackCorrect') : t('practice.feedbackFailed')}
@@ -513,16 +544,31 @@ export default function Practica() {
             {ultimoResultado.aviso && (
               <p className="hm-status hm-status--empty">{t('practice.progressNotSaved')}</p>
             )}
+            {/* El repaso y la tasa los calcula el servidor: hasta que responde, una línea de espera. */}
             <p className="practica-dato">
               {t('practice.nextReview')}{' '}
-              <strong>{formato.relativo(ultimoResultado.proximo_repaso) ?? t('practice.notAvailable')}</strong>
+              {ultimoResultado.pendiente ? (
+                <span className="hm-esqueleto practica-esqueleto" />
+              ) : (
+                <strong>{formato.relativo(ultimoResultado.proximo_repaso) ?? t('practice.notAvailable')}</strong>
+              )}
             </p>
             <p className="practica-dato">
               {t('practice.accuracy')}{' '}
-              <strong>{tasaAcierto(ultimoResultado.tasa_acierto)}</strong>
+              {ultimoResultado.pendiente ? (
+                <span className="hm-esqueleto practica-esqueleto" />
+              ) : (
+                <strong>{tasaAcierto(ultimoResultado.tasa_acierto)}</strong>
+              )}
             </p>
 
-            <button type="button" className="hm-btn hm-btn--block practica-siguiente" onClick={siguiente}>
+            <button
+              type="button"
+              className="hm-btn hm-btn--block practica-siguiente"
+              onClick={siguiente}
+              disabled={ultimoResultado.pendiente}
+              aria-busy={ultimoResultado.pendiente || undefined}
+            >
               {t('practice.next')}
             </button>
           </div>

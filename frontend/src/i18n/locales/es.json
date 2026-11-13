@@ -77,6 +77,26 @@
       }
     }
   },
+  "ally": {
+    "kicker": "Equipo aliado",
+    "title": "Caja de VaultDrop",
+    "description": "VaultDrop es el proyecto de otro equipo del curso: un simulador de apertura de cajas. Abrí una: el ítem sale con las probabilidades que ellos publican.",
+    "loading": "Cargando las cajas de VaultDrop…",
+    "sample": "Datos de ejemplo: VaultDrop todavía no está conectado.",
+    "fallback": "VaultDrop está tardando en responder: estas son sus cajas de hace un momento.",
+    "box": "Caja",
+    "open": "Abrir {{caja}}",
+    "opening": "Abriendo…",
+    "won": "Te salió",
+    "detail": "{{rareza}} · valor {{valor}} · probabilidad {{probabilidad}} %",
+    "credit": "Datos de VaultDrop, a través del servicio aliado de HanZi Mentor. Es una simulación: no usa créditos ni cuentas.",
+    "rarity": {
+      "comun": "Común",
+      "raro": "Raro",
+      "epico": "Épico",
+      "legendario": "Legendario"
+    }
+  },
   "strokes": {
     "title": "Trazos",
     "cardKicker": "Carácter actual",
@@ -157,7 +177,7 @@
     "patternKicker": "Para tu próxima sesión",
     "seePatterns": "Ver tus patrones",
     "premiumTag": "Premium",
-    "premiumLevel": "HSK {{nivel}}: requiere Premium. Ver tu plan",
+    "premiumLevel": ". Ver tu plan",
     "premiumNote": "Con el plan Gratis practicás HSK 1 a 3. HSK 4 a 6 son parte de Premium.",
     "premiumLink": "Ver planes",
     "planUnknown": "No pudimos confirmar tu plan: por ahora están todos los niveles abiertos.",

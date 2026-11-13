@@ -12,6 +12,7 @@
 #   /api/v2/evaluacion/* -> flask_evaluacion (Flask, sin base)
 #   /api/v2/reportes/* -> flask_reportes (Flask, encola en Redis; `worker` ejecuta)
 #   /api/v2/suscripciones/* -> flask_suscripciones (Flask, planes Free y Premium)
+#   /api/v2/aliado/*  -> flask_aliado  (Flask, consume al equipo aliado VaultDrop)
 #   /*                -> frontend      (PWA estática)
 #
 # Bases de datos: un solo PostgreSQL (`db`) con una base por servicio:
@@ -142,6 +143,27 @@ services:
       timeout: 5s
       # No carga datos al arrancar: solo crea la base y las tablas.
       start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  flask_aliado:
+    build: ./services/aliado-flask
+    environment:
+      # Sin base: no guarda estado. Consume el catálogo público del equipo
+      # aliado (VaultDrop, T26) en su IP elástica, sin /api. Con
+      # ALIADO_PROVEEDOR=falso responde dos cajas fijas sin red. Si VaultDrop
+      # no responde, usa el último catálogo que respondió.
+      ALIADO_PROVEEDOR: ${ALIADO_PROVEEDOR:-vaultdrop}
+      ALIADO_URL: ${ALIADO_URL:-http://3.217.19.101}
+      # VaultDrop a veces tarda más de 3 s (se midieron 4,4 s): se le dan 6.
+      ALIADO_TIMEOUT: ${ALIADO_TIMEOUT:-6}
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
       retries: 5
     restart: unless-stopped
 
@@ -384,6 +406,8 @@ services:
       flask_reportes:
         condition: service_started
       flask_suscripciones:
+        condition: service_started
+      flask_aliado:
         condition: service_started
       agente_tutor:
         condition: service_started

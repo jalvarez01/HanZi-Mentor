@@ -58,3 +58,11 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+
+/* Líneas de espera: mismo alto de línea que el texto que reemplazan. */
+.ejemplos-esqueleto {
+  display: inline-block;
+  max-width: 100%;
+  height: 0.8em;
+  vertical-align: middle;
+}

@@ -90,7 +90,7 @@ export default function ReporteProgreso({ usuarioId }) {
             {t('report.download')}
           </button>
         )}
-        <button type="button" className="hm-btn" onClick={generar} disabled={generando}>
+        <button type="button" className="hm-btn" onClick={generar} disabled={generando} aria-busy={generando || undefined}>
           {textoBoton}
         </button>
       </div>

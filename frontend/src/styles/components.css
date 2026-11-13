@@ -218,3 +218,75 @@
 
 .hm-page > .hm-status--error { --tinte: var(--cinnabar-tint); }
 .hm-page > .hm-status--empty { --tinte: var(--ochre-tint); }
+
+/* ------------------------------------------------------------- fluidez */
+
+/* Cambio de página: fundido corto. Solo opacidad: un transform crearía un
+   bloque contenedor para los position: fixed de la página. */
+@media (prefers-reduced-motion: no-preference) {
+  .hm-ruta--entra { animation: hm-entrar 200ms ease-out; }
+}
+
+@keyframes hm-entrar {
+  from { opacity: 0; }
+}
+
+/*
+ * Botón con un envío en curso (aria-busy): conserva su color, para que se
+ * lea como "trabajando" y no como deshabilitado, y suma un indicador junto
+ * al texto. Con movimiento reducido el indicador queda quieto.
+ */
+.hm-btn[aria-busy='true'],
+.hm-btn[aria-busy='true']:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+.hm-btn[aria-busy='true']::after {
+  content: '';
+  width: 0.9em;
+  height: 0.9em;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hm-btn[aria-busy='true']::after { animation: hm-girar 0.7s linear infinite; }
+}
+
+@keyframes hm-girar {
+  to { transform: rotate(1turn); }
+}
+
+/*
+ * Bloque de espera con el tamaño del contenido final (ancho y alto los pone
+ * cada pantalla), para que al llegar los datos no se mueva nada.
+ */
+.hm-esqueleto {
+  display: block;
+  border-radius: 2px;
+  background: var(--ink-tint);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hm-esqueleto { animation: hm-latir 1.2s ease-in-out infinite alternate; }
+}
+
+@keyframes hm-latir {
+  to { opacity: 0.45; }
+}
+
+/* Solo para lectores de pantalla (p. ej. el aviso de carga de un esqueleto). */
+.hm-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Texto que todavía espera al servidor (p. ej. el próximo repaso tras responder). */
+.hm-pendiente { color: var(--ink-subtle); }

@@ -72,6 +72,9 @@
 
 .topbar-racha svg { width: 16px; height: 16px; }
 
+/* El número llega después ("…" mientras carga): ancho fijo para que el selector de idioma no se corra. */
+.topbar-racha > span { min-width: 2ch; font-variant-numeric: tabular-nums; }
+
 @media (max-width: 390px) {
   .topbar { --topbar-gutter: 12px; gap: 8px; }
   .topbar-nombre strong { font-size: 15px; letter-spacing: 1.5px; }
