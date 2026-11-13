@@ -16,6 +16,8 @@
  *                             en segundo plano un worker de Celery
  *   - /api/v2/suscripciones/* -> suscripciones-flask: planes Free y Premium
  *                             con pago simulado (RF-USR-01)
+ *   - /api/v2/aliado/*     -> aliado-flask: cajas de VaultDrop, el equipo
+ *                             aliado (T26), a través de nuestro backend
  *
  * v2 responde los mismos campos que v1 (contenido y agente-tutor);
  * /api/v1/ sigue en el gateway solo como respaldo. La única diferencia es
@@ -41,6 +43,7 @@ const EVALUACION_URL = import.meta.env.VITE_EVALUACION_URL || '';
 const EJEMPLOS_URL = import.meta.env.VITE_EJEMPLOS_URL || '';
 const REPORTES_URL = import.meta.env.VITE_REPORTES_URL || '';
 const SUSCRIPCIONES_URL = import.meta.env.VITE_SUSCRIPCIONES_URL || '';
+const ALIADO_URL = import.meta.env.VITE_ALIADO_URL || '';
 
 const CATALOGO_API = `${CATALOGO_URL}/api/v2`;
 const SESIONES_API = `${SESIONES_URL}/api/v2`;
@@ -49,6 +52,7 @@ const EVALUACION_API = `${EVALUACION_URL}/api/v2`;
 const EJEMPLOS_API = `${EJEMPLOS_URL}/api/v2`;
 const REPORTES_API = `${REPORTES_URL}/api/v2`;
 const SUSCRIPCIONES_API = `${SUSCRIPCIONES_URL}/api/v2/suscripciones`;
+const ALIADO_API = `${ALIADO_URL}/api/v2/aliado`;
 
 class ErrorApi extends Error {
   constructor(mensaje, status, cuerpo) {
@@ -251,6 +255,23 @@ export function renovarPremium(usuarioId, pago) {
 /** Sin reembolso: Premium sigue hasta `vence_en` y después vuelve a Free. */
 export function cancelarPremium(usuarioId) {
   return pedir(`${SUSCRIPCIONES_API}/${usuarioId}/cancelar/`, { method: 'POST' });
+}
+
+// ------------------------------------------------------------------ aliado
+
+/**
+ * Cajas de VaultDrop (T26): { aliado, proveedor, respaldo, cajas: [{ id,
+ * nombre, precio, imagen_url, items }] }. `proveedor` "falso" son datos de
+ * ejemplo; `respaldo` true quiere decir que VaultDrop no respondió y son las
+ * de la última vez. Un 503 ALIADO_NO_DISPONIBLE: nunca respondió.
+ */
+export function listarCajasAliado() {
+  return pedir(`${ALIADO_API}/cajas/`);
+}
+
+/** Sortea un ítem con las probabilidades de VaultDrop: { ..., caja, item }. */
+export function abrirCajaAliado(cajaId) {
+  return pedir(`${ALIADO_API}/cajas/${cajaId}/abrir/`, { method: 'POST' });
 }
 
 // --------------------------------------------------------------- contenido

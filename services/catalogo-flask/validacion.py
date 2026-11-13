@@ -143,3 +143,29 @@ def validar_generar_leccion(datos):
         datos, "cantidad", 1, CANTIDAD_MAXIMA, defecto=CANTIDAD_DEFECTO
     )
     return usuario_id, nivel_hsk, cantidad
+
+
+# Reto de pinyin del equipo aliado: POST /api/v2/publico/reto/responder/.
+MAX_HANZI = 4  # como Caracter.hanzi
+MAX_RESPUESTA = 30
+
+
+def validar_respuesta_reto(datos):
+    """Devuelve (hanzi, respuesta). Los dos son texto obligatorio."""
+    if not isinstance(datos, dict):
+        raise _invalida(N_("El cuerpo debe ser un objeto JSON"))
+
+    valores = []
+    for campo, maximo in (("hanzi", MAX_HANZI), ("respuesta", MAX_RESPUESTA)):
+        valor = datos.get(campo)
+        if not isinstance(valor, str) or not valor.strip():
+            raise _invalida(N_("El campo '%(campo)s' es obligatorio y debe ser texto"), campo=campo)
+        if len(valor.strip()) > maximo:
+            raise _invalida(
+                N_("El campo '%(campo)s' admite hasta %(maximo)s caracteres"),
+                campo=campo,
+                maximo=maximo,
+            )
+        valores.append(valor.strip())
+    return tuple(valores)
+
